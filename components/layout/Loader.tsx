@@ -11,7 +11,13 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
     useEffect(() => {
         const video = videoRef.current;
         if (video) {
-            video.onloadeddata = () => setIsVideoLoaded(true);
+            // Force load trigger if event doesn't fire quickly
+            const timeout = setTimeout(() => setIsVideoLoaded(true), 1500);
+
+            video.onloadeddata = () => {
+                clearTimeout(timeout);
+                setIsVideoLoaded(true);
+            };
         }
     }, []);
 
@@ -20,36 +26,45 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
-                if (containerRef.current) {
-                    containerRef.current.style.display = 'none';
-                }
+                if (containerRef.current) containerRef.current.style.display = 'none';
                 onComplete();
             }
         });
 
-        // Play video for a bit, then fade out
-        // Assuming video length is short or we cut it. 
-        // Let's fade out after 3 seconds or when video ends.
-
-        // Simulating sequence
+        // Use a fixed duration for consistency, don't rely solely on video duration
+        // as some browsers might report it incorrectly or allow looping.
         tl.to(containerRef.current, {
             opacity: 0,
-            duration: 1.5,
-            delay: 3.5, // Adjust based on video length
+            duration: 1.0,
+            delay: 3.5,
             ease: "power2.inOut"
         });
 
+        // Safety net: Force complete after 5 seconds max
+        const safetyTimeout = setTimeout(() => onComplete(), 5000);
+
+        return () => clearTimeout(safetyTimeout);
     }, [isVideoLoaded, onComplete]);
 
+    // Click to skip functionality
+    const handleSkip = () => {
+        if (containerRef.current) containerRef.current.style.display = 'none';
+        onComplete();
+    };
+
     return (
-        <div ref={containerRef} className="fixed inset-0 z-[10000] bg-black flex items-center justify-center">
+        <div
+            ref={containerRef}
+            className="fixed inset-0 z-[10000] bg-black flex items-center justify-center cursor-pointer"
+            onClick={handleSkip}
+        >
             <video
                 ref={videoRef}
                 src="/logoanimado.mp4"
                 autoPlay
                 muted
                 playsInline
-                className="w-full h-full object-contain md:object-cover"
+                className="w-full h-full object-contain md:object-cover pointer-events-none"
             />
         </div>
     );
