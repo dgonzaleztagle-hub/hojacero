@@ -88,7 +88,7 @@ export default function Portfolio() {
                                         src={project.image}
                                         alt={project.title}
                                         fill
-                                        className="project-image object-cover transform scale-125"
+                                        className="project-image object-contain"
                                     />
                                 </div>
 
@@ -98,7 +98,7 @@ export default function Portfolio() {
                                         src={project.image}
                                         alt={project.title}
                                         fill
-                                        className="object-cover"
+                                        className="object-contain"
                                     />
                                 </div>
 
