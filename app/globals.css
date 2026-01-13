@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: var(--font-syncopate);
+  --font-body: var(--font-space);
+  
+  --color-accent: #00f0ff;
+  --color-bg: #000000;
+  --color-surface: rgba(255, 255, 255, 0.05);
+}
+
+:root {
+  --c-bg: #000000;
+  --c-text: #ffffff;
+  --c-accent: #00f0ff;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-space);
+  cursor: none; /* Custom cursor preparation */
+}
+
+/* Lenis Scroll */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
