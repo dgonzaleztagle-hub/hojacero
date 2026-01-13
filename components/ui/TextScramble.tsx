@@ -40,8 +40,8 @@ export default function TextScramble({ text, trigger, className = '' }: TextScra
                 clearInterval(intervalRef.current!);
             }
 
-            iteration += 1 / 2; // Speed control: higher denominator = slower
-        }, 30); // Frame rate: lower = faster
+            iteration += 1; // Speed control: faster (1 char per frame)
+        }, 15); // Frame rate: faster
 
         return () => clearInterval(intervalRef.current!);
     }, [trigger, text]);
