@@ -11,24 +11,31 @@ gsap.registerPlugin(ScrollTrigger);
 const projects = [
     {
         id: '01',
-        title: 'NEBULA',
-        category: 'FINTECH / WEBGL',
-        image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop',
-        link: '#'
+        title: 'SUPERPANEL',
+        category: 'SAAS / ENTERTAINMENT',
+        image: '/projects/superpanel.png',
+        link: 'https://superpanel.lat'
     },
     {
         id: '02',
-        title: 'KINETIC',
-        category: 'AUTOMOTIVE / 3D',
-        image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000&auto=format&fit=crop',
-        link: '#'
+        title: 'PLUS CONTABLE',
+        category: 'FINTECH / SAAS',
+        image: '/projects/pluscontable.png',
+        link: 'https://pluscontable.cl'
     },
     {
         id: '03',
-        title: 'AETHER',
-        category: 'AI / BRANDING',
-        image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?q=80&w=1000&auto=format&fit=crop',
+        title: 'TRUCK POS',
+        category: 'WEB APP / IN DEVELOPMENT',
+        image: '/projects/truckpos.png',
         link: '#'
+    },
+    {
+        id: '04',
+        title: 'ICE BUIN',
+        category: 'E-COMMERCE',
+        image: '/projects/icebuin.png',
+        link: 'https://icebuin.cl'
     }
 ];
 
