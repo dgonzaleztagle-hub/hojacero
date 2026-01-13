@@ -135,11 +135,7 @@ export default function Portfolio() {
                     <div className="w-full h-[1px] bg-white/10"></div>
                 </div>
 
-                <div className="mt-32 text-center">
-                    <Link href="#" className="inline-block border border-white/20 px-12 py-6 rounded-full text-sm font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-300 hover-trigger">
-                        View All Projects
-                    </Link>
-                </div>
+
 
             </div>
         </section>

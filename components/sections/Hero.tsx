@@ -45,7 +45,10 @@ export default function Hero() {
             </div>
 
             <div className="absolute bottom-12 right-6 md:right-12">
-                <div className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center hover-trigger cursor-none group">
+                <div
+                    onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="w-24 h-24 rounded-full border border-white/20 flex items-center justify-center hover-trigger cursor-none group transition-colors hover:border-white/50"
+                >
                     <span className="text-[10px] uppercase tracking-widest group-hover:scale-110 transition-transform">Scroll</span>
                 </div>
             </div>
