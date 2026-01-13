@@ -83,7 +83,7 @@ export default function Portfolio() {
                                     </h3>
                                 </div>
 
-                                <div className="relative w-full md:w-[500px] aspect-video overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700 opacity-60 group-hover:opacity-100 hidden md:block">
+                                <div className="relative w-full md:w-[500px] aspect-video overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700 opacity-60 group-hover:opacity-100 hidden md:block md:mr-12">
                                     <Image
                                         src={project.image}
                                         alt={project.title}
