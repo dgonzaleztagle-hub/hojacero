@@ -315,6 +315,8 @@ export default function ArchitectPage() {
                                     <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-2">Instrucción Técnica / Stack</label>
                                     <textarea
                                         rows={6}
+                                        value={enteredPrompt}
+                                        onChange={(e) => setEnteredPrompt(e.target.value)}
                                         placeholder="Describe el stack y la arquitectura deseada. Ej: 'Sistema de reservas con Next.js, caché en Redis y notificaciones por WhatsApp...'"
                                         className="w-full bg-black border border-white/10 rounded-lg p-4 text-sm text-cyan-300 font-mono focus:outline-none focus:border-cyan-500 resize-none transition-colors"
                                     />
@@ -326,7 +328,10 @@ export default function ArchitectPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-2">Plataforma</label>
-                                            <select className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500">
+                                            <select
+                                                value={marketingParams.platform}
+                                                onChange={(e) => setMarketingParams({ ...marketingParams, platform: e.target.value })}
+                                                className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500">
                                                 <option>Google Ads</option>
                                                 <option>Meta Ads</option>
                                                 <option>Email Strategy</option>
@@ -334,7 +339,10 @@ export default function ArchitectPage() {
                                         </div>
                                         <div>
                                             <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-2">Objetivo</label>
-                                            <select className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500">
+                                            <select
+                                                value={marketingParams.objective}
+                                                onChange={(e) => setMarketingParams({ ...marketingParams, objective: e.target.value })}
+                                                className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500">
                                                 <option>Ventas</option>
                                                 <option>Leads</option>
                                                 <option>Branding</option>
@@ -343,7 +351,12 @@ export default function ArchitectPage() {
                                     </div>
                                     <div>
                                         <label className="text-xs text-zinc-500 uppercase tracking-wider block mb-2">Contexto / Prompt</label>
-                                        <textarea rows={4} placeholder="Detalles de la campaña..." className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500 resize-none" />
+                                        <textarea
+                                            rows={4}
+                                            value={enteredPrompt}
+                                            onChange={(e) => setEnteredPrompt(e.target.value)}
+                                            placeholder="Detalles de la campaña..."
+                                            className="w-full bg-black border border-white/10 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500 resize-none" />
                                     </div>
                                 </>
                             )}
