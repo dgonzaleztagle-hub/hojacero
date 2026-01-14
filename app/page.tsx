@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import CustomCursor from '@/components/ui/CustomCursor';
 import Loader from '@/components/layout/Loader';
-import Navbar from '@/components/layout/Navbar'; // Import Navbar
+import Navbar from '@/components/layout/Navbar';
 import Hero from '@/components/sections/Hero';
 import Services from '@/components/sections/Services';
 import Portfolio from '@/components/sections/Portfolio';

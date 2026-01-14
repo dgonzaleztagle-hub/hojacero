@@ -3,7 +3,7 @@
 @theme {
   --font-display: var(--font-syncopate);
   --font-body: var(--font-space);
-  
+
   --color-accent: #00f0ff;
   --color-bg: #000000;
   --color-surface: rgba(255, 255, 255, 0.05);
@@ -19,11 +19,25 @@ body {
   background: var(--c-bg);
   color: var(--c-text);
   font-family: var(--font-space);
-  cursor: none; /* Custom cursor preparation */
+  cursor: none;
+  /* Custom cursor preparation */
+}
+
+/* Restore cursor for dashboard - Nuclear Option */
+body:has(.dashboard-container),
+.dashboard-container,
+.dashboard-container * {
+  cursor: auto !important;
+}
+
+/* Hide custom cursor when in dashboard */
+body:has(.dashboard-container) .fixed.w-8.h-8 {
+  display: none !important;
 }
 
 /* Lenis Scroll */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 

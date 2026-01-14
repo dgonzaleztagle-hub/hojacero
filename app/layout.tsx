@@ -14,8 +14,8 @@ const syncopate = Syncopate({
 });
 
 export const metadata: Metadata = {
-  title: "HOJA CERO | Beyond Digital",
-  description: "Redefining Digital Gravity. Design, Development, and Cloud Infrastructure.",
+  title: "HojaCero | Agencia de Desarrollo Web y Marketing",
+  description: "Transformamos negocios con código de calidad y estrategias digitales de alto impacto.",
 };
 
 export default function RootLayout({
