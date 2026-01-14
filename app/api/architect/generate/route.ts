@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
-const GEN_AI_KEY = process.env.GOOGLE_AI_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 export async function POST(req: Request) {
-    if (!GEN_AI_KEY) {
-        return NextResponse.json({ success: false, error: 'API Key Missing' }, { status: 500 });
+    if (!GROQ_API_KEY) {
+        return NextResponse.json({ success: false, error: 'GROQ API Key Missing' }, { status: 500 });
     }
 
     try {
@@ -54,24 +54,41 @@ export async function POST(req: Request) {
             userMessage = `Client Identity: ${clientData.identity}\nActivity: ${clientData.activity}\nVision: ${clientData.vision}\nFunctionality: ${clientData.functionality}\nAssets: ${clientData.assets}\nSoul: ${clientData.soul}`;
         }
 
-        // 2. Call Gemini API
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEN_AI_KEY}`, {
+        // 2. Call Groq API with Llama 3.3 (14,400 req/day vs Gemini's 20)
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_API_KEY}`
+            },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: `SYSTEM: ${systemInstruction}\n\nUSER REQUEST: ${userMessage}` }]
-                }]
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemInstruction
+                    },
+                    {
+                        role: 'user',
+                        content: userMessage
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 2048
             })
         });
 
         const data = await response.json();
 
-        if (!data.candidates || data.candidates.length === 0) {
-            throw new Error('No candidates returned from AI');
+        if (!response.ok) {
+            throw new Error(`Groq API Error: ${response.status} - ${JSON.stringify(data)}`);
         }
 
-        const generatedText = data.candidates[0].content.parts[0].text;
+        if (!data.choices || data.choices.length === 0) {
+            throw new Error('No response from AI');
+        }
+
+        const generatedText = data.choices[0].message.content;
 
         return NextResponse.json({ success: true, result: generatedText });
 
