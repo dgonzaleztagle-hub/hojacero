@@ -1,8 +1,6 @@
-'use client';
-
 import { useState } from 'react';
 import { useDashboard } from '../DashboardContext';
-import { Search, Loader2, Globe, MapPin, Star, AlertCircle, Save, Filter, ChevronRight, HelpCircle } from 'lucide-react';
+import { Search, Loader2, Globe, MapPin, Star, AlertCircle, Save, Filter, ChevronRight, HelpCircle, Target } from 'lucide-react';
 
 export default function RadarPage() {
     const { userRole } = useDashboard();
@@ -11,6 +9,42 @@ export default function RadarPage() {
     const [isScanning, setIsScanning] = useState(false);
     const [leads, setLeads] = useState<any[]>([]);
     const [error, setError] = useState('');
+
+    const handleSaveLead = async (lead: any) => {
+        try {
+            const res = await fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre: lead.title,
+                    direccion: lead.address,
+                    sitio_web: lead.website,
+                    telefono: lead.phone,
+                    puntaje_oportunidad: lead.analysis.score,
+                    razon_ia: lead.analysis.reason,
+                    categoria: 'radar', // Default category
+                    estado: 'nuevo',
+                    fuente: 'radar',
+                    zona_busqueda: location,
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Determine color based on score
+                let color = 'text-green-400';
+                if (lead.analysis.score < 50) color = 'text-red-400';
+                else if (lead.analysis.score < 80) color = 'text-yellow-400';
+
+                // Visual feedback (Primitive toast)
+                alert(`✅ Lead Guardado: ${lead.title}`);
+                // In a perfect world we use a real toast component here
+            } else {
+                alert(`⚠️ Error: ${data.error}`);
+            }
+        } catch (err) {
+            alert('Error de conexión');
+        }
+    };
 
     const handleScan = async () => {
         if (!query) return;
@@ -186,6 +220,7 @@ export default function RadarPage() {
                             {/* ACTIONS */}
                             <div className="col-span-2 flex items-center justify-end gap-2">
                                 <button
+                                    onClick={() => handleSaveLead(lead)}
                                     className="p-2 rounded-lg bg-zinc-900 border border-white/10 hover:bg-cyan-500/20 hover:text-cyan-400 hover:border-cyan-500/50 transition-all text-zinc-400"
                                     title="Guardar Lead en Agenda"
                                 >
