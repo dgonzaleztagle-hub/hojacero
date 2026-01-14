@@ -14,6 +14,15 @@ export default function ArchitectPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedPrompt, setGeneratedPrompt] = useState('');
 
+    const [enteredPrompt, setEnteredPrompt] = useState(''); // DEV & MARKETING shared input
+    const [marketingParams, setMarketingParams] = useState({
+        platform: 'Google Ads',
+        objective: 'Ventas'
+    });
+
+    // Alias for the prompt used in generation to handle the shared input UI
+    const inputPrompt = enteredPrompt;
+
     // CLIENT WIZARD STATE
     const [wizardStep, setWizardStep] = useState(1);
     const [clientAnswers, setClientAnswers] = useState({
@@ -28,17 +37,38 @@ export default function ArchitectPage() {
 
     // --- HANDLERS ---
 
-    const handleAdminGenerate = () => {
+    // --- REAL AI GENERATION ---
+    const handleAdminGenerate = async () => {
         setIsGenerating(true);
         setGeneratedPrompt('');
-        setTimeout(() => {
-            if (mode === 'DEV') {
-                setGeneratedPrompt(`# ARQUITECTURA SUGERIDA\n\n- Backend: Next.js API Routes (Serverless)\n- DB: Supabase (PostgreSQL) con RLS activado\n- Auth: Magic Link para onboarding sin fricción\n\n# MODELO DE DATOS\n- [Users] -> 1:N -> [Projects]\n- [Projects] -> 1:N -> [Invoices]\n\n# NEXT STEPS\n1. "npx create-next-app@latest"\n2. Configurar variables de entorno .env.local`);
+
+        // Get current values from select inputs if in Marketing mode
+        // Note: In a real React form we should bind these to state, but for now we read them or use defaults
+        // Let's quickly add state for them to be clean
+
+        try {
+            const res = await fetch('/api/architect/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mode,
+                    platform: marketingParams.platform,
+                    objective: marketingParams.objective,
+                    prompt: inputPrompt
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setGeneratedPrompt(data.result);
             } else {
-                setGeneratedPrompt(`# ESTRATEGIA DE CONTENIDOS\n\n1. ANCLAJE EMOCIONAL: "Tranquilidad Mental"\n2. COPY SUGERIDO (Instagram):\n"¿Tu contabilidad es un caos? 🤯 Deja que los expertos se ocupen. En [Nombre] ordenamos tus números para que tú ordenes tu vida."\n\n3. KEYWORDS SEO:\n- "Contador para Pymes Santiago"\n- "Asesoría Tributaria Online"`);
+                setGeneratedPrompt(`Error: ${data.error}`);
             }
+        } catch (err) {
+            setGeneratedPrompt('Error de conexión con el Arquitecto.');
+        } finally {
             setIsGenerating(false);
-        }, 2000);
+        }
     };
 
     const handleClientNext = () => {
