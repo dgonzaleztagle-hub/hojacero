@@ -11,6 +11,12 @@ export default function RadarPage() {
     const [isScanning, setIsScanning] = useState(false);
     const [leads, setLeads] = useState<any[]>([]);
     const [error, setError] = useState('');
+    const [selectedLead, setSelectedLead] = useState<any | null>(null);
+
+    const openLeadDetails = (lead: any) => {
+        setSelectedLead(lead);
+    };
+
 
     const handleSaveLead = async (lead: any) => {
         try {
@@ -86,14 +92,6 @@ export default function RadarPage() {
         );
     }
 
-    return (
-    const [selectedLead, setSelectedLead] = useState<any | null>(null);
-
-    // ... (existing handlers)
-
-    const openLeadDetails = (lead: any) => {
-        setSelectedLead(lead);
-    };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20">
