@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useDashboard } from '../DashboardContext';
 import { Search, Loader2, Globe, MapPin, Star, AlertCircle, Save, Filter, ChevronRight, HelpCircle, Target } from 'lucide-react';
