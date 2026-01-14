@@ -15,10 +15,13 @@ export default function InboxPage() {
     }, []);
 
     const fetchLeads = async () => {
+        console.log("Fetching leads from Supabase...");
         const { data, error } = await supabase
             .from('leads')
             .select('*')
             .order('created_at', { ascending: false });
+
+        console.log("Supabase Response:", { data, error });
 
         if (data) setLeads(data);
         setLoading(false);
