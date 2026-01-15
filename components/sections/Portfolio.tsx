@@ -94,7 +94,7 @@ export default function Portfolio() {
                         return (
                             <CardTag
                                 key={project.id}
-                                href={!isDev ? project.link : undefined} // Solo pasa href si no es dev
+                                href={project.link}
                                 className={`project-card group relative border-t border-white/10 py-24 transition-colors duration-500 block ${isDev ? 'cursor-help hover:bg-white/5' : 'hover:bg-white/5 hover-trigger cursor-none'}`}
                                 onMouseEnter={() => setHoveredProject(project.id)}
                                 onMouseLeave={() => setHoveredProject(null)}
