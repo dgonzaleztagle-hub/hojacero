@@ -1,44 +1,49 @@
-import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
 
-export async function POST(req: Request) {
+// GET: Obtener estadísticas de leads
+export async function GET() {
     const supabase = await createClient();
 
-    // Security Check: Only Admins can save leads
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { // In production add role check
-        // For now allow authenticated
+    const { data: leads, error } = await supabase
+        .from('leads')
+        .select('id, nombre, zona_busqueda, estado, puntaje_oportunidad, razon_ia, created_at')
+        .eq('fuente', 'radar')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    try {
-        const body = await req.json();
-
-        // Validate duplicates by website or name
-        if (body.sitio_web) {
-            const { data: existing } = await supabase
-                .from('leads')
-                .select('id')
-                .eq('sitio_web', body.sitio_web)
-                .single();
-
-            if (existing) {
-                return NextResponse.json({ success: false, error: 'Este lead ya existe.' }, { status: 400 });
-            }
+    return NextResponse.json({
+        total: leads?.length || 0,
+        leads: leads || [],
+        summary: {
+            detected: leads?.filter(l => l.estado === 'detected').length || 0,
+            discarded: leads?.filter(l => l.estado === 'discarded').length || 0,
+            ready_to_contact: leads?.filter(l => l.estado === 'ready_to_contact').length || 0,
+            in_contact: leads?.filter(l => l.estado === 'in_contact').length || 0,
+            won: leads?.filter(l => l.estado === 'won').length || 0,
+            lost: leads?.filter(l => l.estado === 'lost').length || 0,
         }
+    });
+}
 
-        const { data, error } = await supabase
-            .from('leads')
-            .insert({
-                ...body,
-                created_at: new Date().toISOString()
-            })
-            .select()
-            .single();
+// DELETE: Borrar TODOS los leads de radar (para reset de pruebas)
+export async function DELETE() {
+    const supabase = await createClient();
 
-        if (error) throw error;
+    const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('fuente', 'radar');
 
-        return NextResponse.json({ success: true, lead: data });
-    } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    return NextResponse.json({
+        success: true,
+        message: 'Todos los leads de radar han sido eliminados.'
+    });
 }

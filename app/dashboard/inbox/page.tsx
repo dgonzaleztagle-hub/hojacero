@@ -8,11 +8,23 @@ export default function InboxPage() {
     const [leads, setLeads] = useState<any[]>([]);
     const [selectedLead, setSelectedLead] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
+    const [notes, setNotes] = useState<any[]>([]);
+    const [newNote, setNewNote] = useState('');
+    const [isSavingNote, setIsSavingNote] = useState(false);
+    const [currentUser] = useState('Daniel'); // TODO: Auth integration
     const supabase = createClient();
 
     useEffect(() => {
         fetchLeads();
     }, []);
+
+    useEffect(() => {
+        if (selectedLead) {
+            fetchNotes(selectedLead.id);
+        } else {
+            setNotes([]);
+        }
+    }, [selectedLead]);
 
     const fetchLeads = async () => {
         console.log("Fetching leads from Supabase...");
@@ -25,6 +37,43 @@ export default function InboxPage() {
 
         if (data) setLeads(data);
         setLoading(false);
+    };
+
+    const fetchNotes = async (leadId: string) => {
+        const { data } = await supabase
+            .from('lead_notas')
+            .select('*')
+            .eq('lead_id', leadId)
+            .order('created_at', { ascending: false });
+        if (data) setNotes(data);
+    };
+
+    const saveNote = async () => {
+        if (!newNote.trim() || !selectedLead) return;
+        setIsSavingNote(true);
+        try {
+            const { error } = await supabase.from('lead_notas').insert({
+                lead_id: selectedLead.id,
+                contenido: newNote,
+                categoria: 'general'
+            });
+            if (error) throw error;
+            setNewNote('');
+            fetchNotes(selectedLead.id);
+        } catch (err) {
+            console.error('Error saving note:', err);
+        } finally {
+            setIsSavingNote(false);
+        }
+    };
+
+    const deleteNote = async (noteId: string) => {
+        try {
+            await supabase.from('lead_notas').delete().eq('id', noteId);
+            setNotes(notes.filter(n => n.id !== noteId));
+        } catch (err) {
+            console.error('Error deleting note:', err);
+        }
     };
 
     return (
@@ -126,12 +175,54 @@ export default function InboxPage() {
                             </div>
 
                             {/* Notes / History (Mock for now) */}
-                            <div className="p-8 flex-1 bg-zinc-900/30">
-                                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Historial & Notas</h3>
-                                <div className="text-center py-10 text-zinc-600 text-sm border-2 border-dashed border-zinc-800 rounded-xl">
-                                    Sin notas registradas.
-                                    <br />
-                                    <span className="text-xs opacity-50">Próximamente: Integración con Notas</span>
+                            {/* Notes / History */}
+                            <div className="p-8 flex-1 bg-zinc-900/30 flex flex-col min-h-[400px]">
+                                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Notas & Bitácora</h3>
+
+                                {/* New Note Input */}
+                                <div className="mb-6 relative">
+                                    <textarea
+                                        value={newNote}
+                                        onChange={(e) => setNewNote(e.target.value)}
+                                        placeholder="Escribe una nota rápida, recordatorio o detalle importante..."
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-cyan-500/50 resize-none h-24 transition-all"
+                                    />
+                                    <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                                        <button
+                                            onClick={saveNote}
+                                            disabled={!newNote.trim() || isSavingNote}
+                                            className="bg-cyan-500 text-black px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-cyan-900/20"
+                                        >
+                                            <Save className="w-3 h-3" />
+                                            {isSavingNote ? 'Guardando...' : 'Guardar Nota'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Notes List */}
+                                <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                    {notes.length === 0 ? (
+                                        <div className="text-center py-8 text-zinc-600 text-sm italic border border-white/5 border-dashed rounded-xl">
+                                            No hay notas registradas para este lead.
+                                        </div>
+                                    ) : (
+                                        notes.map((note) => (
+                                            <div key={note.id} className="bg-black/40 border border-white/5 p-4 rounded-xl group hover:border-white/10 transition-colors animate-in fade-in slide-in-from-bottom-2">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="text-[10px] text-zinc-500 font-mono">
+                                                        {new Date(note.created_at).toLocaleDateString()} • {new Date(note.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => deleteNote(note.id)}
+                                                        className="text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                                <p className="text-zinc-300 text-sm whitespace-pre-wrap leading-relaxed">{note.contenido}</p>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 // Tipos de Datos Mock
 export type ClientData = {
@@ -58,6 +58,7 @@ const MOCK_CLIENTS: ClientData[] = [
 ];
 
 type UserRole = 'ADMIN' | 'CLIENT';
+type Theme = 'dark' | 'light';
 
 type DashboardContextType = {
     currentClient: ClientData;
@@ -65,6 +66,8 @@ type DashboardContextType = {
     clients: ClientData[];
     userRole: UserRole;
     toggleUserRole: () => void;
+    theme: Theme;
+    toggleTheme: () => void;
 };
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -72,6 +75,13 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const [currentClient, setCurrentClient] = useState(MOCK_CLIENTS[0]);
     const [userRole, setUserRole] = useState<UserRole>('ADMIN');
+    const [theme, setTheme] = useState<Theme>('dark');
+
+    // Load theme from localStorage on mount
+    useEffect(() => {
+        const savedTheme = localStorage.getItem('hojacero-theme') as Theme;
+        if (savedTheme) setTheme(savedTheme);
+    }, []);
 
     const switchClient = (id: string) => {
         const client = MOCK_CLIENTS.find(c => c.id === id);
@@ -82,8 +92,16 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setUserRole(prev => prev === 'ADMIN' ? 'CLIENT' : 'ADMIN');
     };
 
+    const toggleTheme = () => {
+        setTheme(prev => {
+            const newTheme = prev === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('hojacero-theme', newTheme);
+            return newTheme;
+        });
+    };
+
     return (
-        <DashboardContext.Provider value={{ currentClient, switchClient, clients: MOCK_CLIENTS, userRole, toggleUserRole }}>
+        <DashboardContext.Provider value={{ currentClient, switchClient, clients: MOCK_CLIENTS, userRole, toggleUserRole, theme, toggleTheme }}>
             {children}
         </DashboardContext.Provider>
     );
@@ -94,3 +112,4 @@ export function useDashboard() {
     if (!context) throw new Error('useDashboard must be used within DashboardProvider');
     return context;
 }
+

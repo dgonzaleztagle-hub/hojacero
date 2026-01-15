@@ -10,28 +10,69 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Falta la API Key de Groq' }, { status: 500 });
         }
 
-        const prompt = `
-Eres un experto en ventas de la agencia "HojaCero". Tu objetivo es redactar un mensaje de contacto altamente personalizado y persuasivo.
+        // Datos comunes
+        const businessName = leadData.title || 'el negocio';
+        const painPoints = leadData.analysis?.salesStrategy?.painPoints?.join(', ') || '';
+        const hook = leadData.analysis?.salesStrategy?.hook || '';
+        const hasWebsite = !!leadData.website;
 
-DATOS DEL NEGOCIO:
-- Nombre: ${leadData.title}
-- Sitio Web: ${leadData.website || 'No tiene'}
-- Pain Points: ${leadData.analysis?.salesStrategy?.painPoints?.join(', ') || 'Necesita una mejor presencia digital'}
-- Oportunidad: ${leadData.analysis?.opportunity || 'Diseño Web / Marketing'}
-- Gancho (Hook) IA: ${leadData.analysis?.salesStrategy?.hook || ''}
+        // PROMPTS SEPARADOS según tipo
+        let prompt = '';
 
-TIPO DE MENSAJE: ${type === 'whatsapp' ? 'WhatsApp (Directo, breve, amigable)' : 'Email (Profesional, estructurado, enfocado en valor)'}
+        if (type === 'whatsapp') {
+            // WhatsApp: CORTO PERO PROFESIONAL - 60-80 palabras
+            prompt = `
+Escribe un mensaje de WhatsApp CORTO pero PROFESIONAL (60-80 palabras, máximo 5 líneas) para contactar a "${businessName}".
 
-INSTRUCCIONES:
-1. Usa un tono cercano pero profesional.
-2. Menciona específicamente un "pain point" o el gancho detectado.
-3. Propón una solución rápida (ej: "vi que tu web no tiene SSL y eso asusta a los clientes" o "noté que no tienes web y tus competidores sí").
-4. Incluye un llamado a la acción (CTA) claro y suave.
-5. NO uses placeholders como [Nombre], usa "Daniel de HojaCero" como remitente.
-6. Si es WhatsApp, usa Emojis de forma estratégica.
+CONTEXTO:
+- ${hasWebsite ? 'Tiene página web pero puede mejorar su presencia digital' : 'No tiene página web actualmente'}
+- Pain point detectado: ${painPoints || 'Oportunidad de mejorar presencia digital'}
 
-Responde SOLO con el cuerpo del mensaje, sin asuntos ni explicaciones adicionales.
+ESTRUCTURA:
+1. Saludo cordial con el nombre del negocio
+2. Presentación breve (quién eres y qué haces en 1 línea)
+3. Una observación específica sobre su negocio (sin jerga técnica)
+4. Propuesta de valor clara (cómo puedes ayudarle)
+5. Pregunta que invite a responder
+
+REGLAS:
+- Entre 60 y 80 palabras. Ni más corto ni más largo.
+- Tono profesional pero cercano (no suenes como robot ni como niño)
+- Usa máximo 2 emojis y solo si aportan
+- NO menciones términos técnicos (nada de SSL, SEO, hosting)
+- Enfócate en: más clientes, verse profesional, destacar de competidores
+- Firma como "Daniel de HojaCero - Diseño Web"
+
+Responde SOLO el mensaje, nada más.
 `;
+        } else {
+            // Email: Completo pero enfocado en NEGOCIO, no técnico
+            prompt = `
+Escribe un email profesional pero cercano para contactar a "${businessName}".
+
+CONTEXTO:
+- ${hasWebsite ? 'Tiene página web' : 'No tiene página web'}
+- Pain points: ${painPoints || 'Oportunidad de mejorar presencia digital'}
+- Gancho sugerido: ${hook || ''}
+
+ESTRUCTURA DEL EMAIL:
+1. Saludo personalizado (usa el nombre del negocio)
+2. Cómo los encontraste (Google Maps, buscando negocios del rubro)
+3. UNA observación específica sobre oportunidad de mejora (NO técnica)
+4. Qué podrían ganar: más clientes, verse más profesional, superar competencia
+5. Propuesta suave de conversar (sin presión)
+6. Despedida amigable
+
+REGLAS:
+- NO uses jerga técnica (nada de SSL, SEO, responsive, hosting, etc)
+- Habla de RESULTADOS: más clientes, más ventas, verse profesional
+- Largo ideal: 4-6 oraciones
+- Tono: Profesional pero humano, como si hablaras con un conocido
+- Firma como "Daniel - HojaCero" con "Agencia de Diseño Web"
+
+Responde SOLO el cuerpo del email (sin "Asunto:" ni explicaciones).
+`;
+        }
 
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -44,7 +85,9 @@ Responde SOLO con el cuerpo del mensaje, sin asuntos ni explicaciones adicionale
                 messages: [
                     {
                         role: 'system',
-                        content: 'Eres un copywriter experto en ventas B2B para una agencia de diseño web.'
+                        content: type === 'whatsapp'
+                            ? 'Eres un experto en mensajes de WhatsApp para ventas B2B. Escribes mensajes profesionales pero cercanos, de largo moderado (60-80 palabras). Nunca usas jerga técnica.'
+                            : 'Eres un copywriter de emails de ventas. Escribes emails persuasivos enfocados en beneficios de negocio, nunca en jerga técnica.'
                     },
                     {
                         role: 'user',
@@ -52,7 +95,7 @@ Responde SOLO con el cuerpo del mensaje, sin asuntos ni explicaciones adicionale
                     }
                 ],
                 temperature: 0.7,
-                max_tokens: 500
+                max_tokens: type === 'whatsapp' ? 200 : 400
             })
         });
 
@@ -70,3 +113,4 @@ Responde SOLO con el cuerpo del mensaje, sin asuntos ni explicaciones adicionale
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+
