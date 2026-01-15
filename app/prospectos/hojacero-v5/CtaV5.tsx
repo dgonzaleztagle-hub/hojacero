@@ -7,14 +7,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 // ============================================================================
-// CTA (V5 FINAL) - "PRODUCCIÓN"
+// CTA V5 - "PRODUCCIÓN"
 // 
 // Links Reales:
 // - Opción 1 (Agenda): WhatsApp +56972739105
 // - Opción 2 (Cotiza): Email hojacero.cl@gmail.com
 // ============================================================================
 
-export default function Cta() {
+export default function CtaV5() {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLHeadingElement>(null);
 
@@ -47,7 +47,7 @@ export default function Cta() {
                     </h2>
                 </div>
 
-                {/* Cards de Conversión */}
+                {/* Cards de Conversión V5 - REAL LINKS */}
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
                     {/* Opción Rápida - WHATSAPP */}
                     <a

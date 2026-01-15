@@ -7,14 +7,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 // ============================================================================
-// CTA (V5 FINAL) - "PRODUCCIÓN"
+// CTA V4 - "CONVERSIÓN DIRECTA"
 // 
-// Links Reales:
-// - Opción 1 (Agenda): WhatsApp +56972739105
-// - Opción 2 (Cotiza): Email hojacero.cl@gmail.com
+// Título: LET'S TALK (Icónico)
+// Subtítulo híbrido
+// Cards de acción claras en Español
 // ============================================================================
 
-export default function Cta() {
+export default function CtaV4() {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLHeadingElement>(null);
 
@@ -47,33 +47,33 @@ export default function Cta() {
                     </h2>
                 </div>
 
-                {/* Cards de Conversión */}
+                {/* Cards de Conversión V4 */}
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
-                    {/* Opción Rápida - WHATSAPP */}
+                    {/* Opción Rápida */}
                     <a
-                        href="https://wa.me/56972739105?text=Hola%20HojaCero%2C%20me%20gustar%C3%ADa%20agendar%20una%20reuni%C3%B3n%20para%20conversar%20sobre%20un%20proyecto."
+                        href="https://cal.com/hojacero"
                         target="_blank"
-                        className="group relative p-8 border border-gray-200 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white transition-all duration-300 text-left rounded-xl overflow-hidden"
+                        className="group relative p-8 border border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all duration-300 text-left rounded-xl overflow-hidden"
                     >
                         <div className="relative z-10">
-                            <span className="text-xs font-mono uppercase tracking-widest text-gray-400 group-hover:text-white/80">Opción 1</span>
-                            <h3 className="text-2xl font-bold mt-2 mb-1">Hablemos por WhatsApp</h3>
-                            <p className="text-sm text-gray-500 group-hover:text-white/90">Respuesta inmediata · Directo</p>
+                            <span className="text-xs font-mono uppercase tracking-widest text-gray-400 group-hover:text-gray-500">Opción 1</span>
+                            <h3 className="text-2xl font-bold mt-2 mb-1">Agenda una reu</h3>
+                            <p className="text-sm text-gray-500 group-hover:text-gray-300">15 min · Discovery Call · Gratis</p>
                         </div>
                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-xl">💬</span>
+                            <span className="text-xl">↗</span>
                         </div>
                     </a>
 
-                    {/* Opción Cotización - EMAIL */}
+                    {/* Opción Cotización */}
                     <a
-                        href="mailto:hojacero.cl@gmail.com?subject=Solicitud%20de%20Cotizaci%C3%B3n&body=Hola%20HojaCero%2C%0A%0AQuisiera%20cotizar%20un%20proyecto%20de..."
+                        href="mailto:hello@hojacero.com?subject=Solicitud%20de%20Cotizaci%C3%B3n"
                         className="group relative p-8 border border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all duration-300 text-left rounded-xl overflow-hidden"
                     >
                         <div className="relative z-10">
                             <span className="text-xs font-mono uppercase tracking-widest text-gray-400 group-hover:text-gray-500">Opción 2</span>
                             <h3 className="text-2xl font-bold mt-2 mb-1">Pídeme una cotización</h3>
-                            <p className="text-sm text-gray-500 group-hover:text-gray-300">Respuesta detallada vía Email</p>
+                            <p className="text-sm text-gray-500 group-hover:text-gray-300">Respuesta en 24 horas via Email</p>
                         </div>
                         <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                             <span className="text-xl">✉</span>

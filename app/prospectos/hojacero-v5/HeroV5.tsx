@@ -7,14 +7,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 // ============================================================================
-// HERO (V5 FINAL) - "THE PERFECT MERGE"
+// HERO V5 - "THE PERFECT MERGE"
 // 
 // Layout: Basado en V2 (Más espacio, tipografía fina)
 // Slogan: Híbrido (EN -> ES) pero estilizado como V2
 // CTAs: Español, estilo V2 (clean borders)
 // ============================================================================
 
-export default function Hero() {
+export default function HeroV5() {
     const containerRef = useRef<HTMLDivElement>(null);
     const title1Ref = useRef<HTMLHeadingElement>(null);
     const title2Ref = useRef<HTMLHeadingElement>(null);
@@ -38,7 +38,7 @@ export default function Hero() {
     return (
         <section ref={containerRef} className="h-screen w-full flex flex-col justify-center items-center relative overflow-hidden mix-blend-difference z-10">
             <div className="relative z-10 text-center">
-                {/* TÍTULO PRINCIPAL */}
+                {/* TÍTULO PRINCIPAL - Intacto */}
                 <div className="overflow-hidden">
                     <h1 ref={title1Ref} className="text-[15vw] leading-[0.8] uppercase font-bold font-display tracking-tighter">
                         HOJA
@@ -57,7 +57,7 @@ export default function Hero() {
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
-                    {/* Versión Inglés (Default) */}
+                    {/* Versión Inglés (Default) - V2 Style: Light, tracking wide */}
                     <div className={`transition-all duration-500 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
                         <p className="text-xl md:text-2xl font-light tracking-wide max-w-2xl mx-auto">
                             If your website looks cheap, your business looks cheap.
@@ -67,7 +67,7 @@ export default function Hero() {
                         </p>
                     </div>
 
-                    {/* Versión Español (Hover) */}
+                    {/* Versión Español (Hover) - V2 Style */}
                     <div className={`transition-all duration-500 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
                         <p className="text-xl md:text-2xl font-light tracking-wide max-w-2xl mx-auto text-accent">
                             Si tu sitio se ve barato, tu negocio se ve barato.
@@ -78,10 +78,10 @@ export default function Hero() {
                     </div>
                 </div>
 
-                {/* CTAs - Estilo V2 */}
+                {/* CTAs - Estilo V2 (Clean Borders, More Padding) */}
                 <div ref={ctaRef} className="mt-16 flex flex-wrap justify-center gap-8">
                     <a
-                        href="https://wa.me/56972739105?text=Hola%20HojaCero%2C%20me%20gustar%C3%ADa%20agendar%20una%20reuni%C3%B3n."
+                        href="https://cal.com/hojacero"
                         target="_blank"
                         className="px-10 py-4 border border-white/20 hover:border-white hover:bg-white hover:text-black transition-all duration-500 text-xs uppercase tracking-[0.2em] font-medium"
                     >
@@ -96,13 +96,13 @@ export default function Hero() {
                 </div>
             </div>
 
-            {/* STATEMENT TÉCNICO */}
+            {/* STATEMENT TÉCNICO - Minimal V2 Style */}
             <div className="absolute bottom-12 left-6 md:left-12 max-w-xs text-[10px] font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity">
                 <p>Spatial UI experiment.</p>
                 <p>Santiago / Worldwide</p>
             </div>
 
-            {/* SCROLL INDICATOR */}
+            {/* SCROLL INDICATOR - V2 Style (Clean) */}
             <div className="absolute bottom-12 right-6 md:right-12">
                 <div
                     onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}

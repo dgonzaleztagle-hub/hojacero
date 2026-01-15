@@ -3,24 +3,26 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import TextScramble from '@/components/ui/TextScramble';
 
 gsap.registerPlugin(ScrollTrigger);
 
 // ============================================================================
-// HERO (V5 FINAL) - "THE PERFECT MERGE"
+// HERO V4 - "THE STATEMENT"
 // 
-// Layout: Basado en V2 (Más espacio, tipografía fina)
-// Slogan: Híbrido (EN -> ES) pero estilizado como V2
-// CTAs: Español, estilo V2 (clean borders)
+// Slogan Híbrido: EN -> ES on Hover
+// Statement: "Spatial UI experiment"
+// CTAs: Español, claros, conversión.
 // ============================================================================
 
-export default function Hero() {
+export default function HeroV4() {
     const containerRef = useRef<HTMLDivElement>(null);
     const title1Ref = useRef<HTMLHeadingElement>(null);
     const title2Ref = useRef<HTMLHeadingElement>(null);
     const subtitleRef = useRef<HTMLDivElement>(null);
     const ctaRef = useRef<HTMLDivElement>(null);
 
+    // Estado para el hover del slogan
     const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
@@ -50,65 +52,68 @@ export default function Hero() {
                     </h1>
                 </div>
 
-                {/* SLOGAN HÍBRIDO - Estilo V2 (Light & Airy) */}
+                {/* SLOGAN HÍBRIDO (EN -> ES) */}
                 <div
                     ref={subtitleRef}
-                    className="mt-12 cursor-help relative h-20 md:h-24 flex flex-col items-center justify-start group"
+                    className="mt-10 cursor-help relative h-20 md:h-24 flex flex-col items-center justify-center group"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
                     {/* Versión Inglés (Default) */}
-                    <div className={`transition-all duration-500 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
-                        <p className="text-xl md:text-2xl font-light tracking-wide max-w-2xl mx-auto">
-                            If your website looks cheap, your business looks cheap.
+                    <div className={`transition-opacity duration-300 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+                        <p className="text-xl md:text-3xl font-light tracking-wide max-w-3xl mx-auto leading-relaxed">
+                            If your website looks cheap,<br />
+                            <span className="font-semibold text-white">your business looks cheap.</span>
                         </p>
-                        <p className="text-sm italic opacity-50 mt-3 font-serif tracking-widest">
+                        <p className="text-lg md:text-xl italic opacity-50 mt-2">
                             We fix that.
                         </p>
                     </div>
 
                     {/* Versión Español (Hover) */}
-                    <div className={`transition-all duration-500 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-                        <p className="text-xl md:text-2xl font-light tracking-wide max-w-2xl mx-auto text-accent">
-                            Si tu sitio se ve barato, tu negocio se ve barato.
+                    <div className={`transition-opacity duration-300 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                        <p className="text-xl md:text-3xl font-light tracking-wide max-w-3xl mx-auto leading-relaxed text-accent">
+                            Si tu sitio se ve barato,<br />
+                            <span className="font-semibold">tu negocio se ve barato.</span>
                         </p>
-                        <p className="text-sm italic opacity-100 mt-3 font-serif tracking-widest text-white">
+                        <p className="text-lg md:text-xl italic opacity-100 mt-2 text-white">
                             Nosotros lo arreglamos.
                         </p>
                     </div>
                 </div>
 
-                {/* CTAs - Estilo V2 */}
-                <div ref={ctaRef} className="mt-16 flex flex-wrap justify-center gap-8">
+                {/* CTAs en ESPAÑOL (Conversión) */}
+                <div ref={ctaRef} className="mt-8 flex flex-wrap justify-center gap-6">
                     <a
-                        href="https://wa.me/56972739105?text=Hola%20HojaCero%2C%20me%20gustar%C3%ADa%20agendar%20una%20reuni%C3%B3n."
+                        href="https://cal.com/hojacero"
                         target="_blank"
-                        className="px-10 py-4 border border-white/20 hover:border-white hover:bg-white hover:text-black transition-all duration-500 text-xs uppercase tracking-[0.2em] font-medium"
+                        className="group px-8 py-4 bg-white text-black text-sm uppercase tracking-[0.15em] font-bold hover:bg-accent hover:text-black transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(212,255,0,0.4)]"
                     >
                         Agenda una llamada
+                        <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
                     </a>
                     <a
                         href="#portfolio"
-                        className="px-10 py-4 border border-white/20 hover:border-white hover:bg-white hover:text-black transition-all duration-500 text-xs uppercase tracking-[0.2em] font-medium"
+                        className="px-8 py-4 border-2 border-white/30 text-white text-sm uppercase tracking-[0.15em] font-bold hover:bg-white hover:text-black transition-all duration-300"
                     >
                         Ver Proyectos
                     </a>
                 </div>
             </div>
 
-            {/* STATEMENT TÉCNICO */}
-            <div className="absolute bottom-12 left-6 md:left-12 max-w-xs text-[10px] font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity">
-                <p>Spatial UI experiment.</p>
-                <p>Santiago / Worldwide</p>
+            {/* STATEMENT TÉCNICO V4 (Confirmado por usuario) */}
+            <div className="absolute bottom-12 left-6 md:left-12 max-w-xs text-xs font-mono uppercase tracking-widest leading-relaxed opacity-60 hover:opacity-100 transition-opacity">
+                <p className="text-accent">Spatial UI experiment.</p>
+                <p className="text-[10px] opacity-70">Interactive WebGL Core</p>
             </div>
 
-            {/* SCROLL INDICATOR */}
+            {/* SCROLL INDICATOR CLEAN */}
             <div className="absolute bottom-12 right-6 md:right-12">
                 <div
                     onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center hover-trigger cursor-none group transition-all hover:border-white/30 hover:scale-105"
+                    className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center hover-trigger cursor-none group transition-all hover:border-accent hover:scale-110"
                 >
-                    <span className="text-[10px] uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity text-white">↓</span>
+                    <span className="text-lg opacity-50 group-hover:opacity-100 transition-opacity text-accent">↓</span>
                 </div>
             </div>
         </section>
