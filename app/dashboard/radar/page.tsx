@@ -28,7 +28,7 @@ export default function RadarPage() {
     const [aiTemplate, setAiTemplate] = useState<{ content: string; type: 'whatsapp' | 'email' | null }>({ content: '', type: null });
     const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
     const [isEditingContact, setIsEditingContact] = useState(false);
-    const [editData, setEditData] = useState({ email: '', whatsapp: '', telefono: '' });
+    const [editData, setEditData] = useState({ email: '', whatsapp: '', telefono: '', demo_url: '' });
     const [isReanalyzing, setIsReanalyzing] = useState(false);
     const [leadActivities, setLeadActivities] = useState<any[]>([]);
     const [notes, setNotes] = useState<any[]>([]);
@@ -199,7 +199,9 @@ export default function RadarPage() {
             analysis: lead.analysis || sourceData.analysis || {},
             zona: lead.zona_busqueda || location,
             nota: lead.nota_revision || '',
+            nota: lead.nota_revision || '',
             revisadoPor: lead.revisado_por || null,
+            demo_url: lead.demo_url || sourceData.demo_url || '',
         };
     };
 
@@ -784,7 +786,7 @@ export default function RadarPage() {
                                                     <button
                                                         onClick={() => {
                                                             const d = getLeadData(selectedLead);
-                                                            setEditData({ email: d.email || '', whatsapp: d.whatsapp || '', telefono: d.phone || '' });
+                                                            setEditData({ email: d.email || '', whatsapp: d.whatsapp || '', telefono: d.phone || '', demo_url: d.demo_url || '' });
                                                             setIsEditingContact(true);
                                                         }}
                                                         className={`text-[9px] font-bold transition-colors uppercase ${isDark ? 'text-cyan-500 hover:text-cyan-400' : 'text-blue-600 hover:text-blue-500'}`}
@@ -823,6 +825,15 @@ export default function RadarPage() {
                                                             placeholder="+56 9 ..."
                                                         />
                                                     </div>
+                                                    <div>
+                                                        <label className={`text-[8px] font-bold uppercase ml-1 ${isDark ? 'text-zinc-600' : 'text-gray-500'}`}>Demo URL</label>
+                                                        <input
+                                                            value={editData.demo_url}
+                                                            onChange={(e) => setEditData({ ...editData, demo_url: e.target.value })}
+                                                            className={`w-full border rounded-xl px-3 py-2 text-xs outline-none transition-colors ${isDark ? 'bg-black/50 border-white/10 text-white focus:border-purple-500' : 'bg-white border-gray-300 text-gray-900 focus:border-purple-500'}`}
+                                                            placeholder="/prospectos/ejemplo"
+                                                        />
+                                                    </div>
                                                     <div className="flex gap-2 pt-1">
                                                         <button
                                                             disabled={isSaving}
@@ -841,10 +852,11 @@ export default function RadarPage() {
                                                                     await supabase.from('leads').update({
                                                                         email: editData.email,
                                                                         telefono: editData.telefono,
+                                                                        demo_url: editData.demo_url,
                                                                         source_data: updatedSourceData
                                                                     }).eq('id', leadId);
 
-                                                                    const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, source_data: updatedSourceData };
+                                                                    const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
                                                                     setSelectedLead(updatedLead);
                                                                     setPipelineLeads(pipelineLeads.map(l => (l.id === leadId || l.db_id === leadId) ? updatedLead : l));
                                                                     setIsEditingContact(false);
@@ -890,6 +902,21 @@ export default function RadarPage() {
                                                             </button>
                                                         )}
                                                     </div>
+
+                                                    {/* Demo URL Display */}
+                                                    {selectedLead.demo_url && (
+                                                        <div className={`flex items-center justify-between p-2 mt-2 rounded-xl border border-dashed ${isDark ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-200'}`}>
+                                                            <div className="flex items-center gap-2">
+                                                                <Zap className="w-3 h-3 text-purple-400" />
+                                                                <span className={`text-[11px] font-medium truncate max-w-[140px] ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
+                                                                    URL Demo Activa
+                                                                </span>
+                                                            </div>
+                                                            <a href={selectedLead.demo_url} target="_blank" className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded bg-purple-500 text-white font-bold hover:bg-purple-400 transition-colors`}>
+                                                                Ver <ExternalLink className="w-2.5 h-2.5" />
+                                                            </a>
+                                                        </div>
+                                                    )}
 
                                                     {/* Social & Meta */}
                                                     <div className="grid grid-cols-4 gap-2 pt-1">
