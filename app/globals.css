@@ -19,7 +19,7 @@ body {
   background: var(--c-bg);
   color: var(--c-text);
   font-family: var(--font-space);
-  cursor: none;
+  /* cursor: none; -- Disabled to restore system cursor */
   /* Custom cursor preparation */
 }
 
