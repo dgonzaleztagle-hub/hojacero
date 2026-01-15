@@ -199,7 +199,7 @@ export default function RadarPage() {
             analysis: lead.analysis || sourceData.analysis || {},
             zona: lead.zona_busqueda || location,
             nota: lead.nota_revision || '',
-            nota: lead.nota_revision || '',
+
             revisadoPor: lead.revisado_por || null,
             demo_url: lead.demo_url || sourceData.demo_url || '',
         };
