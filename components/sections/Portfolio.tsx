@@ -20,7 +20,8 @@ const projects = [
         category: 'SAAS / ENTERTAINMENT',
         description: 'Plataforma global de gestión para resellers IPTV. Infraestructura escalable para mercados internacionales.',
         image: '/projects/superpanel.png',
-        link: 'https://superpanel.lat'
+        link: 'https://superpanel.lat',
+        status: 'live'
     },
     {
         id: '02',
@@ -28,7 +29,8 @@ const projects = [
         category: 'FINTECH / SAAS',
         description: 'Gestión administrativa y tributaria integral. Contabilidad automatizada adaptada a normativa chilena.',
         image: '/projects/pluscontable.png',
-        link: 'https://pluscontable.cl'
+        link: 'https://pluscontable.cl',
+        status: 'live'
     },
     {
         id: '03',
@@ -36,7 +38,8 @@ const projects = [
         category: 'WEB APP / IN DEVELOPMENT',
         description: 'Sistema de punto de venta móvil para Food Trucks. Control eficiente y flexible en movimiento.',
         image: '/projects/truckpos.png',
-        link: '#'
+        link: '#',
+        status: 'development' // Flag para desactivar click
     },
     {
         id: '04',
@@ -44,13 +47,14 @@ const projects = [
         category: 'E-COMMERCE',
         description: 'Ecommerce de productos congelados premium. Catálogo digital y logística de distribución optimizada.',
         image: '/projects/icebuin.png',
-        link: 'https://icebuin.cl'
+        link: 'https://icebuin.cl',
+        status: 'live'
     }
 ];
 
 export default function Portfolio() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [hoveredProject, setHoveredProject] = useState<string | null>(null); // Track hover
+    const [hoveredProject, setHoveredProject] = useState<string | null>(null);
 
     useEffect(() => {
         const ctx = gsap.context(() => {
@@ -83,55 +87,72 @@ export default function Portfolio() {
                 </div>
 
                 <div className="flex flex-col">
-                    {projects.map((project) => (
-                        <Link
-                            key={project.id}
-                            href={project.link}
-                            className="project-card group relative border-t border-white/10 py-24 hover:bg-white/5 transition-colors duration-500 hover-trigger cursor-none block"
-                            onMouseEnter={() => setHoveredProject(project.id)}
-                            onMouseLeave={() => setHoveredProject(null)}
-                        >
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-12 relative z-20">
-                                <div className="flex flex-col max-w-xl">
-                                    <span className="text-xs font-mono text-gray-500 mb-4">{project.category}</span>
-                                    <h3 className="text-5xl md:text-8xl font-display font-bold group-hover:translate-x-4 transition-transform duration-500 group-hover:text-accent mb-6">
-                                        {project.title}
-                                    </h3>
-                                    {/* Description with Scramble Effect */}
-                                    <div className="h-16 md:h-12 overflow-hidden">
-                                        <TextScramble
-                                            text={project.description || ''}
-                                            trigger={hoveredProject === project.id}
-                                            className="text-sm md:text-base text-gray-400 block max-w-md"
+                    {projects.map((project) => {
+                        const isDev = project.status === 'development';
+                        const CardTag = isDev ? 'div' : Link; // Renderiza div si es dev, Link si es live
+
+                        return (
+                            <CardTag
+                                key={project.id}
+                                href={!isDev ? project.link : undefined} // Solo pasa href si no es dev
+                                className={`project-card group relative border-t border-white/10 py-24 transition-colors duration-500 block ${isDev ? 'cursor-help hover:bg-white/5' : 'hover:bg-white/5 hover-trigger cursor-none'}`}
+                                onMouseEnter={() => setHoveredProject(project.id)}
+                                onMouseLeave={() => setHoveredProject(null)}
+                            >
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-12 relative z-20">
+                                    <div className="flex flex-col max-w-xl">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <span className="text-xs font-mono text-gray-500">{project.category}</span>
+                                            {isDev && (
+                                                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-500 text-[10px] font-bold uppercase tracking-widest rounded-full border border-yellow-500/50">
+                                                    Próximamente
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <h3 className={`text-5xl md:text-8xl font-display font-bold transition-transform duration-500 mb-6 ${isDev ? 'text-gray-600' : 'group-hover:translate-x-4 group-hover:text-accent'}`}>
+                                            {project.title}
+                                        </h3>
+
+                                        {/* Description with Scramble Effect */}
+                                        <div className="h-16 md:h-12 overflow-hidden">
+                                            <TextScramble
+                                                text={project.description || ''}
+                                                trigger={hoveredProject === project.id}
+                                                className="text-sm md:text-base text-gray-400 block max-w-md"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className={`relative w-full md:w-[500px] aspect-video overflow-hidden transition-all duration-700 hidden md:block md:mr-12 ${isDev ? 'grayscale opacity-30' : 'grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-100'}`}>
+                                        <Image
+                                            src={project.image}
+                                            alt={project.title}
+                                            fill
+                                            className="project-image object-contain"
                                         />
                                     </div>
-                                </div>
 
-                                <div className="relative w-full md:w-[500px] aspect-video overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700 opacity-60 group-hover:opacity-100 hidden md:block md:mr-12">
-                                    <Image
-                                        src={project.image}
-                                        alt={project.title}
-                                        fill
-                                        className="project-image object-contain"
-                                    />
-                                </div>
+                                    {/* Mobile Image */}
+                                    <div className={`md:hidden w-full aspect-video relative overflow-hidden mt-4 ${isDev ? 'opacity-50 grayscale' : ''}`}>
+                                        <Image
+                                            src={project.image}
+                                            alt={project.title}
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
 
-                                {/* Mobile Image (visible only on small screens) */}
-                                <div className="md:hidden w-full aspect-video relative overflow-hidden mt-4">
-                                    <Image
-                                        src={project.image}
-                                        alt={project.title}
-                                        fill
-                                        className="object-contain"
-                                    />
+                                    {/* Link Button / Label */}
+                                    <div className={`md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 transition-opacity duration-300 transform translate-x-10 group-hover:translate-x-0 ${isDev ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                        <span className={`text-xs font-bold px-4 py-2 rounded-full uppercase tracking-widest ${isDev ? 'bg-transparent text-gray-500 border border-gray-600' : 'bg-white text-black'}`}>
+                                            {isDev ? 'En Desarrollo' : 'View Case'}
+                                        </span>
+                                    </div>
                                 </div>
-
-                                <div className="md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-x-10 group-hover:translate-x-0">
-                                    <span className="text-xs font-bold bg-white text-black px-4 py-2 rounded-full uppercase tracking-widest">View Case</span>
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
+                            </CardTag>
+                        );
+                    })}
                     <div className="w-full h-[1px] bg-white/10"></div>
                 </div>
 
