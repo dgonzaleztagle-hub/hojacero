@@ -18,17 +18,25 @@ export async function scrapeContactInfo(websiteUrl: string): Promise<{
         whatsapp: null as string | null,
         instagram: null as string | null,
         facebook: null as string | null,
-        hasSSL: websiteUrl?.startsWith('https'),
+        hasSSL: false,
         techStack: [] as string[],
     };
 
     if (!websiteUrl) return result;
 
+    // Normalize URL - ensure it has a protocol
+    let normalizedUrl = websiteUrl.trim();
+    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+        normalizedUrl = 'https://' + normalizedUrl;
+    }
+    result.hasSSL = normalizedUrl.startsWith('https');
+
+
     try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout (generous for Manual)
 
-        const response = await fetch(websiteUrl, {
+        const response = await fetch(normalizedUrl, {
             signal: controller.signal,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'

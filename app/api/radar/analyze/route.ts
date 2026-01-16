@@ -8,10 +8,17 @@ const SERPER_API_KEY = process.env.SERPER_API_KEY;
 // Helper: Basic SEO Scraping (Mocking a real crawler)
 async function performSeoAudit(url: string) {
     if (!url) return null;
+
+    // Normalize URL
+    let normalizedUrl = url.trim();
+    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+        normalizedUrl = 'https://' + normalizedUrl;
+    }
+
     try {
         const controller = new AbortController();
         setTimeout(() => controller.abort(), 8000);
-        const res = await fetch(url, {
+        const res = await fetch(normalizedUrl, {
             signal: controller.signal,
             headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HojaCeroBot/1.0)' }
         });
@@ -62,8 +69,13 @@ export async function POST(req: Request) {
         const { leadId, url, businessName, businessType } = await req.json();
         const supabase = await createClient();
 
-        if (!leadId) {
-            return NextResponse.json({ error: 'Missing leadId' }, { status: 400 });
+        // Validate leadId is a proper UUID (not "preview")
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!leadId || !uuidRegex.test(leadId)) {
+            return NextResponse.json({
+                error: 'Se requiere guardar el lead primero antes de ejecutar la auditoría profunda',
+                code: 'LEAD_NOT_SAVED'
+            }, { status: 400 });
         }
 
         console.log(`🕵️ DEEP ANALYZE: Processing ${businessName} (${url})...`);
