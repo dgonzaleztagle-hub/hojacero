@@ -115,12 +115,12 @@ export const ModalTabTrabajo = ({
                             />
                         </div>
                         <div>
-                            <label className={`text-[10px] font-bold uppercase ml-1 block mb-1.5 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Demo URL</label>
+                            <label className={`text-[10px] font-bold uppercase ml-1 block mb-1.5 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Demo URL / Landing</label>
                             <input
                                 value={editData.demo_url}
                                 onChange={(e) => setEditData({ ...editData, demo_url: e.target.value })}
                                 className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-black/50 border-white/10 text-white focus:border-purple-500' : 'bg-white border-gray-300 text-gray-900 focus:border-purple-500'}`}
-                                placeholder="/prospectos/ejemplo"
+                                placeholder="Ej: /prospectos/ejemplo"
                             />
                         </div>
                         <div className="flex gap-3 pt-2">
@@ -138,6 +138,57 @@ export const ModalTabTrabajo = ({
                     </div>
                 ) : (
                     <div className="space-y-3">
+                        {/* Demo URL - PROMINENT SECTION */}
+                        <div className={`p-4 rounded-xl border relative overflow-hidden ${isDark ? 'bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border-purple-500/20' : 'bg-purple-50 border-purple-200'}`}>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                                    <Zap className="w-3 h-3" /> Landing de Prospecto
+                                </span>
+                                {!isEditingContact && (
+                                    <button
+                                        onClick={() => {
+                                            setEditData({
+                                                email: ld.email || '',
+                                                whatsapp: ld.whatsapp || '',
+                                                telefono: ld.phone || '',
+                                                demo_url: ld.demo_url || ''
+                                            });
+                                            setIsEditingContact(true);
+                                        }}
+                                        className={`text-[9px] font-bold uppercase px-2 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-colors`}
+                                    >
+                                        Editar URL
+                                    </button>
+                                )}
+                            </div>
+
+                            {selectedLead.demo_url ? (
+                                <div className="flex items-center gap-2">
+                                    <div className={`flex-1 p-2 rounded-lg text-xs font-mono truncate border ${isDark ? 'bg-black/30 border-purple-500/30 text-purple-200' : 'bg-white border-purple-200 text-purple-700'}`}>
+                                        {selectedLead.demo_url}
+                                    </div>
+                                    <button
+                                        onClick={() => copyToClipboard(selectedLead.demo_url, 'demo_url')}
+                                        className={`p-2 rounded-lg transition-colors border ${isDark ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-white border-purple-200 text-purple-600 hover:bg-purple-50'}`}
+                                        title="Copiar URL"
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                    </button>
+                                    <a
+                                        href={selectedLead.demo_url}
+                                        target="_blank"
+                                        className="p-2 rounded-lg bg-purple-500 text-white hover:bg-purple-400 transition-colors shadow-lg shadow-purple-500/20 border border-purple-400"
+                                        title="Abrir Landing"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                    </a>
+                                </div>
+                            ) : (
+                                <div className={`text-xs italic text-center py-2 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
+                                    Sin URL de prospecto asignada
+                                </div>
+                            )}
+                        </div>
                         {/* Email */}
                         <div className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200'}`}>
                             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -172,22 +223,7 @@ export const ModalTabTrabajo = ({
                             )}
                         </div>
 
-                        {/* Demo URL Display */}
-                        {selectedLead.demo_url && (
-                            <div className={`flex items-center justify-between p-3 mt-2 rounded-xl border border-dashed ${isDark ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-50 border-purple-200'}`}>
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400">
-                                        <Zap className="w-4 h-4" />
-                                    </div>
-                                    <span className={`text-sm font-medium ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>
-                                        URL Demo Activa
-                                    </span>
-                                </div>
-                                <a href={selectedLead.demo_url} target="_blank" className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500 text-white text-xs font-bold hover:bg-purple-400 transition-colors shadow-lg shadow-purple-500/20`}>
-                                    Ver Demo <ExternalLink className="w-3 h-3" />
-                                </a>
-                            </div>
-                        )}
+
 
                         {/* Social & Meta */}
                         <div className="grid grid-cols-4 gap-3 pt-2">
