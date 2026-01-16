@@ -28,7 +28,11 @@ Leads capturados por el Radar y gestionados en el Pipeline.
 | puntaje_oportunidad | INT | Score IA (0-100) |
 | razon_ia | TEXT | Análisis IA resumido |
 | source_data | JSONB | Datos enriquecidos del scraper |
-| **estado** | TEXT | Pipeline: detected/discarded/ready_to_contact/in_contact/proposal_sent/won/lost |
+| **estado** | TEXT | (Legacy) Use pipeline_stage instead |
+| pipeline_stage | TEXT | radar, contactado, reunion, negociacion, produccion, perdido |
+| pipeline_order | INT | Orden vertical en el tablero Kanban |
+| tags | TEXT[] | Etiquetas: ['urgente', 'factory', 'corporate'] |
+| service_type | TEXT | 'full', 'dev', 'marketing' |
 | nota_revision | TEXT | Nota del revisor |
 | revisado_por | TEXT | Quién revisó |
 | revisado_at | TIMESTAMP | Cuándo se revisó |
@@ -107,3 +111,4 @@ Log de emails enviados.
 | `crm_schema.sql` | Schema base original |
 | `add_source_data.sql` | Campo JSONB para datos scraper |
 | `pipeline_leads.sql` | Campos auditoría + activity log |
+| `20260115_pipeline_schema.sql` | **Pipeline V1:** Stages, Order, Tags, ServiceType |

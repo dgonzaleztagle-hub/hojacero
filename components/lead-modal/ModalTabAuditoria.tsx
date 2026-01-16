@@ -1,0 +1,161 @@
+'use client';
+
+import React from 'react';
+import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2 } from 'lucide-react';
+
+interface ModalTabAuditoriaProps {
+    selectedLead: any;
+    isDark: boolean;
+    isDeepAnalyzing: boolean;
+    onDeepAnalyze: () => void;
+    ld: any;
+}
+
+export const ModalTabAuditoria = ({
+    selectedLead,
+    isDark,
+    isDeepAnalyzing,
+    onDeepAnalyze,
+    ld
+}: ModalTabAuditoriaProps) => {
+    const deepAnalysis = selectedLead.source_data?.deep_analysis;
+
+    if (!deepAnalysis) {
+        return (
+            <div className={`rounded-3xl p-8 border text-center ${isDark ? 'bg-zinc-900/40 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-8 h-8 text-purple-400" />
+                </div>
+                <h3 className={`text-lg font-bold mb-2 ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
+                    Auditoría Pendiente
+                </h3>
+                <p className={`text-sm mb-6 ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
+                    Aún no se ha realizado un análisis profundo de este lead. La auditoría incluye SEO, keywords, competidores y más.
+                </p>
+                <button
+                    onClick={onDeepAnalyze}
+                    disabled={isDeepAnalyzing}
+                    className="flex items-center gap-2 mx-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl text-white text-sm font-bold uppercase hover:shadow-lg hover:from-purple-500 hover:to-indigo-500 transition-all disabled:opacity-50 shadow-lg shadow-purple-500/20"
+                >
+                    {isDeepAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                    {isDeepAnalyzing ? 'Auditando...' : 'Iniciar Auditoría Profunda'}
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+            <h4 className="text-sm font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" /> Reporte de Inteligencia (SEO & Competencia)
+            </h4>
+
+            {/* BUYER PERSONA SECTION */}
+            {deepAnalysis.buyerPersona && (
+                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-purple-500/10 border-purple-500/20' : 'bg-purple-50 border-purple-100'}`}>
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-purple-500/20 rounded-xl">
+                            <Users className="w-6 h-6 text-purple-400" />
+                        </div>
+                        <div>
+                            <div className="text-xs text-purple-400 uppercase font-bold mb-1 tracking-wider">Buyer Persona Detectado</div>
+                            <p className={`text-sm font-medium leading-relaxed ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
+                                "{deepAnalysis.buyerPersona}"
+                            </p>
+                            {deepAnalysis.painPoints && (
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {deepAnalysis.painPoints.map((pain: string, idx: number) => (
+                                        <span key={idx} className="px-3 py-1 bg-purple-500/10 rounded-lg text-xs text-purple-300 border border-purple-500/20">
+                                            😖 {pain}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SEO Score & Content Strategy */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
+                    <div className="text-xs text-zinc-500 uppercase font-bold mb-2">SEO Health Score</div>
+                    <div className={`text-4xl font-light mb-2 ${deepAnalysis.seoScore > 70 ? 'text-green-400' : deepAnalysis.seoScore > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {deepAnalysis.seoScore}/100
+                    </div>
+                    <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                        <div
+                            className={`h-full rounded-full ${deepAnalysis.seoScore > 70 ? 'bg-green-500' : deepAnalysis.seoScore > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                            style={{ width: `${deepAnalysis.seoScore}%` }}
+                        ></div>
+                    </div>
+                </div>
+                <div className="bg-black/30 rounded-2xl p-5 border border-white/5 flex flex-col justify-center">
+                    <div className="text-xs text-zinc-500 uppercase font-bold mb-2">Estrategia de Contenido Sugerida</div>
+                    <div className="text-sm text-zinc-300 leading-relaxed font-light">
+                        {deepAnalysis.contentStrategy || 'No disponible'}
+                    </div>
+                </div>
+            </div>
+
+            {/* Backlinks & Competitors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-indigo-500/10 rounded-2xl p-5 border border-indigo-500/20">
+                    <div className="text-xs text-indigo-400 uppercase font-bold mb-3 flex items-center gap-2">
+                        <Link2 className="w-4 h-4" /> Oportunidades de Backlinks
+                    </div>
+                    <ul className="space-y-2">
+                        {deepAnalysis.backlinkOpportunities?.map((link: string, i: number) => (
+                            <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
+                                <span className="text-indigo-500 mt-1">●</span>
+                                <span className="leading-snug">{link}</span>
+                            </li>
+                        )) || <li className="text-sm text-zinc-500 italic">No detectadas</li>}
+                    </ul>
+                </div>
+                <div className="bg-red-500/10 rounded-2xl p-5 border border-red-500/20">
+                    <div className="text-xs text-red-400 uppercase font-bold mb-3 flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4" /> Top Competidores
+                    </div>
+                    <ul className="space-y-2">
+                        {deepAnalysis.topCompetitors?.map((comp: string, i: number) => (
+                            <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
+                                <span className="text-red-500 mt-1">⚔️</span>
+                                <span className="font-medium">{comp}</span>
+                            </li>
+                        )) || <li className="text-sm text-zinc-500 italic">No detectados</li>}
+                    </ul>
+                </div>
+            </div>
+
+            {/* Keywords */}
+            <div>
+                <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-3">Oportunidades de Keywords</span>
+                <div className="flex flex-wrap gap-2">
+                    {deepAnalysis.missingKeywords?.map((kw: string, i: number) => (
+                        <span key={i} className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-300 text-sm font-medium hover:bg-indigo-500/20 transition-colors">
+                            {kw}
+                        </span>
+                    )) || <span className="text-sm text-zinc-500 italic">No detectadas</span>}
+                </div>
+            </div>
+
+            {/* Technical Issues */}
+            {deepAnalysis.technicalIssues?.length > 0 && (
+                <div className="bg-red-900/10 rounded-2xl p-5 border border-red-500/20">
+                    <h5 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4" /> Problemas Técnicos Críticos
+                    </h5>
+                    <ul className="space-y-2">
+                        {deepAnalysis.technicalIssues.map((issue: string, i: number) => (
+                            <li key={i} className="flex items-start gap-3 text-sm text-red-200/80">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></span>
+                                <span className="leading-relaxed">{issue}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};

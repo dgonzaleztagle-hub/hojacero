@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, ChevronDown } from 'lucide-react';
+import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, ChevronDown, KanbanSquare } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useDashboard } from '@/app/dashboard/DashboardContext';
 
@@ -69,8 +69,8 @@ export default function Sidebar() {
                                 }`}
                         >
                             <item.icon className={`w-5 h-5 ${isActive
-                                    ? isDark ? 'text-cyan-400' : 'text-blue-600'
-                                    : isDark ? 'text-zinc-500 group-hover:text-white' : 'text-gray-400 group-hover:text-gray-700'
+                                ? isDark ? 'text-cyan-400' : 'text-blue-600'
+                                : isDark ? 'text-zinc-500 group-hover:text-white' : 'text-gray-400 group-hover:text-gray-700'
                                 }`} />
                             <span className="tracking-wide">{displayName}</span>
                         </Link>
