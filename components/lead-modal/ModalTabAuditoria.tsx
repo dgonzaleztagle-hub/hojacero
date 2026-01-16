@@ -46,9 +46,19 @@ export const ModalTabAuditoria = ({
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-            <h4 className="text-sm font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" /> Reporte de Inteligencia (SEO & Competencia)
-            </h4>
+            <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" /> Reporte de Inteligencia (SEO & Competencia)
+                </h4>
+                <button
+                    onClick={onDeepAnalyze}
+                    disabled={isDeepAnalyzing}
+                    className={`p-1.5 rounded-lg border transition-all ${isDark ? 'bg-purple-500/10 border-purple-500/20 hover:bg-purple-500/20 text-purple-300' : 'bg-purple-50 border-purple-100 hover:bg-purple-100 text-purple-500'}`}
+                    title="Forzar re-auditoría profunda"
+                >
+                    {isDeepAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                </button>
+            </div>
 
             {/* BUYER PERSONA SECTION */}
             {deepAnalysis.buyerPersona && (

@@ -666,20 +666,31 @@ export default function RadarPage() {
                                         onReanalyze={async () => {
                                             setIsReanalyzing(true);
                                             try {
-                                                const res = await fetch('/api/radar/reanalyze', {
+                                                const leadId = selectedLead.id || selectedLead.db_id;
+                                                const res = await fetch('/api/radar/rescan', {
                                                     method: 'POST',
                                                     headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({ leadId: selectedLead.id })
+                                                    body: JSON.stringify({ leadId })
                                                 });
                                                 const data = await res.json();
                                                 if (data.success) {
                                                     setSelectedLead((prev: any) => ({
                                                         ...prev,
-                                                        razon_ia: data.analysis.analysisReport,
-                                                        puntaje_oportunidad: data.analysis.score,
-                                                        source_data: { ...prev.source_data, analysis: data.analysis }
+                                                        razon_ia: data.data.analysis.analysisReport,
+                                                        puntaje_oportunidad: data.data.analysis.score,
+                                                        source_data: {
+                                                            ...prev.source_data,
+                                                            scraped: data.data.scraped,
+                                                            analysis: data.data.analysis
+                                                        }
                                                     }));
+                                                } else {
+                                                    console.error("Rescan failed", data.error);
+                                                    alert('Error al re-escanear: ' + data.error);
                                                 }
+                                            } catch (e: any) {
+                                                console.error("Rescan exception", e);
+                                                alert('Error al re-escanear: ' + e.message);
                                             } finally {
                                                 setIsReanalyzing(false);
                                             }

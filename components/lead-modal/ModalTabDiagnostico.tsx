@@ -36,6 +36,16 @@ export const ModalTabDiagnostico = ({
                         <span className={`px-3 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wide ${isDark ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>
                             Vibe: {analysis.vibe || 'N/A'}
                         </span>
+
+                        {/* RE-SCAN BUTTON (Always available) */}
+                        <button
+                            onClick={onReanalyze}
+                            disabled={isReanalyzing}
+                            className={`p-1.5 rounded-lg border transition-all ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10 text-zinc-400 hover:text-cyan-400' : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-400 hover:text-blue-500'}`}
+                            title="Forzar re-escaneo del sitio web"
+                        >
+                            {isReanalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                        </button>
                     </div>
 
                     {/* Deep Analysis Button - triggers switch to Auditoría tab */}
@@ -58,20 +68,22 @@ export const ModalTabDiagnostico = ({
                 {isDark && <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none"></div>}
 
                 <div className="space-y-4 relative">
-                    {(selectedLead.razon_ia?.includes('Error AI') || analysis.analysisReport?.includes('Error AI')) ? (
-                        <div className="flex flex-col gap-3">
-                            <p className="text-sm text-red-400 leading-relaxed font-light">
-                                ⚠️ {selectedLead.razon_ia || analysis.analysisReport}
+                    {(!analysis.analysisReport && !selectedLead.razon_ia) || selectedLead.razon_ia?.includes('Error AI') || analysis.analysisReport?.includes('Error AI') ? (
+                        <div className="flex flex-col gap-3 py-4 text-center items-center">
+                            <p className="text-sm text-zinc-400 leading-relaxed font-light">
+                                {(selectedLead.razon_ia?.includes('Error AI') || analysis.analysisReport?.includes('Error AI'))
+                                    ? `⚠️ ${selectedLead.razon_ia || analysis.analysisReport}`
+                                    : 'Aún no se ha generado el diagnóstico inicial para este lead.'}
                             </p>
                             <button
                                 onClick={onReanalyze}
                                 disabled={isReanalyzing}
-                                className="flex items-center justify-center gap-2 px-5 py-3 bg-cyan-500/20 border border-cyan-500/30 rounded-xl text-cyan-400 text-xs font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-50"
+                                className="flex items-center justify-center gap-2 px-6 py-3 bg-cyan-500/20 border border-cyan-500/30 rounded-xl text-cyan-400 text-xs font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-50 shadow-lg shadow-cyan-500/10"
                             >
                                 {isReanalyzing ? (
-                                    <><Loader2 className="w-4 h-4 animate-spin" /> Re-analizando...</>
+                                    <><Loader2 className="w-4 h-4 animate-spin" /> Escaneando...</>
                                 ) : (
-                                    <><Zap className="w-4 h-4" /> Re-analizar con IA</>
+                                    <><Zap className="w-4 h-4" /> {analysis.analysisReport ? 'Re-intentar AI' : 'Generar Diagnóstico Inicial'}</>
                                 )}
                             </button>
                         </div>
