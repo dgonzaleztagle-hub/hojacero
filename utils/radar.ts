@@ -24,78 +24,89 @@ export async function scrapeContactInfo(websiteUrl: string): Promise<{
 
     if (!websiteUrl) return result;
 
-    // Normalize URL - ensure it has a protocol
-    let normalizedUrl = websiteUrl.trim();
-    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-        normalizedUrl = 'https://' + normalizedUrl;
-    }
-    result.hasSSL = normalizedUrl.startsWith('https');
+    // Normalize URL - clean and prepare for fetching
+    let baseUrl = websiteUrl.trim();
+    // Remove existing protocol and www to normalize
+    baseUrl = baseUrl.replace(/^https?:\/\//, '').replace(/^www\./, '');
 
+    // Build all possible URL combinations (https first, then http; without www first, then with www)
+    const urlsToTry = [
+        `https://${baseUrl}`,
+        `https://www.${baseUrl}`,
+        `http://${baseUrl}`,
+        `http://www.${baseUrl}`
+    ];
 
-    try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout (generous for Manual)
+    for (const urlToTry of urlsToTry) {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 4000); // 4s timeout per attempt
 
-        const response = await fetch(normalizedUrl, {
-            signal: controller.signal,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            const response = await fetch(urlToTry, {
+                signal: controller.signal,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            clearTimeout(timeout);
+
+            if (!response.ok) continue; // Try next URL
+
+            result.hasSSL = urlToTry.startsWith('https');
+            const html = await response.text();
+
+            // Extract emails (filter common false positives)
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            const emails = html.match(emailRegex) || [];
+            result.emails = [...new Set(emails)]
+                .filter(e => !e.includes('example') && !e.includes('wixpress') && !e.includes('sentry'))
+                .slice(0, 3);
+
+            // Extract WhatsApp
+            const waRegex = /(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\d+)/gi;
+            const waMatch = waRegex.exec(html);
+            if (waMatch) {
+                result.whatsapp = waMatch[1];
+            } else {
+                // Try to find Chilean phone patterns near WhatsApp text
+                const waTextRegex = /whatsapp[^0-9]*?(\+?56\s?\d[\d\s-]{7,})/gi;
+                const waTextMatch = waTextRegex.exec(html);
+                if (waTextMatch) {
+                    result.whatsapp = waTextMatch[1].replace(/[\s-]/g, '');
+                }
             }
-        });
-        clearTimeout(timeout);
 
-        if (!response.ok) return result;
+            // Extract Instagram
+            const igRegex = /(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9_.]+)/gi;
+            const igMatch = igRegex.exec(html);
+            if (igMatch) result.instagram = igMatch[1];
 
-        const html = await response.text();
+            // Extract Facebook
+            const fbRegex = /facebook\.com\/([a-zA-Z0-9.]+)/gi;
+            const fbMatch = fbRegex.exec(html);
+            if (fbMatch && !fbMatch[1].includes('sharer')) result.facebook = fbMatch[1];
 
-        // Extract emails (filter common false positives)
-        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-        const emails = html.match(emailRegex) || [];
-        result.emails = [...new Set(emails)]
-            .filter(e => !e.includes('example') && !e.includes('wixpress') && !e.includes('sentry'))
-            .slice(0, 3);
+            // Detect Tech Stack
+            if (html.includes('wp-content') || html.includes('wordpress')) result.techStack.push('WordPress');
+            if (html.includes('shopify')) result.techStack.push('Shopify');
+            if (html.includes('wix.com')) result.techStack.push('Wix');
+            if (html.includes('squarespace')) result.techStack.push('Squarespace');
+            if (html.includes('webflow')) result.techStack.push('Webflow');
+            if (html.includes('_next') || html.includes('__NEXT')) result.techStack.push('Next.js');
+            if (html.includes('react')) result.techStack.push('React');
+            if (html.includes('bootstrap')) result.techStack.push('Bootstrap');
+            if (html.includes('elementor')) result.techStack.push('Elementor');
 
-        // Extract WhatsApp
-        const waRegex = /(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\d+)/gi;
-        const waMatch = waRegex.exec(html);
-        if (waMatch) {
-            result.whatsapp = waMatch[1];
-        } else {
-            // Try to find Chilean phone patterns near WhatsApp text
-            const waTextRegex = /whatsapp[^0-9]*?(\+?56\s?\d[\d\s-]{7,})/gi;
-            const waTextMatch = waTextRegex.exec(html);
-            if (waTextMatch) {
-                result.whatsapp = waTextMatch[1].replace(/[\s-]/g, '');
-            }
+            return result; // Success! Return early
+
+        } catch (e: any) {
+            // If HTTPS fails, loop will try HTTP
+            continue;
         }
-
-        // Extract Instagram
-        const igRegex = /(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9_.]+)/gi;
-        const igMatch = igRegex.exec(html);
-        if (igMatch) result.instagram = igMatch[1];
-
-        // Extract Facebook
-        const fbRegex = /facebook\.com\/([a-zA-Z0-9.]+)/gi;
-        const fbMatch = fbRegex.exec(html);
-        if (fbMatch && !fbMatch[1].includes('sharer')) result.facebook = fbMatch[1];
-
-        // Detect Tech Stack
-        if (html.includes('wp-content') || html.includes('wordpress')) result.techStack.push('WordPress');
-        if (html.includes('shopify')) result.techStack.push('Shopify');
-        if (html.includes('wix.com')) result.techStack.push('Wix');
-        if (html.includes('squarespace')) result.techStack.push('Squarespace');
-        if (html.includes('webflow')) result.techStack.push('Webflow');
-        if (html.includes('_next') || html.includes('__NEXT')) result.techStack.push('Next.js');
-        if (html.includes('react')) result.techStack.push('React');
-        if (html.includes('bootstrap')) result.techStack.push('Bootstrap');
-        if (html.includes('elementor')) result.techStack.push('Elementor');
-
-        return result;
-
-    } catch (e: any) {
-        console.warn(`⚠️ Scraper failed for ${websiteUrl}: ${e.message}`);
-        return result;
     }
+
+    console.warn(`⚠️ Scraper failed for ${websiteUrl}: Could not reach site via HTTPS or HTTP`);
+    return result;
 }
 
 // ========================

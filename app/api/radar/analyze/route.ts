@@ -9,38 +9,48 @@ const SERPER_API_KEY = process.env.SERPER_API_KEY;
 async function performSeoAudit(url: string) {
     if (!url) return null;
 
-    // Normalize URL
-    let normalizedUrl = url.trim();
-    if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-        normalizedUrl = 'https://' + normalizedUrl;
+    // Normalize URL - remove protocol and www
+    let baseUrl = url.trim().replace(/^https?:\/\//, '').replace(/^www\./, '');
+
+    // Try all combinations (https first, then http; without www first, then with www)
+    const urlsToTry = [
+        `https://${baseUrl}`,
+        `https://www.${baseUrl}`,
+        `http://${baseUrl}`,
+        `http://www.${baseUrl}`
+    ];
+
+    for (const urlToTry of urlsToTry) {
+        try {
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), 4000);
+            const res = await fetch(urlToTry, {
+                signal: controller.signal,
+                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HojaCeroBot/1.0)' }
+            });
+
+            if (!res.ok) continue;
+
+            const html = await res.text();
+            const textContent = html.replace(/<[^>]+>/g, ' ').slice(0, 3000);
+
+            return {
+                hasTitle: /<title>/.test(html),
+                hasMetaDesc: /<meta[^>]*name=["']description["'][^>]*content=["']/.test(html),
+                hasH1: /<h1/.test(html),
+                hasOGTags: /<meta[^>]*property=["']og:/.test(html),
+                isWordpress: /wp-content/.test(html),
+                loadTimeMs: 0,
+                contentLength: html.length,
+                htmlPreview: textContent,
+                hasSSL: urlToTry.startsWith('https')
+            };
+        } catch (e) {
+            continue;
+        }
     }
 
-    try {
-        const controller = new AbortController();
-        setTimeout(() => controller.abort(), 8000);
-        const res = await fetch(normalizedUrl, {
-            signal: controller.signal,
-            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HojaCeroBot/1.0)' }
-        });
-
-        if (!res.ok) return { status: res.status, error: 'Site unreachable' };
-
-        const html = await res.text();
-        const textContent = html.replace(/<[^>]+>/g, ' ').slice(0, 3000); // Extract plain text
-
-        return {
-            hasTitle: /<title>/.test(html),
-            hasMetaDesc: /<meta[^>]*name=["']description["'][^>]*content=["']/.test(html),
-            hasH1: /<h1/.test(html),
-            hasOGTags: /<meta[^>]*property=["']og:/.test(html),
-            isWordpress: /wp-content/.test(html),
-            loadTimeMs: 0,
-            contentLength: html.length,
-            htmlPreview: textContent // Send CLEAN TEXT, not raw HTML
-        };
-    } catch (e) {
-        return { error: 'Scrape failed' };
-    }
+    return { error: 'Could not reach site via any protocol/www combination' };
 }
 
 // Helper: Google Search Context (The "Deep Research" Layer)
