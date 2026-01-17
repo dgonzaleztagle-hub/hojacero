@@ -223,7 +223,7 @@ export default function RadarPage() {
             website: lead.website || lead.sitio_web || sourceData.sitio_web || null,
             rating: lead.rating || sourceData.rating || null,
             techStack: lead.techStack || sourceData.techStack || [],
-            hasSSL: lead.hasSSL ?? sourceData.hasSSL ?? true,
+            hasSSL: lead.hasSSL ?? sourceData.scraped?.hasSSL ?? sourceData.hasSSL ?? true,
             analysis: lead.analysis || sourceData.analysis || {},
             zona: lead.zona_busqueda || location,
             nota: lead.nota_revision || '',

@@ -213,22 +213,31 @@ export const ModalTabAuditoria = ({
                 </div>
             </div>
 
-            {/* Technical Issues */}
-            {deepAnalysis.technicalIssues?.length > 0 && (
-                <div className="bg-red-900/10 rounded-2xl p-5 border border-red-500/20">
-                    <h5 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4" /> Problemas Técnicos Críticos
-                    </h5>
-                    <ul className="space-y-2">
-                        {deepAnalysis.technicalIssues.map((issue: string, i: number) => (
-                            <li key={i} className="flex items-start gap-3 text-sm text-red-200/80">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></span>
-                                <span className="leading-relaxed">{issue}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+            {/* Technical Issues - Filter out stale SSL issues if we know SSL is actually OK */}
+            {(() => {
+                const filteredIssues = (deepAnalysis.technicalIssues || []).filter((issue: string) => {
+                    // If SSL is confirmed OK, remove any SSL-related false positives
+                    if (hasSSL && /ssl|https|certificado/i.test(issue)) {
+                        return false;
+                    }
+                    return true;
+                });
+                return filteredIssues.length > 0 && (
+                    <div className="bg-red-900/10 rounded-2xl p-5 border border-red-500/20">
+                        <h5 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" /> Problemas Técnicos Críticos
+                        </h5>
+                        <ul className="space-y-2">
+                            {filteredIssues.map((issue: string, i: number) => (
+                                <li key={i} className="flex items-start gap-3 text-sm text-red-200/80">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></span>
+                                    <span className="leading-relaxed">{issue}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                );
+            })()}
         </div>
     );
 };
