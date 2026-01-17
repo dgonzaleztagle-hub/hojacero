@@ -35,14 +35,18 @@ async function performSeoAudit(url: string) {
             const html = await res.text();
             const textContent = html.replace(/<[^>]+>/g, ' ').slice(0, 3000);
 
-            // Extract contact information with regex
-            const phoneRegex = /(?:\+?56)?[\s.-]?(?:9|2)[\s.-]?\d{4}[\s.-]?\d{4}|\+\d{1,3}[\s.-]?\d{6,12}/g;
+            // Extract contact information with improved regex
+            // Phone: Chilean format (+569 XXXX XXXX, 9 XXXX XXXX, +56 2 XXXX XXXX, etc.)
+            const phoneRegex = /\+?56\s*9\s*\d{4}\s*\d{4}|\+?56\s*2\s*\d{4}\s*\d{4}|(?<!\d)9\s*\d{4}\s*\d{4}(?!\d)/g;
             const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-            const addressRegex = /(?:Av\.?|Avenida|Calle|Pasaje|Los|Las|El|La)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ]?[a-záéíóúñ]+)*\s*\d+/gi;
+            // Address: Look for "Dirección:" pattern or common street prefixes
+            const addressRegex = /(?:Dirección[:\s]*|Av\.?|Avenida|Calle|Pasaje|Los|Las|El|La)\s*[A-ZÁÉÍÓÚÑa-záéíóúñ0-9\s,]+\d+[^<\n]*/gi;
 
-            const phones = [...new Set(html.match(phoneRegex) || [])];
-            const emails = [...new Set(html.match(emailRegex) || [])].filter(e => !e.includes('example') && !e.includes('wixpress'));
-            const addresses = [...new Set(html.match(addressRegex) || [])];
+            const phones = [...new Set((html.match(phoneRegex) || []).map(p => p.replace(/\s+/g, ' ').trim()))];
+            const emails = [...new Set(html.match(emailRegex) || [])].filter(e => !e.includes('example') && !e.includes('wixpress') && !e.includes('wordpress'));
+            const rawAddresses = html.match(addressRegex) || [];
+            const addresses = [...new Set(rawAddresses.map(a => a.replace(/<[^>]+>/g, '').trim().slice(0, 100)))]
+                .filter(a => a.length > 10 && /\d/.test(a));
 
             // Extract social media links
             const facebookMatch = html.match(/(?:href=["'])(https?:\/\/(?:www\.)?facebook\.com\/[^"'\s]+)/i);
