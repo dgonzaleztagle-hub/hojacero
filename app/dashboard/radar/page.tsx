@@ -655,7 +655,11 @@ export default function RadarPage() {
                                                 if (data.success) {
                                                     setSelectedLead((prev: any) => ({
                                                         ...prev,
-                                                        source_data: { ...prev.source_data, deep_analysis: data.analysis }
+                                                        source_data: {
+                                                            ...prev.source_data,
+                                                            deep_analysis: data.analysis,
+                                                            scraped: data.scraped || prev.source_data?.scraped
+                                                        }
                                                     }));
                                                     setModalTab('auditoria'); // Switch to Auditoría tab after analysis
                                                 }

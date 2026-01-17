@@ -310,7 +310,7 @@ export async function POST(req: Request) {
 
         if (updateError) throw updateError;
 
-        return NextResponse.json({ success: true, analysis: deepAnalysis });
+        return NextResponse.json({ success: true, analysis: deepAnalysis, scraped: scrapedData });
 
     } catch (error: any) {
         console.error('Deep Analyze Error:', error);
