@@ -19,6 +19,10 @@ export const ModalTabAuditoria = ({
     ld
 }: ModalTabAuditoriaProps) => {
     const deepAnalysis = selectedLead.source_data?.deep_analysis;
+    const scraped = selectedLead.source_data?.scraped;
+
+    // Use scraped.hasSSL as the source of truth for SSL (more accurate)
+    const hasSSL = scraped?.hasSSL ?? deepAnalysis?.techSpecs?.security?.https ?? false;
 
     if (!deepAnalysis) {
         return (
@@ -64,16 +68,16 @@ export const ModalTabAuditoria = ({
             {deepAnalysis.techSpecs && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-3">
                     {/* Security / SSL */}
-                    <div className={`p-5 rounded-2xl border ${deepAnalysis.techSpecs.security.https ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                    <div className={`p-5 rounded-2xl border ${hasSSL ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
                         <div className="flex items-center gap-2 mb-2">
-                            <Lock className={`w-4 h-4 ${deepAnalysis.techSpecs.security.https ? 'text-green-400' : 'text-red-400'}`} />
-                            <span className={`text-xs font-bold uppercase ${deepAnalysis.techSpecs.security.https ? 'text-green-400' : 'text-red-400'}`}>Seguridad</span>
+                            <Lock className={`w-4 h-4 ${hasSSL ? 'text-green-400' : 'text-red-400'}`} />
+                            <span className={`text-xs font-bold uppercase ${hasSSL ? 'text-green-400' : 'text-red-400'}`}>Seguridad</span>
                         </div>
                         <div className={`text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
-                            {deepAnalysis.techSpecs.security.https ? 'SSL Activo' : 'Sin HTTPS'}
+                            {hasSSL ? 'SSL Activo' : 'Sin HTTPS'}
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
-                            {deepAnalysis.techSpecs.security.hsts ? '+HSTS' : 'Sin HSTS'}
+                            {deepAnalysis.techSpecs?.security?.hsts ? '+HSTS' : 'Sin HSTS'}
                         </div>
                     </div>
 
