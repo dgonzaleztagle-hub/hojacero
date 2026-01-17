@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import CustomCursor from '@/components/ui/CustomCursor';
@@ -15,15 +15,36 @@ const FluidBackground = dynamic(() => import('@/components/canvas/FluidBackgroun
   ssr: false,
 });
 
+const INTRO_SEEN_KEY = 'hojacero_intro_seen';
+
 export default function Home() {
   const [loading, setLoading] = useState(true);
+  const [showIntro, setShowIntro] = useState(false);
+
+  // Check localStorage on mount
+  useEffect(() => {
+    const hasSeenIntro = localStorage.getItem(INTRO_SEEN_KEY);
+    if (hasSeenIntro) {
+      // Ya vio el intro, saltar directo
+      setLoading(false);
+      setShowIntro(false);
+    } else {
+      // Primera visita, mostrar intro
+      setShowIntro(true);
+    }
+  }, []);
+
+  const handleIntroComplete = () => {
+    localStorage.setItem(INTRO_SEEN_KEY, 'true');
+    setLoading(false);
+  };
 
   return (
     <SmoothScroll>
       <CustomCursor />
 
-      {loading && (
-        <Loader onComplete={() => setLoading(false)} />
+      {loading && showIntro && (
+        <Loader onComplete={handleIntroComplete} />
       )}
 
       <main className="relative min-h-screen w-full">

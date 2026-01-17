@@ -132,6 +132,41 @@ Crea `layout.tsx` siguiendo el style_lock.md:
 
 ---
 
+## 🎖️ Fase 3.5: GOLD MASTER PROTOCOL (APLICAR EN CADA PÁGINA)
+
+Aunque el estilo ya está bloqueado por style_lock.md, cada página nueva debe pasar este filtro:
+
+### Cuestionamiento Obligatorio (Por Página)
+```
+ANTES de dar por terminada cada página, pregunta:
+
+1. "¿Esto se ve de ALTO COSTO?" → Solo SÍ definitivo = continúa
+2. "¿Screenshotearía esta página?" → Debe ser SÍ
+3. "¿Es coherente hermana del demo aprobado?" → Debe ser SÍ
+4. "¿Tiene al menos UN elemento WOW propio?" → Debe ser SÍ
+```
+
+### Componentes Premium Disponibles
+Usa los mismos del demo aprobado, pero puedes agregar si mejora:
+- `BentoGrid` → Para servicios múltiples
+- `AnimatedCounter` → Para estadísticas en "Nosotros"
+- `InfiniteMovingCards` → Para testimonios
+- `TextGenerateEffect` → Para statement de misión
+
+### Animaciones Consistentes
+Usa las MISMAS curvas que el demo:
+```javascript
+// Curva premium estándar
+ease: [0.16, 1, 0.3, 1] // easeOutExpo
+```
+
+### Assets
+- Mismo ratio de compresión que el demo
+- Preferir .webp
+- Mantener coherencia visual con imágenes existentes
+
+---
+
 ## Fase 4: Verificación de Consistencia
 
 Antes de entregar, verifica:

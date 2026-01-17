@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -84,6 +85,7 @@ export default function Cta() {
 
                 <div className="absolute bottom-12 w-full left-0 px-8 flex justify-between text-xs font-mono uppercase tracking-widest text-gray-400">
                     <span>© 2026 HOJACERO</span>
+                    <Link href="/pricing" className="hover:text-black transition-colors">Pricing</Link>
                     <span>SANTIAGO / WORLDWIDE</span>
                 </div>
             </div>

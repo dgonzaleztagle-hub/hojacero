@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, ChevronDown, KanbanSquare } from 'lucide-react';
+import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, ChevronDown, KanbanSquare, HelpCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useDashboard } from '@/app/dashboard/DashboardContext';
 
@@ -9,13 +9,14 @@ export default function Sidebar() {
     const pathname = usePathname();
     const { currentClient, switchClient, clients, userRole, toggleUserRole, theme } = useDashboard();
 
-    const menuItems = [
-        { label: 'PULSO', href: '/dashboard/pulse', icon: Activity },
+    const menuItems: { label: string; href: string; icon: any; isBeta?: boolean; badge?: number }[] = [
+        { label: 'MÉTRICAS', href: '/dashboard/metrics', icon: Activity }, // Replaces Pulse
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail },
         { label: userRole === 'ADMIN' ? 'ARQUITECTO' : 'SOLICITUDES', href: '/dashboard/architect', icon: Cpu }, // Dynamic Label
-        { label: 'CMS', href: '/dashboard/cms', icon: Database },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
+        { label: 'CMS', href: '/dashboard/cms', icon: Database },
         ...(userRole === 'ADMIN' ? [{ label: 'RADAR', href: '/dashboard/radar', icon: Target, isBeta: true }] : []), // Admin Only
+        ...(userRole === 'ADMIN' ? [{ label: 'AYUDA', href: '/dashboard/ayuda', icon: HelpCircle }] : []), // Admin Only
     ];
 
     // Theme-aware colors
@@ -53,6 +54,7 @@ export default function Sidebar() {
                     const isActive = pathname.startsWith(item.href);
                     // Rename 'ARQUITECTO' to 'SOLICITUDES' for Clients
                     const displayName = (item.label === 'ARQUITECTO' && userRole === 'CLIENT') ? 'SOLICITUDES' : item.label;
+                    const badge = 'badge' in item ? item.badge : null;
 
                     return (
                         <Link
@@ -72,7 +74,12 @@ export default function Sidebar() {
                                 ? isDark ? 'text-cyan-400' : 'text-blue-600'
                                 : isDark ? 'text-zinc-500 group-hover:text-white' : 'text-gray-400 group-hover:text-gray-700'
                                 }`} />
-                            <span className="tracking-wide">{displayName}</span>
+                            <span className="tracking-wide flex-1">{displayName}</span>
+                            {badge && badge > 0 && (
+                                <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                    {badge}
+                                </span>
+                            )}
                         </Link>
                     );
                 })}

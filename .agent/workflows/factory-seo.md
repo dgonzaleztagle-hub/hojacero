@@ -1,11 +1,14 @@
 ---
-description: Inyecta SEO técnico profesional en un sitio de prospecto aprobado
+description: Inyecta SEO técnico + registra cliente + kill switch en sitio aprobado
 ---
 
-# 🔍 HojaCero Factory SEO - Optimización Técnica
+# 🔍 HojaCero Factory SEO - Optimización Técnica + Sistema Retención
 
-Este workflow inyecta todo el SEO técnico necesario en un sitio de prospecto.
-Ejecutar DESPUÉS de que el cliente apruebe el sitio final.
+Este workflow inyecta SEO técnico Y activa el Sistema de Retención.
+Ejecutar SOLO cuando el cliente ya PAGÓ o APROBÓ el sitio final.
+
+> ⚠️ **IMPORTANTE:** Este workflow registra al cliente en Supabase e inyecta el
+> kill switch de protección. Solo ejecutar para clientes CONFIRMADOS.
 
 // turbo-all
 
@@ -15,6 +18,74 @@ Antes de ejecutar, asegúrate de tener:
 - [ ] Sitio completado en `/prospectos/[cliente]/`
 - [ ] `discovery_notes.md` con datos del negocio
 - [ ] `style_lock.md` marcado como Factory Final completado
+- [ ] **CLIENTE CONFIRMADO (pago o contrato firmado)**
+
+---
+
+## Fase 0: Registro en Sistema de Retención
+
+### 0.1 Recopilar Datos del Contrato
+
+Pregunta al usuario o extrae de `discovery_notes.md`:
+```
+- Nombre del cliente: [nombre]
+- URL final del sitio: [url]
+- Día de mantención mensual: [1-28]
+- Tipo de plan: basic | pro | enterprise
+- Fecha inicio contrato: [fecha]
+- Fecha fin contrato: [fecha + 12 meses]
+- Tipo de hosting: vercel | netlify | cpanel | ftp | other
+```
+
+### 0.2 Insertar en Supabase
+
+Usa el MCP de Supabase para insertar:
+
+```sql
+-- Insertar cliente en monitored_sites
+INSERT INTO monitored_sites (
+  client_name,
+  site_url,
+  local_path,
+  hosting_type,
+  maintenance_day,
+  plan_type,
+  status,
+  contract_start,
+  contract_end
+) VALUES (
+  '[nombre]',
+  '[url]',
+  'd:/clientes/[nombre-slug]/',
+  '[hosting_type]',
+  [dia],
+  '[plan]',
+  'active',
+  '[fecha_inicio]',
+  '[fecha_fin]'
+) RETURNING id;
+```
+
+**GUARDA EL ID RETORNADO** → Lo necesitas para el kill switch.
+
+### 0.3 Crear Registro de Kill Switch
+
+```sql
+-- Crear registro en site_status con is_active = true
+INSERT INTO site_status (id, is_active)
+VALUES ('[id-de-paso-anterior]', true);
+```
+
+### 0.4 Crear Carpeta Local
+
+Crea la estructura de carpeta para el cliente:
+```
+d:/clientes/[nombre-slug]/
+  ├── site/          ← Copia del sitio
+  ├── reports/       ← PDFs de reportes mensuales
+  ├── backups/       ← Backups previos a cambios
+  └── metadata.json  ← { site_id, client_name, created_at }
+```
 
 ---
 
@@ -39,7 +110,7 @@ Extrae:
 
 ---
 
-## Fase 2: Crear/Verificar Componente SEOHead
+## Fase 2: Crear/Verificar Componente SEOHead Avanzado
 
 Si no existe, crea `d:\proyectos\hojacero\components\seo\SEOHead.tsx`:
 
@@ -53,10 +124,12 @@ interface SEOHeadProps {
   image?: string;
   url?: string;
   type?: 'website' | 'article';
-  // LocalBusiness
+  // Props de Negocio
   businessName?: string;
   address?: string;
   phone?: string;
+  priceRange?: string; // "$", "$$", "$$$"
+  industry?: 'Restaurant' | 'LegalService' | 'MedicalBusiness' | 'LocalBusiness' | 'AutomotiveBusiness';
   openingHours?: string;
 }
 
@@ -70,25 +143,38 @@ export function SEOHead({
   businessName,
   address,
   phone,
+  priceRange = '$$',
+  industry = 'LocalBusiness',
   openingHours,
 }: SEOHeadProps) {
+  
+  // JSON-LD dinámico según industria
   const jsonLd = businessName ? {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
+    "@type": industry, // Restaurant, LegalService, etc.
     "name": businessName,
     "description": description,
+    "image": image,
     "address": address,
     "telephone": phone,
+    "priceRange": priceRange,
     "openingHours": openingHours,
+    "areaServed": {
+      "@type": "Country",
+      "name": "Chile"
+    },
+    "currenciesAccepted": "CLP",
+    "paymentAccepted": "Cash, Credit Card, Redcompra"
   } : null;
 
   return (
     <Head>
-      {/* Basic Meta */}
+      {/* Basic Meta - Localized for Chile */}
       <title>{title}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
       <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta property="og:locale" content="es_CL" />
       
       {/* Open Graph */}
       <meta property="og:title" content={title} />
@@ -96,15 +182,6 @@ export function SEOHead({
       <meta property="og:type" content={type} />
       {image && <meta property="og:image" content={image} />}
       {url && <meta property="og:url" content={url} />}
-      
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
-      {image && <meta name="twitter:image" content={image} />}
-      
-      {/* Canonical */}
-      {url && <link rel="canonical" href={url} />}
       
       {/* JSON-LD */}
       {jsonLd && (
@@ -116,6 +193,15 @@ export function SEOHead({
     </Head>
   );
 }
+```
+
+### Lógica de Selección de Industria
+```
+IF "comida" OR "restaurante" → industry="Restaurant"
+IF "abogado" OR "legal" → industry="LegalService"
+IF "doctor" OR "salud" → industry="MedicalBusiness"
+IF "auto" OR "taller" → industry="AutomotiveBusiness"
+ELSE → industry="LocalBusiness"
 ```
 
 ---
@@ -144,6 +230,36 @@ export default function Layout({ children }) {
   );
 }
 ```
+
+---
+
+## Fase 3.5: Inyectar Kill Switch
+
+Añade el script de protección en el `<head>` del layout:
+
+```tsx
+{/* Kill Switch - Sistema de Retención HojaCero */}
+<script dangerouslySetInnerHTML={{ __html: `
+(async function() {
+  const SITE_ID = '[ID-DEL-PASO-0.2]';
+  const API = 'https://vcxfdihsyehomqfdzzjf.supabase.co/rest/v1/site_status';
+  try {
+    const res = await fetch(API + '?id=eq.' + SITE_ID + '&select=is_active', {
+      headers: { 'apikey': '[ANON-KEY]' }
+    });
+    const data = await res.json();
+    if (data[0] && !data[0].is_active) {
+      document.body.innerHTML = '<div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#111;color:#fff;font-family:system-ui;text-align:center;padding:2rem;"><div><h1>🔧 Sitio en Mantenimiento</h1><p>Estamos realizando mejoras. Vuelve pronto.</p></div></div>';
+    }
+  } catch (e) { /* fail-safe */ }
+})();
+`}} />
+```
+
+**IMPORTANTE:** Reemplaza `[ID-DEL-PASO-0.2]` con el UUID real del cliente.
+
+> 🚨 Este script consulta Supabase en cada carga. Si `is_active = false`,
+> el sitio muestra "Mantenimiento" y bloquea todo el contenido.
 
 ---
 
@@ -242,22 +358,28 @@ Marca el progreso:
 
 Genera un resumen:
 
-```
-✅ SEO INYECTADO EXITOSAMENTE
 
-📊 Resumen:
+✅ SEO + RETENCIÓN INYECTADOS EXITOSAMENTE
+
+📊 Resumen SEO:
 - Meta tags: ✅ Configurados
 - Open Graph: ✅ Configurado
-- Twitter Cards: ✅ Configurado
 - JSON-LD LocalBusiness: ✅ Generado
 - Sitemap.xml: ✅ Creado
 - Robots.txt: ✅ Creado
 - Imágenes auditadas: X de Y con alt text
 
+🛡️ Sistema de Retención:
+- Cliente registrado en Supabase: ✅ ID: [uuid]
+- Kill switch inyectado: ✅
+- Carpeta local creada: ✅ d:/clientes/[nombre]/
+- Plan: [basic/pro/enterprise]
+- Día de mantención: [día] de cada mes
+
 ⚠️ Pendientes (si aplica):
 - [Lista de issues menores]
 
-🚀 Siguiente paso: Ejecutar /factory-export cuando el cliente pague.
+🚀 Siguiente paso: Copiar sitio a d:/clientes/[nombre]/site/ y hacer deploy.
 ```
 
 ---

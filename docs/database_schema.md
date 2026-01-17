@@ -104,6 +104,64 @@ Log de emails enviados.
 
 ---
 
+## Tablas Sistema de Retención "El Vigilante"
+
+### `monitored_sites`
+Clientes con mantención mensual activa.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | UUID | PK |
+| client_name | TEXT | Nombre del cliente |
+| site_url | TEXT | URL del sitio |
+| local_path | TEXT | Ruta local: d:/clientes/[nombre]/ |
+| hosting_type | TEXT | 'vercel', 'netlify', 'cpanel', 'ftp', 'other' |
+| credentials | JSONB | Credenciales de hosting (encriptadas) |
+| maintenance_day | INT | Día del mes (1-28) |
+| plan_type | TEXT | 'basic', 'pro', 'enterprise' |
+| lead_id | UUID | FK opcional a leads |
+| status | TEXT | 'active', 'paused', 'cancelled' |
+| contract_start | DATE | Inicio del contrato |
+| contract_end | DATE | Fin del contrato |
+| created_at | TIMESTAMPTZ | Fecha creación |
+| updated_at | TIMESTAMPTZ | Última actualización |
+
+---
+
+### `site_status`
+Kill switch para control de acceso a sitios.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | UUID | PK (mismo que monitored_sites) |
+| is_active | BOOLEAN | TRUE = sitio OK, FALSE = bloqueado |
+| deactivated_at | TIMESTAMPTZ | Cuándo se desactivó |
+| reason | TEXT | 'moroso', 'solicitud_cliente', 'mantenimiento', 'otro' |
+| notes | TEXT | Notas adicionales |
+| updated_at | TIMESTAMPTZ | Última actualización |
+
+**Nota:** Esta tabla es accesible públicamente (anon) para que el script del kill switch pueda consultarla.
+
+---
+
+### `maintenance_logs`
+Historial de mantenciones realizadas.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | UUID | PK |
+| site_id | UUID | FK a monitored_sites |
+| performed_at | TIMESTAMPTZ | Cuándo se realizó |
+| changes | JSONB | { images_optimized, links_fixed, deps_updated } |
+| report_url | TEXT | URL del PDF en Storage |
+| report_sent | BOOLEAN | Si se envió el reporte |
+| report_sent_at | TIMESTAMPTZ | Cuándo se envió |
+| deployed | BOOLEAN | Si se subió al hosting |
+| deployed_at | TIMESTAMPTZ | Cuándo se desplegó |
+| notes | TEXT | Notas del trabajo |
+
+---
+
 ## Archivos de Migración
 
 | Archivo | Propósito |
@@ -112,3 +170,4 @@ Log de emails enviados.
 | `add_source_data.sql` | Campo JSONB para datos scraper |
 | `pipeline_leads.sql` | Campos auditoría + activity log |
 | `20260115_pipeline_schema.sql` | **Pipeline V1:** Stages, Order, Tags, ServiceType |
+| `20260117_retention_system.sql` | **Retención:** monitored_sites, site_status, maintenance_logs |

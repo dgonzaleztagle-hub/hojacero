@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2, Server, ShieldCheck, Globe, Clock, Lock } from 'lucide-react';
+import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2, Server, Globe, Clock, Lock } from 'lucide-react';
 
 interface ModalTabAuditoriaProps {
     selectedLead: any;
@@ -124,6 +124,73 @@ export const ModalTabAuditoria = ({
                     </div>
                 </div>
             )}
+
+            {/* PAGE SPEED & CORE WEB VITALS */}
+            {deepAnalysis.techSpecs?.pageSpeed && (deepAnalysis.techSpecs.pageSpeed.mobileScore !== null) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-3">
+                    {/* Scores Section */}
+                    <div className={`p-5 rounded-2xl border ${isDark ? 'bg-zinc-800/50 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <Zap className="w-4 h-4 text-yellow-400" />
+                            <span className="text-xs font-bold uppercase text-zinc-400">Google PageSpeed</span>
+                        </div>
+                        <div className="flex items-center gap-8 justify-center">
+                            {/* Mobile Score */}
+                            <div className="flex flex-col items-center gap-2">
+                                <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${deepAnalysis.techSpecs.pageSpeed.mobileScore >= 90 ? 'border-green-500 text-green-400' :
+                                        deepAnalysis.techSpecs.pageSpeed.mobileScore >= 50 ? 'border-yellow-500 text-yellow-400' :
+                                            'border-red-500 text-red-400'
+                                    }`}>
+                                    <span className="text-xl font-bold">{deepAnalysis.techSpecs.pageSpeed.mobileScore}</span>
+                                </div>
+                                <span className="text-xs uppercase font-bold text-zinc-500">Móvil</span>
+                            </div>
+                            {/* Desktop Score */}
+                            <div className="flex flex-col items-center gap-2">
+                                <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${deepAnalysis.techSpecs.pageSpeed.desktopScore >= 90 ? 'border-green-500 text-green-400' :
+                                        deepAnalysis.techSpecs.pageSpeed.desktopScore >= 50 ? 'border-yellow-500 text-yellow-400' :
+                                            'border-red-500 text-red-400'
+                                    }`}>
+                                    <span className="text-xl font-bold">{deepAnalysis.techSpecs.pageSpeed.desktopScore}</span>
+                                </div>
+                                <span className="text-xs uppercase font-bold text-zinc-500">Escritorio</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Vitals Section */}
+                    <div className={`p-5 rounded-2xl border ${isDark ? 'bg-zinc-800/50 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <TrendingUp className="w-4 h-4 text-blue-400" />
+                            <span className="text-xs font-bold uppercase text-zinc-400">Core Web Vitals</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-black/20 rounded-xl p-3 border border-white/5">
+                                <div className="text-xs text-zinc-500 mb-1">LCP (Carga)</div>
+                                <div className="text-lg font-mono font-medium text-zinc-200">
+                                    {deepAnalysis.techSpecs.pageSpeed.coreWebVitals?.lcp || 'N/A'}
+                                </div>
+                            </div>
+                            <div className="bg-black/20 rounded-xl p-3 border border-white/5">
+                                <div className="text-xs text-zinc-500 mb-1">CLS (Estabilidad)</div>
+                                <div className="text-lg font-mono font-medium text-zinc-200">
+                                    {deepAnalysis.techSpecs.pageSpeed.coreWebVitals?.cls || 'N/A'}
+                                </div>
+                            </div>
+                            <div className="col-span-2 bg-black/20 rounded-xl p-3 border border-white/5 flex items-center justify-between">
+                                <div className="text-xs text-zinc-500">Mobile Friendly</div>
+                                <div className={`text-xs font-bold px-2 py-1 rounded ${deepAnalysis.techSpecs.pageSpeed.isMobileFriendly
+                                        ? 'bg-green-500/20 text-green-400'
+                                        : 'bg-red-500/20 text-red-400'
+                                    }`}>
+                                    {deepAnalysis.techSpecs.pageSpeed.isMobileFriendly ? 'COMPATIBLE' : 'PROBLEMAS'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {deepAnalysis.buyerPersona && (
                 <div className={`p-5 rounded-2xl border ${isDark ? 'bg-purple-500/10 border-purple-500/20' : 'bg-purple-50 border-purple-100'}`}>
                     <div className="flex items-start gap-4">

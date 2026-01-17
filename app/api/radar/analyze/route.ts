@@ -234,7 +234,11 @@ export async function POST(req: Request) {
 
             Rules:
             - If no website, SEO score < 20.
-            - If no SSL (https: false in tech specs) or missing MX records, PENALIZE SCORE HEAVILY and Add Task: "Habilitar Seguridad SSL" / "Configurar Correo Corporativo".
+            - If no SSL (https: false in tech specs) or missing MX records, PENALIZE SCORE HEAVILY.
+            - PAGE SPEED METRICS (Use EVIDENCE 2):
+              - If Mobile Score < 50: Critical Issue "Velocidad Móvil Crítica".
+              - If CLS > 0.1: Issue "Inestabilidad Visual (Layout Shift)".
+              - If LCP > 2.5s: Issue "Carga Lenta (LCP)".
             - Keywords must be transactional and high-intent for this specific niche in Chile (Spanish).
             - BE RUTHLESS on Technical Issues (mention Core Web Vitals, Mobile Responsiveness, Semantic HTML, Security Headers).
             - "buyerPersona" must be psychological and specific (Job Title + Anxiety).
