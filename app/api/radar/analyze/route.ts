@@ -271,9 +271,35 @@ export async function POST(req: Request) {
         // 3. Save to DB
         // Fetch current lead to merge source_data
         const { data: currentLead } = await supabase.from('leads').select('source_data').eq('id', leadId).single();
+
+        // Build scraped data from audit (includes phones, emails, addresses, social)
+        const scrapedData = {
+            hasSSL: audit?.hasSSL || false,
+            hasTitle: audit?.hasTitle || false,
+            hasMetaDesc: audit?.hasMetaDesc || false,
+            hasH1: audit?.hasH1 || false,
+            hasOGTags: audit?.hasOGTags || false,
+            hasViewport: audit?.hasViewport || false,
+            cms: audit?.cms || null,
+            emails: audit?.emails || [],
+            phones: audit?.phones || [],
+            addresses: audit?.addresses || [],
+            facebook: audit?.facebook || null,
+            instagram: audit?.instagram || null,
+            linkedin: audit?.linkedin || null,
+            whatsapp: audit?.whatsapp || null,
+            techStack: [audit?.cms].filter(Boolean)
+        };
+
+        // Also fix techSpecs.security.https to match scraped SSL status
+        if (techSpecs?.security) {
+            techSpecs.security.https = audit?.hasSSL || false;
+        }
+
         const updatedSourceData = {
             ...(currentLead?.source_data || {}),
-            deep_analysis: { ...deepAnalysis, techSpecs }, // Save techSpecs separately for UI
+            scraped: scrapedData,
+            deep_analysis: { ...deepAnalysis, techSpecs },
             last_audit_date: new Date().toISOString()
         };
 
