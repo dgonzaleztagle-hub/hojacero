@@ -53,6 +53,7 @@ export default function Cta() {
                     <a
                         href="https://wa.me/56972739105?text=Hola%20HojaCero%2C%20me%20gustar%C3%ADa%20agendar%20una%20reuni%C3%B3n%20para%20conversar%20sobre%20un%20proyecto."
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="group relative p-8 border border-gray-200 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white transition-all duration-300 text-left rounded-xl overflow-hidden"
                     >
                         <div className="relative z-10">

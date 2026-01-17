@@ -3,8 +3,108 @@ import { createClient } from '@/utils/supabase/server';
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 // ========================
-// SCRAPER: Extract contacts from website
+// SCRAPER: Extract contacts from website + subpages
 // ========================
+
+// Helper: Extract data from HTML
+function extractDataFromHtml(html: string, result: {
+    emails: string[];
+    whatsapp: string | null;
+    instagram: string | null;
+    facebook: string | null;
+    techStack: string[];
+}) {
+    // Extract emails (filter common false positives)
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    const emails = html.match(emailRegex) || [];
+    const newEmails = [...new Set(emails)]
+        .filter(e => !e.includes('example') && !e.includes('wixpress') && !e.includes('sentry') && !e.includes('wordpress'));
+    result.emails = [...new Set([...result.emails, ...newEmails])].slice(0, 5);
+
+    // Extract WhatsApp (if not already found)
+    if (!result.whatsapp) {
+        const waRegex = /(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\d+)/gi;
+        const waMatch = waRegex.exec(html);
+        if (waMatch) {
+            result.whatsapp = waMatch[1];
+        } else {
+            // Try Chilean/LATAM phone patterns near WhatsApp text
+            const waTextRegex = /whatsapp[^0-9]*?(\+?56\s?\d[\d\s-]{7,})/gi;
+            const waTextMatch = waTextRegex.exec(html);
+            if (waTextMatch) {
+                result.whatsapp = waTextMatch[1].replace(/[\s-]/g, '');
+            }
+        }
+    }
+
+    // Extract Instagram (if not already found)
+    if (!result.instagram) {
+        const igRegex = /(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9_.]+)/gi;
+        const igMatch = igRegex.exec(html);
+        if (igMatch && !igMatch[1].includes('p/') && !igMatch[1].includes('reel')) {
+            result.instagram = igMatch[1];
+        }
+    }
+
+    // Extract Facebook (if not already found)
+    if (!result.facebook) {
+        const fbRegex = /facebook\.com\/([a-zA-Z0-9.]+)/gi;
+        const fbMatch = fbRegex.exec(html);
+        if (fbMatch && !fbMatch[1].includes('sharer') && !fbMatch[1].includes('share')) {
+            result.facebook = fbMatch[1];
+        }
+    }
+
+    // Detect Tech Stack
+    if (html.includes('wp-content') || html.includes('wordpress')) {
+        if (!result.techStack.includes('WordPress')) result.techStack.push('WordPress');
+    }
+    if (html.includes('shopify') && !result.techStack.includes('Shopify')) result.techStack.push('Shopify');
+    if (html.includes('wix.com') && !result.techStack.includes('Wix')) result.techStack.push('Wix');
+    if (html.includes('squarespace') && !result.techStack.includes('Squarespace')) result.techStack.push('Squarespace');
+    if (html.includes('webflow') && !result.techStack.includes('Webflow')) result.techStack.push('Webflow');
+    if ((html.includes('_next') || html.includes('__NEXT')) && !result.techStack.includes('Next.js')) result.techStack.push('Next.js');
+    if (html.includes('react') && !result.techStack.includes('React')) result.techStack.push('React');
+    if (html.includes('bootstrap') && !result.techStack.includes('Bootstrap')) result.techStack.push('Bootstrap');
+    if (html.includes('elementor') && !result.techStack.includes('Elementor')) result.techStack.push('Elementor');
+}
+
+// Helper: Find contact subpages in HTML
+function findContactPages(html: string, baseUrl: string): string[] {
+    const contactPatterns = [
+        /href=["']([^"']*(?:contacto|contact|about|nosotros|quienes-somos|acerca)[^"']*)["']/gi
+    ];
+    const found = new Set<string>();
+
+    for (const pattern of contactPatterns) {
+        let match;
+        while ((match = pattern.exec(html)) !== null) {
+            let href = match[1];
+            // Skip external links, anchors, and common non-page patterns
+            if (href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('#') ||
+                href.includes('facebook') || href.includes('instagram') || href.includes('twitter')) {
+                continue;
+            }
+            // Convert relative to absolute
+            if (href.startsWith('/')) {
+                href = baseUrl + href;
+            } else if (!href.startsWith('http')) {
+                href = baseUrl + '/' + href;
+            }
+            // Only add if same domain
+            try {
+                const url = new URL(href);
+                const base = new URL(baseUrl);
+                if (url.hostname === base.hostname || url.hostname === 'www.' + base.hostname || base.hostname === 'www.' + url.hostname) {
+                    found.add(href);
+                }
+            } catch { }
+        }
+    }
+
+    return Array.from(found).slice(0, 3); // Max 3 subpages to avoid too many requests
+}
+
 export async function scrapeContactInfo(websiteUrl: string): Promise<{
     emails: string[];
     whatsapp: string | null;
@@ -12,6 +112,7 @@ export async function scrapeContactInfo(websiteUrl: string): Promise<{
     facebook: string | null;
     hasSSL: boolean;
     techStack: string[];
+    scrapedPages: string[];
 }> {
     const result = {
         emails: [] as string[],
@@ -20,16 +121,14 @@ export async function scrapeContactInfo(websiteUrl: string): Promise<{
         facebook: null as string | null,
         hasSSL: false,
         techStack: [] as string[],
+        scrapedPages: [] as string[],
     };
 
     if (!websiteUrl) return result;
 
-    // Normalize URL - clean and prepare for fetching
-    let baseUrl = websiteUrl.trim();
-    // Remove existing protocol and www to normalize
-    baseUrl = baseUrl.replace(/^https?:\/\//, '').replace(/^www\./, '');
+    // Normalize URL
+    let baseUrl = websiteUrl.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
-    // Build all possible URL combinations (https first, then http; without www first, then with www)
     const urlsToTry = [
         `https://${baseUrl}`,
         `https://www.${baseUrl}`,
@@ -37,77 +136,79 @@ export async function scrapeContactInfo(websiteUrl: string): Promise<{
         `http://www.${baseUrl}`
     ];
 
+    let successfulBaseUrl = '';
+    let mainHtml = '';
+
+    // Step 1: Try to fetch main page
     for (const urlToTry of urlsToTry) {
         try {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 4000); // 4s timeout per attempt
+            const timeout = setTimeout(() => controller.abort(), 5000);
 
             const response = await fetch(urlToTry, {
                 signal: controller.signal,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
             });
             clearTimeout(timeout);
 
-            if (!response.ok) continue; // Try next URL
+            if (!response.ok) continue;
 
             result.hasSSL = urlToTry.startsWith('https');
-            const html = await response.text();
+            mainHtml = await response.text();
+            successfulBaseUrl = urlToTry;
+            result.scrapedPages.push(urlToTry);
 
-            // Extract emails (filter common false positives)
-            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-            const emails = html.match(emailRegex) || [];
-            result.emails = [...new Set(emails)]
-                .filter(e => !e.includes('example') && !e.includes('wixpress') && !e.includes('sentry'))
-                .slice(0, 3);
+            // Extract data from main page
+            extractDataFromHtml(mainHtml, result);
+            break;
 
-            // Extract WhatsApp
-            const waRegex = /(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\d+)/gi;
-            const waMatch = waRegex.exec(html);
-            if (waMatch) {
-                result.whatsapp = waMatch[1];
-            } else {
-                // Try to find Chilean phone patterns near WhatsApp text
-                const waTextRegex = /whatsapp[^0-9]*?(\+?56\s?\d[\d\s-]{7,})/gi;
-                const waTextMatch = waTextRegex.exec(html);
-                if (waTextMatch) {
-                    result.whatsapp = waTextMatch[1].replace(/[\s-]/g, '');
-                }
-            }
-
-            // Extract Instagram
-            const igRegex = /(?:instagram\.com|instagr\.am)\/([a-zA-Z0-9_.]+)/gi;
-            const igMatch = igRegex.exec(html);
-            if (igMatch) result.instagram = igMatch[1];
-
-            // Extract Facebook
-            const fbRegex = /facebook\.com\/([a-zA-Z0-9.]+)/gi;
-            const fbMatch = fbRegex.exec(html);
-            if (fbMatch && !fbMatch[1].includes('sharer')) result.facebook = fbMatch[1];
-
-            // Detect Tech Stack
-            if (html.includes('wp-content') || html.includes('wordpress')) result.techStack.push('WordPress');
-            if (html.includes('shopify')) result.techStack.push('Shopify');
-            if (html.includes('wix.com')) result.techStack.push('Wix');
-            if (html.includes('squarespace')) result.techStack.push('Squarespace');
-            if (html.includes('webflow')) result.techStack.push('Webflow');
-            if (html.includes('_next') || html.includes('__NEXT')) result.techStack.push('Next.js');
-            if (html.includes('react')) result.techStack.push('React');
-            if (html.includes('bootstrap')) result.techStack.push('Bootstrap');
-            if (html.includes('elementor')) result.techStack.push('Elementor');
-
-            return result; // Success! Return early
-
-        } catch (e: any) {
-            // If HTTPS fails, loop will try HTTP
+        } catch {
             continue;
         }
     }
 
-    console.warn(`⚠️ Scraper failed for ${websiteUrl}: Could not reach site via HTTPS or HTTP`);
+    if (!successfulBaseUrl) {
+        console.warn(`⚠️ Scraper failed for ${websiteUrl}: Could not reach site`);
+        return result;
+    }
+
+    // Step 2: Find and scrape contact subpages
+    const contactPages = findContactPages(mainHtml, successfulBaseUrl);
+
+    // Also try common paths even if not found in links
+    const commonPaths = ['/contacto', '/contact', '/nosotros', '/about'];
+    for (const path of commonPaths) {
+        const fullPath = successfulBaseUrl + path;
+        if (!contactPages.includes(fullPath)) {
+            contactPages.push(fullPath);
+        }
+    }
+
+    // Scrape subpages (limit to 4 total to avoid delays)
+    const subpagesToScrape = contactPages.slice(0, 4);
+
+    await Promise.allSettled(subpagesToScrape.map(async (pageUrl) => {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 3000);
+
+            const response = await fetch(pageUrl, {
+                signal: controller.signal,
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            });
+            clearTimeout(timeout);
+
+            if (response.ok) {
+                const html = await response.text();
+                extractDataFromHtml(html, result);
+                result.scrapedPages.push(pageUrl);
+            }
+        } catch { }
+    }));
+
     return result;
 }
+
 
 // ========================
 // AI ANALYZER: Basic Radar Analysis (Vibe, Pain Points, Score)

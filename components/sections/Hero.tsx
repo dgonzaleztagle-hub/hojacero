@@ -39,43 +39,33 @@ export default function Hero() {
         <section ref={containerRef} className="h-screen w-full flex flex-col justify-center items-center relative overflow-hidden mix-blend-difference z-10">
             <div className="relative z-10 text-center">
                 {/* TÍTULO PRINCIPAL */}
-                <div className="overflow-hidden">
-                    <h1 ref={title1Ref} className="text-[15vw] leading-[0.8] uppercase font-bold font-display tracking-tighter">
+                <h1 className="overflow-hidden">
+                    <span ref={title1Ref} className="block text-[15vw] leading-[0.8] uppercase font-bold font-display tracking-tighter">
                         HOJA
-                    </h1>
-                </div>
-                <div className="overflow-hidden">
-                    <h1 ref={title2Ref} className="text-[15vw] leading-[0.8] uppercase font-bold font-display tracking-tighter text-outline-accent hover:text-accent transition-colors duration-500 cursor-none">
+                    </span>
+                    <span ref={title2Ref} className="block text-[15vw] leading-[0.8] uppercase font-bold font-display tracking-tighter text-outline-accent hover:text-accent transition-colors duration-500 cursor-none">
                         CERO_
-                    </h1>
-                </div>
+                    </span>
+                </h1>
 
-                {/* SLOGAN HÍBRIDO - Estilo V2 (Light & Airy) */}
+                {/* SLOGAN - Architects of Digital Experiences */}
                 <div
                     ref={subtitleRef}
-                    className="mt-12 cursor-help relative h-20 md:h-24 flex flex-col items-center justify-start group"
+                    className="mt-12 cursor-help relative h-16 md:h-20 flex flex-col items-center justify-start group"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
+                    role="text"
+                    aria-label="Architects of Digital Experiences - Arquitectos de Experiencias Digitales"
                 >
                     {/* Versión Inglés (Default) */}
-                    <div className={`transition-all duration-500 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`}>
-                        <p className="text-xl md:text-2xl font-light tracking-wide max-w-2xl mx-auto">
-                            If your website looks cheap, your business looks cheap.
-                        </p>
-                        <p className="text-sm italic opacity-50 mt-3 font-serif tracking-widest">
-                            We fix that.
-                        </p>
-                    </div>
+                    <p className={`transition-all duration-500 absolute top-0 left-0 w-full text-xl md:text-3xl font-light tracking-[0.15em] uppercase ${isHovered ? 'opacity-0 blur-sm scale-95' : 'opacity-100 blur-0 scale-100'}`}>
+                        Architects of Digital Experiences
+                    </p>
 
                     {/* Versión Español (Hover) */}
-                    <div className={`transition-all duration-500 absolute top-0 left-0 w-full flex flex-col items-center ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-                        <p className="text-xl md:text-2xl font-light tracking-wide max-w-2xl mx-auto text-accent">
-                            Si tu sitio se ve barato, tu negocio se ve barato.
-                        </p>
-                        <p className="text-sm italic opacity-100 mt-3 font-serif tracking-widest text-white">
-                            Nosotros lo arreglamos.
-                        </p>
-                    </div>
+                    <p className={`transition-all duration-500 absolute top-0 left-0 w-full text-xl md:text-3xl font-light tracking-[0.15em] uppercase text-accent ${isHovered ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'}`}>
+                        Arquitectos de Experiencias Digitales
+                    </p>
                 </div>
 
                 {/* CTAs - Estilo V2 */}
@@ -83,6 +73,7 @@ export default function Hero() {
                     <a
                         href="https://wa.me/56972739105?text=Hola%20HojaCero%2C%20me%20gustar%C3%ADa%20agendar%20una%20reuni%C3%B3n."
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="px-10 py-4 border border-white/20 hover:border-white hover:bg-white hover:text-black transition-all duration-500 text-xs uppercase tracking-[0.2em] font-medium"
                     >
                         Agenda una llamada
@@ -104,12 +95,13 @@ export default function Hero() {
 
             {/* SCROLL INDICATOR */}
             <div className="absolute bottom-12 right-6 md:right-12">
-                <div
+                <button
                     onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center hover-trigger cursor-none group transition-all hover:border-white/30 hover:scale-105"
+                    aria-label="Scroll hacia servicios"
+                    className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center hover-trigger cursor-none group transition-all hover:border-white/30 hover:scale-105 bg-transparent"
                 >
-                    <span className="text-[10px] uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity text-white">↓</span>
-                </div>
+                    <span className="text-[10px] uppercase tracking-widest opacity-50 group-hover:opacity-100 transition-opacity text-white" aria-hidden="true">↓</span>
+                </button>
             </div>
         </section>
     );
