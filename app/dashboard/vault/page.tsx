@@ -457,7 +457,7 @@ function VaultContent() {
 }
 
 // Export default wrapper
-import { Suspense } from 'react';
+
 
 export default function VaultPage() {
     return (
