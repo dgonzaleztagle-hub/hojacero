@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { Search, Plus, AlertTriangle, ExternalLink, ChevronRight, Trash2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { useSearchParams } from 'next/navigation';
 
 // Tipos
 interface Cliente {

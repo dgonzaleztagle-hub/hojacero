@@ -328,56 +328,46 @@ export default function MetricsPage() {
                             ))}
                         </div>
                     </div>
+                </div>
 
-                    {/* Breakdown */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-zinc-900/50 p-6 rounded-xl border border-white/5">
-                            <Link href="/dashboard/vault?tab=criticos">
-                                <StatCard
-                                    title="Cartera Vencida"
-                                    value={metrics.churnedClients.toString()}
-                                    icon={AlertCircle}
-                                    color="text-red-500"
-                                    subtitle="Clientes suspendidos"
-                                />
-                            </Link>
-                        </div>
+                {/* Right Column: Recent Activity */}
+                <div className="space-y-8">
 
-                        {/* Recent Activity */}
-                        <div className="bg-zinc-900/30 p-6 rounded-2xl border border-white/5">
-                            <h2 className="text-xl font-semibold mb-6">Últimos Pagos</h2>
-                            <div className="space-y-4">
-                                {metrics.recentActivity.map((pago, i) => (
-                                    <Link
-                                        href={`/dashboard/vault?search=${encodeURIComponent(pago.monitored_sites?.client_name || '')}`}
-                                        key={i}
-                                        className="flex justify-between items-center p-3 hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-white/5 cursor-pointer block"
-                                    >
-                                        <div>
-                                            <p className="text-white font-medium">{formatCurrency(pago.monto)}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className={`w-1.5 h-1.5 rounded-full ${pago.tipo === 'implementacion' ? 'bg-pink-500' : 'bg-indigo-500'}`}></span>
-                                                <p className="text-xs text-zinc-500 capitalize">{pago.tipo || 'Mantención'}</p>
-                                                <span className="text-zinc-600 text-[10px]">•</span>
-                                                <p className="text-xs text-zinc-400 font-medium truncate max-w-[120px]">
-                                                    {pago.monitored_sites?.client_name || 'Desconocido'}
-                                                </p>
-                                            </div>
+                    {/* Recent Activity */}
+                    <div className="bg-zinc-900/30 p-6 rounded-2xl border border-white/5">
+                        <h2 className="text-xl font-semibold mb-6">Últimos Pagos</h2>
+                        <div className="space-y-4">
+                            {metrics.recentActivity.map((pago, i) => (
+                                <Link
+                                    href={`/dashboard/vault?search=${encodeURIComponent(pago.monitored_sites?.client_name || '')}`}
+                                    key={i}
+                                    className="flex justify-between items-center p-3 hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-white/5 cursor-pointer block"
+                                >
+                                    <div>
+                                        <p className="text-white font-medium">{formatCurrency(pago.monto)}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className={`w-1.5 h-1.5 rounded-full ${pago.tipo === 'implementacion' ? 'bg-pink-500' : 'bg-indigo-500'}`}></span>
+                                            <p className="text-xs text-zinc-500 capitalize">{pago.tipo || 'Mantención'}</p>
+                                            <span className="text-zinc-600 text-[10px]">•</span>
+                                            <p className="text-xs text-zinc-400 font-medium truncate max-w-[120px]">
+                                                {pago.monitored_sites?.client_name || 'Desconocido'}
+                                            </p>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm text-zinc-400">{new Date(pago.fecha_pago).toLocaleDateString()}</p>
-                                        </div>
-                                    </Link>
-                                ))}
-                                {metrics.recentActivity.length === 0 && (
-                                    <p className="text-zinc-500 text-center py-4">No hay actividad reciente</p>
-                                )}
-                            </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm text-zinc-400">{new Date(pago.fecha_pago).toLocaleDateString()}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                            {metrics.recentActivity.length === 0 && (
+                                <p className="text-zinc-500 text-center py-4">No hay actividad reciente</p>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
     );
 }
 
