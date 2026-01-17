@@ -112,12 +112,12 @@ export async function POST(req: Request) {
             contentStrategy: "",
             backlinkOpportunities: [] as string[],
             topCompetitors: [] as string[],
-            actionable_tasks: [],
-            content_ideas: { social_posts: [], email_subjects: [] },
+            actionable_tasks: [] as any[],
+            content_ideas: { social_posts: [] as any[], email_subjects: [] as string[] },
             analysisReport: "Análisis pendiente",
             salesStrategy: {
                 hook: "Pendiente",
-                painPoints: [],
+                painPoints: [] as string[],
                 proposedSolution: "Pendiente",
                 estimatedValue: "Por Definir"
             }
@@ -138,8 +138,8 @@ export async function POST(req: Request) {
                 },
                 actionable_tasks: [
                     { title: "Configurar GROQ_API_KEY", difficulty: "High", impact: "High", category: "Technical" }
-                ] as any
-            };
+                ]
+            } as any;
         } else {
             const prompt = `
             Act as an ELITE SEO Strategist & Competitor Analyst (Ubersuggest/Semrush/Ahrefs level).
