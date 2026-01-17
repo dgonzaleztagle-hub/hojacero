@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Mail, MessageCircle, Phone, Instagram, Facebook, Globe, Zap, Copy, ExternalLink, Save, Trash2, CheckCircle2 } from 'lucide-react';
+import { Mail, MessageCircle, Phone, Instagram, Facebook, Globe, Zap, Copy, ExternalLink, Save, Trash2, CheckCircle2, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 interface ModalTabTrabajoProps {
     selectedLead: any;
@@ -13,7 +14,7 @@ interface ModalTabTrabajoProps {
     editData: { email: string; whatsapp: string; telefono: string; demo_url: string };
     setEditData: (data: any) => void;
     setIsEditingContact: (val: boolean) => void;
-    onSaveContact: () => void;
+    onSaveContact: () => Promise<void> | void;
     isSaving: boolean;
     // Notes
     notes: any[];
@@ -61,6 +62,8 @@ export const ModalTabTrabajo = ({
     copiedField,
     getLeadData
 }: ModalTabTrabajoProps) => {
+    const [isEditingUrl, setIsEditingUrl] = useState(false);
+
     return (
         <div className="space-y-6">
             {/* CONTACT DATA CARD */}
@@ -114,15 +117,7 @@ export const ModalTabTrabajo = ({
                                 placeholder="+56 9 ..."
                             />
                         </div>
-                        <div>
-                            <label className={`text-[10px] font-bold uppercase ml-1 block mb-1.5 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Demo URL / Landing</label>
-                            <input
-                                value={editData.demo_url}
-                                onChange={(e) => setEditData({ ...editData, demo_url: e.target.value })}
-                                className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-black/50 border-white/10 text-white focus:border-purple-500' : 'bg-white border-gray-300 text-gray-900 focus:border-purple-500'}`}
-                                placeholder="Ej: /prospectos/ejemplo"
-                            />
-                        </div>
+
                         <div className="flex gap-3 pt-2">
                             <button
                                 disabled={isSaving}
@@ -138,13 +133,15 @@ export const ModalTabTrabajo = ({
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {/* Demo URL - PROMINENT SECTION */}
-                        <div className={`p-4 rounded-xl border relative overflow-hidden ${isDark ? 'bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border-purple-500/20' : 'bg-purple-50 border-purple-200'}`}>
-                            <div className="flex items-center justify-between mb-2">
+                        {/* Demo URL - PROMINENT SECTION (ISOLATED EDITING) */}
+                        <div className={`p-4 rounded-xl border relative overflow-hidden transition-all ${isEditingUrl ? (isDark ? 'bg-purple-900/10 border-purple-500/30 ring-1 ring-purple-500/30' : 'bg-purple-50 border-purple-400 ring-1 ring-purple-200') : (isDark ? 'bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border-purple-500/20' : 'bg-purple-50 border-purple-200')}`}>
+
+                            {/* Header */}
+                            <div className="flex items-center justify-between mb-3">
                                 <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
                                     <Zap className="w-3 h-3" /> Landing de Prospecto
                                 </span>
-                                {!isEditingContact && (
+                                {!isEditingUrl && !isEditingContact && (
                                     <button
                                         onClick={() => {
                                             setEditData({
@@ -153,7 +150,7 @@ export const ModalTabTrabajo = ({
                                                 telefono: ld.phone || '',
                                                 demo_url: ld.demo_url || ''
                                             });
-                                            setIsEditingContact(true);
+                                            setIsEditingUrl(true);
                                         }}
                                         className={`text-[9px] font-bold uppercase px-2 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 transition-colors`}
                                     >
@@ -162,33 +159,70 @@ export const ModalTabTrabajo = ({
                                 )}
                             </div>
 
-                            {selectedLead.demo_url ? (
-                                <div className="flex items-center gap-2">
-                                    <div className={`flex-1 p-2 rounded-lg text-xs font-mono truncate border ${isDark ? 'bg-black/30 border-purple-500/30 text-purple-200' : 'bg-white border-purple-200 text-purple-700'}`}>
-                                        {selectedLead.demo_url}
+                            {/* Content or Edit Form */}
+                            {isEditingUrl ? (
+                                <div className="animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="flex gap-2">
+                                        <input
+                                            value={editData.demo_url}
+                                            onChange={(e) => setEditData({ ...editData, demo_url: e.target.value })}
+                                            className={`flex-1 border rounded-xl px-3 py-2 text-xs outline-none transition-colors font-mono ${isDark ? 'bg-black/50 border-white/10 text-white focus:border-purple-500' : 'bg-white border-purple-300 text-purple-900 focus:border-purple-500'}`}
+                                            placeholder="https://hojacero.com/prospectos/ejemplo"
+                                            autoFocus
+                                        />
+                                        <button
+                                            disabled={isSaving}
+                                            onClick={async () => {
+                                                await onSaveContact();
+                                                setIsEditingUrl(false);
+                                            }}
+                                            className="px-3 py-2 bg-purple-500 hover:bg-purple-400 text-white rounded-xl shadow-lg shadow-purple-500/20 transition-colors disabled:opacity-50"
+                                            title="Guardar"
+                                        >
+                                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        </button>
+                                        <button
+                                            onClick={() => setIsEditingUrl(false)}
+                                            className={`px-3 py-2 rounded-xl border transition-colors ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10 text-zinc-400' : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-500'}`}
+                                            title="Cancelar"
+                                        >
+                                            ✕
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => copyToClipboard(selectedLead.demo_url, 'demo_url')}
-                                        className={`p-2 rounded-lg transition-colors border ${isDark ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-white border-purple-200 text-purple-600 hover:bg-purple-50'}`}
-                                        title="Copiar URL"
-                                    >
-                                        <Copy className="w-4 h-4" />
-                                    </button>
-                                    <a
-                                        href={selectedLead.demo_url}
-                                        target="_blank"
-                                        className="p-2 rounded-lg bg-purple-500 text-white hover:bg-purple-400 transition-colors shadow-lg shadow-purple-500/20 border border-purple-400"
-                                        title="Abrir Landing"
-                                    >
-                                        <ExternalLink className="w-4 h-4" />
-                                    </a>
+                                    <p className={`text-[10px] mt-2 italic ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
+                                        Ingresa la URL completa donde está alojada la landing (ej: https://hojacero.com/prospectos/tienda).
+                                    </p>
                                 </div>
                             ) : (
-                                <div className={`text-xs italic text-center py-2 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
-                                    Sin URL de prospecto asignada
-                                </div>
+                                selectedLead.demo_url ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className={`flex-1 p-2 rounded-lg text-xs font-mono truncate border ${isDark ? 'bg-black/30 border-purple-500/30 text-purple-200' : 'bg-white border-purple-200 text-purple-700'}`}>
+                                            {selectedLead.demo_url}
+                                        </div>
+                                        <button
+                                            onClick={() => copyToClipboard(selectedLead.demo_url, 'demo_url')}
+                                            className={`p-2 rounded-lg transition-colors border ${isDark ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-white border-purple-200 text-purple-600 hover:bg-purple-50'}`}
+                                            title="Copiar URL"
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                        </button>
+                                        <a
+                                            href={selectedLead.demo_url}
+                                            target="_blank"
+                                            className="p-2 rounded-lg bg-purple-500 text-white hover:bg-purple-400 transition-colors shadow-lg shadow-purple-500/20 border border-purple-400"
+                                            title="Abrir Landing"
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <div className={`text-xs italic text-center py-2 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
+                                        Sin URL de prospecto asignada
+                                    </div>
+                                )
                             )}
                         </div>
+
                         {/* Email */}
                         <div className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200'}`}>
                             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -222,8 +256,6 @@ export const ModalTabTrabajo = ({
                                 </button>
                             )}
                         </div>
-
-
 
                         {/* Social & Meta */}
                         <div className="grid grid-cols-4 gap-3 pt-2">

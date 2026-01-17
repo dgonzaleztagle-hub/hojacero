@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { analyzeTechSpecs } from '@/utils/tech-analysis'; // NEW IMPORT
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
@@ -90,14 +91,18 @@ export async function POST(req: Request) {
 
         console.log(`🕵️ DEEP ANALYZE: Processing ${businessName} (${url})...`);
 
-        // 1. Technical Audit -> Scrape Website
-        const audit = await performSeoAudit(url);
+        // 1. Technical Audit (Scrape + DNS/Headers)
+        const [audit, techSpecs] = await Promise.all([
+            performSeoAudit(url),
+            analyzeTechSpecs(url)
+        ]);
 
         // 2. Google Search Context (For redundancy if site is sparse)
         const searchContext = await performDeepResearch(`${businessName} Chile`);
 
-        console.log(`🕵️ CONTEXT: ScrapeLen=${audit?.contentLength || 0}, SearchCtx=${searchContext.length} chars`);
+        console.log(`🕵️ CONTEXT: ScrapeLen=${audit?.contentLength || 0}, TechSpecs=${!!techSpecs}, SearchCtx=${searchContext.length} chars`);
 
+        // 2. AI Intelligence (The "Ubersuggest" Simulation)
         // 2. AI Intelligence (The "Ubersuggest" Simulation)
         let deepAnalysis = {
             seoScore: 0,
@@ -106,10 +111,36 @@ export async function POST(req: Request) {
             technicalIssues: [] as string[],
             contentStrategy: "",
             backlinkOpportunities: [] as string[],
-            topCompetitors: [] as string[]
+            topCompetitors: [] as string[],
+            actionable_tasks: [],
+            content_ideas: { social_posts: [], email_subjects: [] },
+            analysisReport: "Análisis pendiente",
+            salesStrategy: {
+                hook: "Pendiente",
+                painPoints: [],
+                proposedSolution: "Pendiente",
+                estimatedValue: "Por Definir"
+            }
         };
 
-        if (GROQ_API_KEY) {
+        if (!GROQ_API_KEY) {
+            console.error("❌ GROQ_API_KEY missing in Deep Analysis");
+            deepAnalysis = {
+                ...deepAnalysis,
+                seoScore: 10,
+                technicalIssues: ["Falta configuración de API Key de IA"],
+                analysisReport: "No se ha configurado la API Key de Groq. Contacta al administrador.",
+                salesStrategy: {
+                    hook: "Configurar sistema",
+                    painPoints: ["Falta API Key"],
+                    proposedSolution: "Configurar .env",
+                    estimatedValue: "N/A"
+                },
+                actionable_tasks: [
+                    { title: "Configurar GROQ_API_KEY", difficulty: "High", impact: "High", category: "Technical" }
+                ] as any
+            };
+        } else {
             const prompt = `
             Act as an ELITE SEO Strategist & Competitor Analyst (Ubersuggest/Semrush/Ahrefs level).
             
@@ -121,15 +152,18 @@ export async function POST(req: Request) {
             EVIDENCE 1 (WEBSITE CONTENT):
             ${JSON.stringify({ ...audit, htmlPreview: audit?.htmlPreview?.slice(0, 1000) })}
 
-            EVIDENCE 2 (EXTERNAL GOOGLE CONTEXT):
+            EVIDENCE 2 (TECHNICAL HEALTH):
+            ${JSON.stringify(techSpecs)}
+
+            EVIDENCE 3 (EXTERNAL GOOGLE CONTEXT):
             ${searchContext}
 
             TASK:
-            1. FIRST, determine the TRUE nature of the business using EVIDENCE 2 (Search results are usually more accurate than raw HTML).
-            2. IF EVIDENCE 2 says "Scientific Equipment" but name sounds like "Spa", TRUST EVIDENCE 2.
+            1. FIRST, determine the TRUE nature of the business using EVIDENCE 3.
+            2. Analyze the technical health (SSL, MX records, Server Speed).
             3. Generate a DEEP DIVE REPORT for this specific niche.
 
-            Generate a DEEP DIVE REPORT in JSON format that simulates a full SEO suite audit:
+            Generate a DEEP DIVE REPORT in JSON format that simulates a full SEO suite audit + Digital Marketing Coach:
             {
                 "seoScore": [0-100 score based on audit + opportunity],
                 "buyerPersona": "Brief description of the decision maker (e.g. 'Gerente de Operaciones estresado por...').",
@@ -139,14 +173,34 @@ export async function POST(req: Request) {
                 "technicalIssues": ["Critical issue 1 (e.g. Slow LCP)", "Issue 2 (Mobile Usability)", "Issue 3 (SSL/Security)"],
                 "contentStrategy": "Specific blog/landing page title and structure to capture easy traffic.",
                 "backlinkOpportunities": ["Site Type A (e.g. Local Directories)", "Site Type B (e.g. Industry Blogs)"],
-                "topCompetitors": ["Competitor Name 1", "Competitor Name 2"]
+                "topCompetitors": ["Competitor Name 1", "Competitor Name 2"],
+                "actionable_tasks": [
+                    { "title": "Direct Action 1 (e.g. 'Install SSL')", "difficulty": "Easy|Medium|Hard", "impact": "High|Medium", "category": "Technical" },
+                    { "title": "Direct Action 2 (e.g. 'Claim GMB Listing')", "difficulty": "Easy", "impact": "High", "category": "Presence" },
+                    { "title": "Direct Action 3", "difficulty": "Medium", "impact": "Medium", "category": "Content" },
+                    { "title": "Direct Action 4", "difficulty": "Hard", "impact": "High", "category": "Technical" }
+                ],
+                "content_ideas": {
+                    "social_posts": [
+                        { "platform": "Instagram/LinkedIn", "idea": "Content Idea 1" },
+                        { "platform": "Instagram/LinkedIn", "idea": "Content Idea 2" },
+                        { "platform": "Instagram/LinkedIn", "idea": "Content Idea 3" }
+                    ],
+                    "email_subjects": [
+                        "Clickbait Subject 1",
+                        "Value Subject 2"
+                    ]
+                }
             }
 
             Rules:
             - If no website, SEO score < 20.
+            - If no SSL (https: false in tech specs) or missing MX records, PENALIZE SCORE HEAVILY and Add Task: "Habilitar Seguridad SSL" / "Configurar Correo Corporativo".
             - Keywords must be transactional and high-intent for this specific niche in Chile (Spanish).
-            - BE RUTHLESS on Technical Issues (mention Core Web Vitals, Mobile Responsiveness, Semantic HTML).
+            - BE RUTHLESS on Technical Issues (mention Core Web Vitals, Mobile Responsiveness, Semantic HTML, Security Headers).
             - "buyerPersona" must be psychological and specific (Job Title + Anxiety).
+            - "actionable_tasks": MUST include mix of "Quick Wins" (Easy/High Impact) and "Long Term" (Content).
+            - "content_ideas": MUST be specific to their industry (e.g. if Dentist: "5 tips to avoid cavities").
             - Provide STRICTLY JSON.
             `;
 
@@ -180,7 +234,7 @@ export async function POST(req: Request) {
         const { data: currentLead } = await supabase.from('leads').select('source_data').eq('id', leadId).single();
         const updatedSourceData = {
             ...(currentLead?.source_data || {}),
-            deep_analysis: deepAnalysis,
+            deep_analysis: { ...deepAnalysis, techSpecs }, // Save techSpecs separately for UI
             last_audit_date: new Date().toISOString()
         };
 

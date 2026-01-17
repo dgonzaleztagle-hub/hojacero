@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2 } from 'lucide-react';
+import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2, Server, ShieldCheck, Globe, Clock, Lock } from 'lucide-react';
 
 interface ModalTabAuditoriaProps {
     selectedLead: any;
@@ -60,7 +60,66 @@ export const ModalTabAuditoria = ({
                 </button>
             </div>
 
-            {/* BUYER PERSONA SECTION */}
+            {/* TECHNICAL HEALTH (Web-Check Style) */}
+            {deepAnalysis.techSpecs && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-3">
+                    {/* Security / SSL */}
+                    <div className={`p-5 rounded-2xl border ${deepAnalysis.techSpecs.security.https ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Lock className={`w-4 h-4 ${deepAnalysis.techSpecs.security.https ? 'text-green-400' : 'text-red-400'}`} />
+                            <span className={`text-xs font-bold uppercase ${deepAnalysis.techSpecs.security.https ? 'text-green-400' : 'text-red-400'}`}>Seguridad</span>
+                        </div>
+                        <div className={`text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
+                            {deepAnalysis.techSpecs.security.https ? 'SSL Activo' : 'Sin HTTPS'}
+                        </div>
+                        <div className="text-xs text-zinc-500 mt-1">
+                            {deepAnalysis.techSpecs.security.hsts ? '+HSTS' : 'Sin HSTS'}
+                        </div>
+                    </div>
+
+                    {/* Email / DNS */}
+                    <div className={`p-5 rounded-2xl border ${deepAnalysis.techSpecs.infrastructure.mxRecords ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Server className={`w-4 h-4 ${deepAnalysis.techSpecs.infrastructure.mxRecords ? 'text-indigo-400' : 'text-yellow-400'}`} />
+                            <span className={`text-xs font-bold uppercase ${deepAnalysis.techSpecs.infrastructure.mxRecords ? 'text-indigo-400' : 'text-yellow-400'}`}>Email</span>
+                        </div>
+                        <div className={`text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
+                            {deepAnalysis.techSpecs.infrastructure.mxRecords ? 'MX Configurado' : 'Sin Email Prof.'}
+                        </div>
+                        <div className="text-xs text-zinc-500 mt-1">
+                            {deepAnalysis.techSpecs.dns.hasSpf ? 'SPF OK' : 'Posible Spam'}
+                        </div>
+                    </div>
+
+                    {/* Performance */}
+                    <div className={`p-5 rounded-2xl border ${isDark ? 'bg-zinc-800/50 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Clock className="w-4 h-4 text-blue-400" />
+                            <span className="text-xs font-bold uppercase text-blue-400">Velocidad</span>
+                        </div>
+                        <div className={`text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
+                            {deepAnalysis.techSpecs.performance.ttfb ? `${deepAnalysis.techSpecs.performance.ttfb}ms TTFB` : 'N/A'}
+                        </div>
+                        <div className="text-xs text-zinc-500 mt-1">
+                            Respuesta Server
+                        </div>
+                    </div>
+
+                    {/* Hosting / Infra */}
+                    <div className={`p-5 rounded-2xl border ${isDark ? 'bg-zinc-800/50 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Globe className="w-4 h-4 text-purple-400" />
+                            <span className="text-xs font-bold uppercase text-purple-400">Infra</span>
+                        </div>
+                        <div className={`text-sm font-medium truncate ${isDark ? 'text-zinc-200' : 'text-gray-800'}`} title={deepAnalysis.techSpecs.infrastructure.host || 'Desconocido'}>
+                            {deepAnalysis.techSpecs.infrastructure.host || 'Desconocido'}
+                        </div>
+                        <div className="text-xs text-zinc-500 mt-1">
+                            {deepAnalysis.techSpecs.infrastructure.cloudflare ? 'Usando Cloudflare' : 'Direct IP'}
+                        </div>
+                    </div>
+                </div>
+            )}
             {deepAnalysis.buyerPersona && (
                 <div className={`p-5 rounded-2xl border ${isDark ? 'bg-purple-500/10 border-purple-500/20' : 'bg-purple-50 border-purple-100'}`}>
                     <div className="flex items-start gap-4">

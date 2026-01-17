@@ -9,7 +9,7 @@ import {
     ExternalLink, Copy, CheckCircle2, XCircle, ClipboardList, Trash2, Link2, ShieldAlert, Users, AlertTriangle
 } from 'lucide-react';
 import { PipelineBoard } from '@/components/pipeline/Board';
-import { ModalTabDiagnostico, ModalTabAuditoria, ModalTabTrabajo } from '@/components/lead-modal';
+import { ModalTabDiagnostico, ModalTabAuditoria, ModalTabEstrategia, ModalTabTrabajo } from '@/components/lead-modal';
 
 export default function RadarPage() {
     const { userRole, theme } = useDashboard();
@@ -36,7 +36,7 @@ export default function RadarPage() {
     const [notes, setNotes] = useState<any[]>([]);
     const [newNote, setNewNote] = useState('');
     const [isSavingNote, setIsSavingNote] = useState(false);
-    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'trabajo'>('diagnostico');
+    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo'>('diagnostico');
 
     // Manual Entry State
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
@@ -607,11 +607,11 @@ export default function RadarPage() {
                                 })}
                             </div>
 
-                            {/* TAB NAVIGATION BAR */}
                             <div className={`px-6 py-2 border-b flex gap-1 ${isDark ? 'border-white/5 bg-zinc-950' : 'border-gray-200 bg-white'}`}>
                                 {([
                                     { id: 'diagnostico', label: '📋 Diagnóstico', icon: '📋' },
                                     { id: 'auditoria', label: '🔍 Auditoría', icon: '🔍' },
+                                    { id: 'estrategia', label: '🚀 Plan / Estrategia', icon: '🚀' },
                                     { id: 'trabajo', label: '💼 Trabajo', icon: '💼' }
                                 ] as const).map((tab) => (
                                     <button
@@ -729,6 +729,14 @@ export default function RadarPage() {
                                                 setIsDeepAnalyzing(false);
                                             }
                                         }}
+                                    />
+                                )}
+
+                                {/* TAB CONTENT: ESTRATEGIA */}
+                                {modalTab === 'estrategia' && (
+                                    <ModalTabEstrategia
+                                        selectedLead={selectedLead}
+                                        isDark={isDark}
                                     />
                                 )}
 

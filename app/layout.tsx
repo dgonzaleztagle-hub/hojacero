@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="lenis lenis-smooth">
+    <html lang="es" className="lenis lenis-smooth" suppressHydrationWarning>
       <body
         className={`${spaceGrotesk.variable} ${syncopate.variable} antialiased bg-black text-white overflow-x-hidden`}
       >
