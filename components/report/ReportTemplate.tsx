@@ -211,7 +211,7 @@ export const ReportTemplate = React.forwardRef<HTMLDivElement, ReportTemplatePro
                             ¿Qué encontramos?
                         </h3>
                         <div className="space-y-4 overflow-hidden flex-1">
-                            {reportText.split('\n\n').map((paragraph, i) => (
+                            {(reportText || "").split('\n\n').map((paragraph: string, i: number) => (
                                 <p key={i} className="text-xs text-zinc-600 leading-relaxed text-pretty">
                                     {paragraph}
                                 </p>
