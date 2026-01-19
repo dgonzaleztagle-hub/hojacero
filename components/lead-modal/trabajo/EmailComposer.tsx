@@ -17,7 +17,7 @@ interface EmailComposerProps {
     onGenerateTemplate: (lead: any, type: 'whatsapp' | 'email') => void;
     attachments: { filename: string; path: string }[];
     setAttachments: (val: any[]) => void;
-    handleSendEmail: () => Promise<void> | void;
+    handleSendEmail: () => Promise<any> | void;
     isSendingEmail: boolean;
     copyToClipboard: (text: string, field: string) => void;
     copiedField: string | null;
