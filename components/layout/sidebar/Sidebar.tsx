@@ -5,14 +5,34 @@ import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail,
 import { usePathname } from 'next/navigation';
 import { useDashboard } from '@/app/dashboard/DashboardContext';
 
+import { createClient } from '@/utils/supabase/client';
+import { useState, useEffect } from 'react';
+
 export default function Sidebar() {
     const pathname = usePathname();
     const { theme, isSidebarOpen, closeSidebar } = useDashboard();
+    const [unreadCount, setUnreadCount] = useState(0);
+    const supabase = createClient();
+
+    useEffect(() => {
+        const fetchUnread = async () => {
+            const { count } = await supabase.from('email_inbox').select('*', { count: 'exact', head: true }).eq('is_read', false);
+            setUnreadCount(count || 0);
+        };
+
+        fetchUnread();
+
+        const channel = supabase.channel('sidebar-badges')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'email_inbox' }, fetchUnread)
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, []);
 
     const menuItems: { label: string; href: string; icon: any; isBeta?: boolean; badge?: number }[] = [
         { label: 'DASHBOARD', href: '/dashboard', icon: LayoutDashboard }, // Main Overview
         { label: 'MÉTRICAS', href: '/dashboard/metrics', icon: Activity }, // Replaces Pulse
-        { label: 'INBOX', href: '/dashboard/inbox', icon: Mail },
+        { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
         { label: 'AYUDA', href: '/dashboard/ayuda', icon: HelpCircle },

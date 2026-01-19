@@ -76,32 +76,46 @@ function RadarContent() {
         const targetId = searchParams.get('leadId');
         if (targetId && !selectedLead) {
             const checkAndOpen = async () => {
-                // 1. Try finding in loaded lists
                 let target = leads.find(l => l.id === targetId) || pipelineLeads.find(l => l.id === targetId);
-
-                // 2. If not found locally, fetch from DB
                 if (!target) {
                     const { data } = await supabase.from('leads').select('*').eq('id', targetId).single();
                     if (data) target = data;
                 }
-
-                // 3. Open if found
                 if (target) {
                     setSelectedLead(target);
-
-                    // Load related data
                     fetchLeadActivities(target.id || target.db_id);
                     fetchNotes(target.id || target.db_id);
                     fetchChatMessages(target.id || target.db_id);
-
-                    // Clean URL
                     window.history.replaceState(null, '', '/dashboard/radar');
                 }
             };
-
             checkAndOpen();
         }
     }, [searchParams, leads, pipelineLeads]);
+
+    // Realtime Chat Subscription
+    useEffect(() => {
+        if (!selectedLead) return;
+
+        const leadId = selectedLead.id || selectedLead.db_id;
+        const channel = supabase.channel(`chat:${leadId}`)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'bitacora_clientes', filter: `lead_id=eq.${leadId}` },
+                (payload) => {
+                    const newMessage = payload.new as ChatMessage;
+                    setChatMessages((prev) => {
+                        if (prev.find(m => m.id === newMessage.id)) return prev;
+                        return [...prev, newMessage];
+                    });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [selectedLead]);
 
     // Helper function to log activity to lead_activity_log
     const logActivity = async (

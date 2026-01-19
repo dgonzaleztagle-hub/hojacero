@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789'); // Dumm
 
 export async function POST(request: Request) {
     try {
-        const { to, subject, html, text } = await request.json();
+        const { to, subject, html, text, attachments } = await request.json();
 
         const { data, error } = await resend.emails.send({
             from: 'Hojacero <contacto@hojacero.cl>',
@@ -13,6 +13,7 @@ export async function POST(request: Request) {
             subject: subject,
             html: html,
             text: text,
+            attachments: attachments
         });
 
         if (error) {

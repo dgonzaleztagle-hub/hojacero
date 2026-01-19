@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Mail, MessageCircle, Phone, Instagram, Facebook, Globe, Zap, Copy, ExternalLink, Save, Trash2, CheckCircle2, Loader2, Send, MessageSquare, Download, Lightbulb, Link as LinkIcon, User, Calendar, AlertTriangle } from 'lucide-react';
+import { Mail, MessageCircle, Phone, Instagram, Facebook, Globe, Zap, Copy, ExternalLink, Save, Trash2, CheckCircle2, Loader2, Send, MessageSquare, Download, Lightbulb, Link as LinkIcon, User, Calendar, AlertTriangle, Paperclip, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { ReportBuilderModal } from '../report/ReportBuilderModal';
 import { toast } from 'sonner';
@@ -107,6 +107,18 @@ export const ModalTabTrabajo = ({
     const [isSavingAction, setIsSavingAction] = useState(false);
     const prevLeadIdRef = useRef(selectedLead.id);
 
+    // Chat & Email State
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [attachments, setAttachments] = useState<{ filename: string; path: string }[]>([]);
+
+    // Auto-scroll chat
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [chatMessages, activeChannel]); // adding activeChannel just in case tab switch fails to scroll
+
     // Sync Agenda State ONLY when lead changes (ID switch)
     useEffect(() => {
         if (selectedLead.id !== prevLeadIdRef.current) {
@@ -208,6 +220,54 @@ export const ModalTabTrabajo = ({
         const signatureText = selectedSignature ? `\n\n${selectedSignature.label}\n${selectedSignature.content.replace(/<[^>]*>?/gm, '')}` : '';
         return `${aiTemplate.content}${signatureText}`;
     }
+
+    const handleSendEmail = async () => {
+        if (!selectedLead.email) return toast.error('No hay email destinatario');
+        if (!emailSubject) return toast.error('Falta el asunto');
+        if (!aiTemplate.content) return toast.error('El contenido está vacío');
+
+        setIsSendingEmail(true);
+        try {
+            const bodyHtml = aiTemplate.content.replace(/\n/g, '<br/>') +
+                (selectedSignature ? `<br/><br/>${selectedSignature.content}` : '');
+
+            const res = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: selectedLead.email,
+                    subject: emailSubject,
+                    html: bodyHtml,
+                    text: aiTemplate.content, // Fallback
+                    attachments: attachments
+                })
+            });
+
+            if (!res.ok) throw new Error('Error enviando email');
+
+            toast.success('Email enviado correctamente');
+
+            // Log to Bitacora
+            const supabase = createClient();
+            await supabase.from('bitacora_clientes').insert({
+                lead_id: selectedLead.id || selectedLead.db_id,
+                author: 'Yo', // Use 'Yo' to match chat messages
+                message: `📧 EMAIL ENVIADO: ${emailSubject}\n\n${aiTemplate.content.substring(0, 100)}...${attachments.length > 0 ? `\n📎 Adjuntos: ${attachments.length}` : ''}`,
+                created_at: new Date().toISOString()
+            });
+
+            // Clear
+            setAttachments([]);
+            setAiTemplate({ content: '', type: null });
+            setActiveChannel('whatsapp'); // Reset or stay?
+
+        } catch (e) {
+            console.error(e);
+            toast.error('Error al enviar el email');
+        } finally {
+            setIsSendingEmail(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -754,24 +814,53 @@ ${(analysis.sales_angles || []).map((a: string) => `- ${a}`).join('\n')}
                                                                 rows={8}
                                                             />
                                                             {/* ATTACHMENT TOOLS */}
-                                                            <div className="flex gap-2 px-2 pb-2">
-                                                                {(selectedLead.pdf_url || selectedLead.source_data?.pdf_url) && (
-                                                                    <button
-                                                                        onClick={() => setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n📄 Ver Reporte Estratégico: ${selectedLead.pdf_url || selectedLead.source_data?.pdf_url}` })}
-                                                                        className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 hover:opacity-80 transition-opacity ${isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}
-                                                                    >
-                                                                        <ExternalLink className="w-3 h-3" /> Insertar Link PDF
-                                                                    </button>
+                                                            <div className="flex flex-col gap-2 px-2 pb-2">
+                                                                {/* Chips */}
+                                                                {attachments.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-2 mb-2">
+                                                                        {attachments.map((file, idx) => (
+                                                                            <div key={idx} className="flex items-center gap-1 bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded-lg text-[10px] border border-indigo-500/20">
+                                                                                <Paperclip className="w-3 h-3" />
+                                                                                <span className="max-w-[150px] truncate">{file.filename}</span>
+                                                                                <button onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))} className="hover:text-red-400"><X className="w-3 h-3" /></button>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
                                                                 )}
-                                                                {(selectedLead.demo_url || selectedLead.source_data?.demo_url) && (
-                                                                    <button
-                                                                        onClick={() => setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n🔗 Ver Demo Propuesto: ${selectedLead.demo_url || selectedLead.source_data?.demo_url}` })}
-                                                                        className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 hover:opacity-80 transition-opacity ${isDark ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' : 'bg-pink-50 text-pink-600 border-pink-200'}`}
-                                                                    >
-                                                                        <LinkIcon className="w-3 h-3" /> Insertar Link Demo
-                                                                    </button>
-                                                                )}
+
+                                                                <div className="flex gap-2">
+                                                                    {(selectedLead.pdf_url || selectedLead.source_data?.pdf_url) && (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const url = selectedLead.pdf_url || selectedLead.source_data?.pdf_url;
+                                                                                    // Check if already attached
+                                                                                    if (attachments.find(a => a.path === url)) return toast.error('Ya está adjunto');
+                                                                                    setAttachments([...attachments, { filename: 'Reporte_Estrategico.pdf', path: url }]);
+                                                                                }}
+                                                                                className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 hover:opacity-80 transition-opacity ${isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}
+                                                                            >
+                                                                                <Paperclip className="w-3 h-3" /> Adjuntar PDF
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n📄 Ver Reporte Estratégico: ${selectedLead.pdf_url || selectedLead.source_data?.pdf_url}` })}
+                                                                                className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 hover:opacity-80 transition-opacity ${isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}
+                                                                            >
+                                                                                <ExternalLink className="w-3 h-3" /> Insertar Link PDF
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                    {(selectedLead.demo_url || selectedLead.source_data?.demo_url) && (
+                                                                        <button
+                                                                            onClick={() => setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n🔗 Ver Demo Propuesto: ${selectedLead.demo_url || selectedLead.source_data?.demo_url}` })}
+                                                                            className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 hover:opacity-80 transition-opacity ${isDark ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' : 'bg-pink-50 text-pink-600 border-pink-200'}`}
+                                                                        >
+                                                                            <LinkIcon className="w-3 h-3" /> Insertar Link Demo
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
+
                                                             <div className="flex gap-2 justify-end pt-2 border-t border-dashed border-white/10">
                                                                 <button
                                                                     onClick={() => copyToClipboard(getFullEmailBody(), 'email-msg')}
@@ -780,12 +869,14 @@ ${(analysis.sales_angles || []).map((a: string) => `- ${a}`).join('\n')}
                                                                     {copiedField === 'email-msg' ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                                                                 </button>
                                                                 {selectedLead.email ? (
-                                                                    <a
-                                                                        href={`mailto:${selectedLead.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(getFullEmailBody())}`}
-                                                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-xs flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20"
+                                                                    <button
+                                                                        onClick={handleSendEmail}
+                                                                        disabled={isSendingEmail}
+                                                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-xs flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50"
                                                                     >
-                                                                        <Mail className="w-4 h-4" /> Abrir Cliente de Correo
-                                                                    </a>
+                                                                        {isSendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                                        Enviar Email
+                                                                    </button>
                                                                 ) : (
                                                                     <button
                                                                         disabled
@@ -954,34 +1045,39 @@ ${(analysis.sales_angles || []).map((a: string) => `- ${a}`).join('\n')}
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 custom-scrollbar flex flex-col-reverse">
-                    {/* Reverse map to show newest at bottom if using flex-col, but usually we map normal and scroll to bottom. 
-                        Let's use flex-col-reverse and reverse the array to stick to bottom. */}
-                    {[...chatMessages].reverse().map((msg) => (
-                        <div key={msg.id} className={`flex flex-col ${msg.author === 'Yo' ? 'items-end' : 'items-start'}`}>
-                            <div className="flex items-end gap-2 max-w-[85%]">
+                <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 custom-scrollbar flex flex-col">
+                    {chatMessages.map((msg) => (
+                        <div key={msg.id} className={`flex flex-col ${msg.author === 'Yo' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                            <div className={`flex items-end gap-2 max-w-[85%] ${msg.author === 'Yo' ? 'flex-row-reverse' : 'flex-row'}`}>
                                 {msg.author !== 'Yo' && (
-                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 ${msg.author === 'Sistema' ? 'bg-zinc-800 border-zinc-700 text-zinc-400' :
-                                        'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' // Gaston
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 shadow-lg ${msg.author === 'Sistema' ? 'bg-zinc-800 border-zinc-700 text-zinc-400' :
+                                            'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-500/30 text-white' // Gaston/Others
                                         }`}>
                                         {msg.author.charAt(0)}
                                     </div>
                                 )}
+                                {msg.author === 'Yo' && (
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 shadow-lg bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-500/30 text-white">
+                                        Yo
+                                    </div>
+                                )}
 
-                                <div className={`p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${msg.author === 'Yo'
-                                    ? (isDark ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-100 rounded-tr-none' : 'bg-blue-600 text-white rounded-tr-none')
-                                    : msg.author === 'Sistema'
-                                        ? (isDark ? 'bg-zinc-900/50 border border-white/5 text-zinc-400 text-xs italic' : 'bg-gray-100 text-gray-500 text-xs italic')
-                                        : (isDark ? 'bg-white/5 border border-white/10 text-zinc-300 rounded-tl-none' : 'bg-white border-gray-200 text-gray-800 rounded-tl-none')
+                                <div className={`p-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap shadow-md ${msg.author === 'Yo'
+                                        ? (isDark ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-100 rounded-tr-none' : 'bg-blue-600 text-white rounded-tr-none')
+                                        : msg.author === 'Sistema'
+                                            ? (isDark ? 'bg-zinc-900/50 border border-white/5 text-zinc-400 text-xs italic' : 'bg-gray-100 text-gray-500 text-xs italic')
+                                            : (isDark ? 'bg-zinc-800 border border-white/10 text-white rounded-tl-none' : 'bg-white border-gray-200 text-gray-800 rounded-tl-none')
                                     }`}>
                                     {msg.message}
                                 </div>
                             </div>
-                            <span className={`text-[9px] mt-1 px-1 ${isDark ? 'text-zinc-600' : 'text-gray-400'}`}>
-                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {msg.author}
+                            <span className={`text-[9px] mt-1 px-1 opacity-50 ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                         </div>
                     ))}
+                    <div ref={scrollRef}></div>
+
                     {chatMessages.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-zinc-600 space-y-2 opacity-50">
                             <MessageSquare className="w-8 h-8" />

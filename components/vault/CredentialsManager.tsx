@@ -131,13 +131,64 @@ export default function CredentialsManager({ cliente }: CredentialsManagerProps)
         return <Key className="w-4 h-4 text-zinc-400" />;
     };
 
+    const [status, setStatus] = useState(cliente.status || (cliente.is_active ? 'active' : 'suspended'));
+
+    const toggleStatus = async () => {
+        const newStatus = status === 'active' ? 'suspended' : 'active';
+        // Optimistic update
+        setStatus(newStatus);
+
+        try {
+            const { error } = await supabase
+                .from('monitored_sites')
+                .update({ status: newStatus })
+                .eq('id', cliente.id);
+
+            if (error) throw error;
+            toast.success(`Sitio ${newStatus === 'active' ? 'ACTIVADO' : 'SUSPENDIDO'}`);
+        } catch (error) {
+            console.error('Error toggling status:', error);
+            setStatus(status); // Revert
+            toast.error('Error al cambiar estado');
+        }
+    };
+
     return (
         <div className="space-y-4">
+            {/* STATUS KILLSWITCH */}
+            <div className={`flex items-center justify-between p-4 rounded-xl border mb-4 transition-colors ${status === 'active'
+                    ? 'bg-green-500/10 border-green-500/30'
+                    : 'bg-red-500/10 border-red-500/30'
+                }`}>
+                <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${status === 'active' ? 'bg-green-500 text-black' : 'bg-red-500 text-white'}`}>
+                        <Key className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h4 className={`font-bold text-sm ${status === 'active' ? 'text-green-400' : 'text-red-500'}`}>
+                            {status === 'active' ? 'Sitio Activo' : 'Sitio Suspendido'}
+                        </h4>
+                        <p className="text-xs text-zinc-500">
+                            {status === 'active' ? 'El servicio está operando normalmente.' : 'ACCESO BLOQUEADO (Killswitch)'}
+                        </p>
+                    </div>
+                </div>
+                <button
+                    onClick={toggleStatus}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all ${status === 'active'
+                            ? 'bg-red-500/10 text-red-500 border-red-500/50 hover:bg-red-500 hover:text-white'
+                            : 'bg-green-500/10 text-green-500 border-green-500/50 hover:bg-green-500 hover:text-black'
+                        }`}
+                >
+                    {status === 'active' ? 'SUSPENDER' : 'ACTIVAR'}
+                </button>
+            </div>
+
             {/* HEADER */}
             <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold flex items-center gap-2 text-zinc-100 text-sm">
                     <Lock className="w-4 h-4 text-blue-400" />
-                    Bóveda de Accesos
+                    Credenciales
                 </h3>
                 {!isAddingGroup && (
                     <button

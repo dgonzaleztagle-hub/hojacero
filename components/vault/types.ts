@@ -25,6 +25,7 @@ export interface Cliente {
     contract_end: string;
     email_contacto: string;
     is_active: boolean;
+    status?: string; // Killswitch status ('active' | 'suspended')
     ultimo_pago: string | null;
     total_pagado: number;
     alertas_count: number;
