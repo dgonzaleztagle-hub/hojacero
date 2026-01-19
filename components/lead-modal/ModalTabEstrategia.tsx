@@ -7,9 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ModalTabEstrategiaProps {
     selectedLead: any;
     isDark: boolean;
+    analysis?: any; // Add this
+    copyToClipboard?: (text: string, field: string) => void; // Add this
 }
 
-export const ModalTabEstrategia = ({ selectedLead, isDark }: ModalTabEstrategiaProps) => {
+export const ModalTabEstrategia = ({ selectedLead, isDark, analysis, copyToClipboard }: ModalTabEstrategiaProps) => {
     const deepAnalysis = selectedLead.source_data?.deep_analysis;
     const tasks = deepAnalysis?.actionable_tasks || [];
 

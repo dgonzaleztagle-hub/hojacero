@@ -2,87 +2,22 @@ import React, { useState, useEffect } from 'react';
 import {
     X, Target, Zap, Search, Shield, ShieldOff, Globe, MapPin, Star, AlertCircle,
     Save, Copy, CheckCircle2, MessageCircle, Mail, Phone, Instagram, Facebook,
-    Trash2, ExternalLink, Activity, FileText, ChevronRight
+    Trash2, ExternalLink, Activity, FileText, ChevronRight, Loader2
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRadar } from '@/hooks/useRadar';
 import { getAnalysis, getLeadData } from '@/utils/radar-helpers';
 import { ScoreIndicator, TargetIcon } from './shared';
 // Import Modal Tabs
+// Import Modal Tabs
 import { ContactStrategyPanel } from '@/components/lead-modal/ContactStrategyPanel';
+import { ModalTabDiagnostico } from '@/components/lead-modal/ModalTabDiagnostico';
+import { ModalTabAuditoria } from '@/components/lead-modal/ModalTabAuditoria';
+import { ModalTabEstrategia } from '@/components/lead-modal/ModalTabEstrategia';
+import { ModalTabTrabajo } from '@/components/lead-modal/ModalTabTrabajo';
 
-// ... inside file
-
-{
-    modalTab === 'diagnostico' && (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3 space-y-6">
-                <ModalTabDiagnostico
-                    selectedLead={selectedLead}
-                    analysis={analysis}
-                    ld={ld}
-                    isDark={isDark}
-                    // Props for diag only
-                    isDeepAnalyzing={false} // Todo: Add to hook if needed
-                    isReanalyzing={radar.isReanalyzing}
-                    onReanalyze={() => radar.setIsReanalyzing(true)} // Mock, or implement actual logic
-                    onDeepAnalyze={() => { }} // Mock
-                />
-            </div>
-            <div className="lg:col-span-2">
-                <ContactStrategyPanel
-                    selectedLead={selectedLead}
-                    isDark={isDark}
-                    isEditingContact={isEditingContact}
-                    setIsEditingContact={setIsEditingContact}
-                    editData={editData}
-                    setEditData={setEditData}
-                    isSaving={isSaving}
-                    onUpdateContact={async () => {
-                        setIsSaving(true);
-                        const leadId = selectedLead.id || selectedLead.db_id;
-                        if (!leadId) return;
-                        try {
-                            const updatedSourceData = {
-                                ...(selectedLead.source_data || {}),
-                                email: editData.email,
-                                emails: [editData.email, ...(selectedLead.source_data?.emails?.filter((e: string) => e !== editData.email) || [])].filter(Boolean),
-                                whatsapp: editData.whatsapp,
-                                phone: editData.telefono,
-                                demo_url: editData.demo_url
-                            };
-                            await supabase.from('leads').update({
-                                email: editData.email,
-                                telefono: editData.telefono,
-                                demo_url: editData.demo_url,
-                                source_data: updatedSourceData
-                            }).eq('id', leadId);
-
-                            const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
-                            setSelectedLead(updatedLead);
-                            fetchPipeline();
-                            setIsEditingContact(false);
-                        } catch (err) { console.error(err); } finally { setIsSaving(false); }
-                    }}
-                    copyToClipboard={copyToClipboard}
-                    generateTemplate={generateTemplate}
-                    aiTemplate={aiTemplate}
-                    setAiTemplate={setAiTemplate}
-                    isGeneratingTemplate={isGeneratingTemplate}
-                    copiedField={copiedField}
-                    newNote={newNote}
-                    setNewNote={setNewNote}
-                    saveNote={saveNote}
-                    notes={notes}
-                    deleteNote={deleteNote}
-                    isSavingNote={isSavingNote}
-                    leadActivities={leadActivities}
-                />
-            </div>
-        </div>
-    )
-}
-radar: ReturnType<typeof useRadar>;
+interface RadarLeadModalProps {
+    radar: ReturnType<typeof useRadar>;
 }
 
 export function RadarLeadModal({ radar }: RadarLeadModalProps) {
@@ -210,7 +145,12 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                 <ModalTabDiagnostico
                                     selectedLead={selectedLead}
                                     analysis={analysis}
+                                    ld={ld} // Added missing prop
                                     isDark={isDark}
+                                    isDeepAnalyzing={false} // Mocked as false per original
+                                    onDeepAnalyze={() => { }} // Mocked
+                                    isReanalyzing={radar.isReanalyzing}
+                                    onReanalyze={() => radar.setIsReanalyzing(true)} // Mocked/Hooked
                                     // Passing handlers from radar
                                     copyToClipboard={copyToClipboard}
                                     isEditingContact={isEditingContact}

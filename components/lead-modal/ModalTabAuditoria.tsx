@@ -6,9 +6,11 @@ import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2, Ser
 interface ModalTabAuditoriaProps {
     selectedLead: any;
     isDark: boolean;
-    isDeepAnalyzing: boolean;
-    onDeepAnalyze: () => void;
-    ld: any;
+    isDeepAnalyzing?: boolean; // make optional if not passed
+    onDeepAnalyze?: () => void; // make optional
+    ld?: any; // make optional
+    isReanalyzing?: boolean; // Add this
+    setIsReanalyzing?: (v: boolean) => void; // Add this
 }
 
 export const ModalTabAuditoria = ({
@@ -16,7 +18,9 @@ export const ModalTabAuditoria = ({
     isDark,
     isDeepAnalyzing,
     onDeepAnalyze,
-    ld
+    ld,
+    isReanalyzing,
+    setIsReanalyzing
 }: ModalTabAuditoriaProps) => {
     const deepAnalysis = selectedLead.source_data?.deep_analysis;
     const scraped = selectedLead.source_data?.scraped;
@@ -138,8 +142,8 @@ export const ModalTabAuditoria = ({
                             {/* Mobile Score */}
                             <div className="flex flex-col items-center gap-2">
                                 <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${deepAnalysis.techSpecs.pageSpeed.mobileScore >= 90 ? 'border-green-500 text-green-400' :
-                                        deepAnalysis.techSpecs.pageSpeed.mobileScore >= 50 ? 'border-yellow-500 text-yellow-400' :
-                                            'border-red-500 text-red-400'
+                                    deepAnalysis.techSpecs.pageSpeed.mobileScore >= 50 ? 'border-yellow-500 text-yellow-400' :
+                                        'border-red-500 text-red-400'
                                     }`}>
                                     <span className="text-xl font-bold">{deepAnalysis.techSpecs.pageSpeed.mobileScore}</span>
                                 </div>
@@ -148,8 +152,8 @@ export const ModalTabAuditoria = ({
                             {/* Desktop Score */}
                             <div className="flex flex-col items-center gap-2">
                                 <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${deepAnalysis.techSpecs.pageSpeed.desktopScore >= 90 ? 'border-green-500 text-green-400' :
-                                        deepAnalysis.techSpecs.pageSpeed.desktopScore >= 50 ? 'border-yellow-500 text-yellow-400' :
-                                            'border-red-500 text-red-400'
+                                    deepAnalysis.techSpecs.pageSpeed.desktopScore >= 50 ? 'border-yellow-500 text-yellow-400' :
+                                        'border-red-500 text-red-400'
                                     }`}>
                                     <span className="text-xl font-bold">{deepAnalysis.techSpecs.pageSpeed.desktopScore}</span>
                                 </div>
@@ -180,8 +184,8 @@ export const ModalTabAuditoria = ({
                             <div className="col-span-2 bg-black/20 rounded-xl p-3 border border-white/5 flex items-center justify-between">
                                 <div className="text-xs text-zinc-500">Mobile Friendly</div>
                                 <div className={`text-xs font-bold px-2 py-1 rounded ${deepAnalysis.techSpecs.pageSpeed.isMobileFriendly
-                                        ? 'bg-green-500/20 text-green-400'
-                                        : 'bg-red-500/20 text-red-400'
+                                    ? 'bg-green-500/20 text-green-400'
+                                    : 'bg-red-500/20 text-red-400'
                                     }`}>
                                     {deepAnalysis.techSpecs.pageSpeed.isMobileFriendly ? 'COMPATIBLE' : 'PROBLEMAS'}
                                 </div>

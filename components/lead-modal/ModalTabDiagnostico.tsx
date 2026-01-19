@@ -12,6 +12,27 @@ interface ModalTabDiagnosticoProps {
     isReanalyzing: boolean;
     onDeepAnalyze: () => void;
     onReanalyze: () => void;
+    // New Props for ContactStrategyPanel
+    copyToClipboard: (text: string, field: string) => void;
+    isEditingContact: boolean;
+    setIsEditingContact: (v: boolean) => void;
+    editData: any;
+    setEditData: (d: any) => void;
+    isSaving: boolean;
+    setIsSaving: (v: boolean) => void; // Added based on usage
+    onUpdateContact: () => void;
+    generateTemplate: (lead: any, type: 'whatsapp' | 'email') => void;
+    aiTemplate: any;
+    setAiTemplate: (t: any) => void;
+    isGeneratingTemplate: boolean;
+    copiedField: string | null;
+    newNote: string;
+    setNewNote: (s: string) => void;
+    saveNote: () => void;
+    notes: any[];
+    deleteNote: (id: string) => void;
+    isSavingNote: boolean;
+    leadActivities: any[];
 }
 
 export const ModalTabDiagnostico = ({
@@ -22,7 +43,26 @@ export const ModalTabDiagnostico = ({
     isDeepAnalyzing,
     isReanalyzing,
     onDeepAnalyze,
-    onReanalyze
+    onReanalyze,
+    copyToClipboard,
+    isEditingContact,
+    setIsEditingContact,
+    editData,
+    setEditData,
+    isSaving,
+    onUpdateContact,
+    generateTemplate,
+    aiTemplate,
+    setAiTemplate,
+    isGeneratingTemplate,
+    copiedField,
+    newNote,
+    setNewNote,
+    saveNote,
+    notes,
+    deleteNote,
+    isSavingNote,
+    leadActivities
 }: ModalTabDiagnosticoProps) => {
     return (
         <div className="grid grid-cols-1 gap-6">
