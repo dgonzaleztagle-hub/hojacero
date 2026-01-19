@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { createClient } from '@/utils/supabase/server';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789'); // Dummy fallback for build/types
 
 export async function POST(request: Request) {
     try {
+        const supabase = createClient();
+        const { data: { user }, error: authError } = await (await supabase).auth.getUser();
+
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: 'Unauthorized: You must be logged in to send emails.' },
+                { status: 401 }
+            );
+        }
+
         const { to, subject, html, text, attachments } = await request.json();
 
         const { data, error } = await resend.emails.send({

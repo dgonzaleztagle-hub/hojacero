@@ -1,0 +1,444 @@
+import React, { useState, useEffect } from 'react';
+import {
+    X, Target, Zap, Search, Shield, ShieldOff, Globe, MapPin, Star, AlertCircle,
+    Save, Copy, CheckCircle2, MessageCircle, Mail, Phone, Instagram, Facebook,
+    Trash2, ExternalLink, Activity, FileText, ChevronRight
+} from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
+import { useRadar } from '@/hooks/useRadar';
+import { getAnalysis, getLeadData } from '@/utils/radar-helpers';
+import { ScoreIndicator, TargetIcon } from './shared';
+// Import Modal Tabs
+import { ContactStrategyPanel } from '@/components/lead-modal/ContactStrategyPanel';
+
+// ... inside file
+
+{
+    modalTab === 'diagnostico' && (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3 space-y-6">
+                <ModalTabDiagnostico
+                    selectedLead={selectedLead}
+                    analysis={analysis}
+                    ld={ld}
+                    isDark={isDark}
+                    // Props for diag only
+                    isDeepAnalyzing={false} // Todo: Add to hook if needed
+                    isReanalyzing={radar.isReanalyzing}
+                    onReanalyze={() => radar.setIsReanalyzing(true)} // Mock, or implement actual logic
+                    onDeepAnalyze={() => { }} // Mock
+                />
+            </div>
+            <div className="lg:col-span-2">
+                <ContactStrategyPanel
+                    selectedLead={selectedLead}
+                    isDark={isDark}
+                    isEditingContact={isEditingContact}
+                    setIsEditingContact={setIsEditingContact}
+                    editData={editData}
+                    setEditData={setEditData}
+                    isSaving={isSaving}
+                    onUpdateContact={async () => {
+                        setIsSaving(true);
+                        const leadId = selectedLead.id || selectedLead.db_id;
+                        if (!leadId) return;
+                        try {
+                            const updatedSourceData = {
+                                ...(selectedLead.source_data || {}),
+                                email: editData.email,
+                                emails: [editData.email, ...(selectedLead.source_data?.emails?.filter((e: string) => e !== editData.email) || [])].filter(Boolean),
+                                whatsapp: editData.whatsapp,
+                                phone: editData.telefono,
+                                demo_url: editData.demo_url
+                            };
+                            await supabase.from('leads').update({
+                                email: editData.email,
+                                telefono: editData.telefono,
+                                demo_url: editData.demo_url,
+                                source_data: updatedSourceData
+                            }).eq('id', leadId);
+
+                            const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
+                            setSelectedLead(updatedLead);
+                            fetchPipeline();
+                            setIsEditingContact(false);
+                        } catch (err) { console.error(err); } finally { setIsSaving(false); }
+                    }}
+                    copyToClipboard={copyToClipboard}
+                    generateTemplate={generateTemplate}
+                    aiTemplate={aiTemplate}
+                    setAiTemplate={setAiTemplate}
+                    isGeneratingTemplate={isGeneratingTemplate}
+                    copiedField={copiedField}
+                    newNote={newNote}
+                    setNewNote={setNewNote}
+                    saveNote={saveNote}
+                    notes={notes}
+                    deleteNote={deleteNote}
+                    isSavingNote={isSavingNote}
+                    leadActivities={leadActivities}
+                />
+            </div>
+        </div>
+    )
+}
+radar: ReturnType<typeof useRadar>;
+}
+
+export function RadarLeadModal({ radar }: RadarLeadModalProps) {
+    const {
+        selectedLead, setSelectedLead,
+        modalTab, setModalTab,
+        leads, setLeads,
+        pipelineLeads, setPipelineLeads,
+        historyLeads, setHistoryLeads,
+        location,
+        logActivity,
+        copyToClipboard,
+        copiedField,
+        isEditingContact, setIsEditingContact,
+        editData, setEditData,
+        isSaving, setIsSaving,
+        generateTemplate, aiTemplate, setAiTemplate, isGeneratingTemplate,
+        notes, newNote, setNewNote, saveNote, deleteNote, isSavingNote,
+        leadActivities,
+        chatMessages, newChatMessage, setNewChatMessage, sendChatMessage, chatAuthor, setChatAuthor,
+        fetchLeadActivities, fetchNotes, fetchChatMessages, fetchPipeline,
+        theme // assuming theme is available
+    } = radar;
+
+    const supabase = createClient();
+    const isDark = true; // Forcing dark mode based on previous UI or use theme logic
+    const currentUser = 'Daniel'; // Hardcoded for now as per original
+    const [reviewNote, setReviewNote] = useState(selectedLead?.nota_revision || '');
+
+    if (!selectedLead) return null;
+
+    const analysis = getAnalysis(selectedLead);
+    const ld = getLeadData(selectedLead);
+
+    // --- Helpers for updating local lists after state change ---
+    const removeFromLists = (id: string) => {
+        setLeads(prev => prev.filter(l => l.id !== id && l.db_id !== id));
+        setHistoryLeads(prev => prev.filter(l => l.id !== id && l.db_id !== id));
+        // Pipeline update handled by re-fetch usually
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className={`relative w-full h-[95vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl transition-colors md:w-[95vw] md:max-w-7xl ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border-gray-200'}`}>
+
+                {/* MODAL HEADER */}
+                <div className={`px-6 py-4 border-b flex items-center justify-between shrink-0 ${isDark ? 'border-white/10 bg-black/40' : 'border-gray-100 bg-white'}`}>
+                    <div className="flex items-center gap-4 overflow-hidden">
+                        <div className="p-2.5 bg-zinc-800 rounded-xl shrink-0">
+                            <Target className="w-5 h-5 text-zinc-400" />
+                        </div>
+                        <div className="min-w-0">
+                            <h2 className={`text-lg font-bold truncate flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                {ld.title}
+                                {ld.rating && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 flex items-center gap-1">
+                                        <Star className="w-2.5 h-2.5 fill-yellow-500" /> {ld.rating}
+                                    </span>
+                                )}
+                            </h2>
+                            <div className="flex items-center gap-3 text-xs text-zinc-500 truncate">
+                                <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3" /> {ld.address}</span>
+                                {ld.website && (
+                                    <a href={ld.website} target="_blank" className="flex items-center gap-1 text-cyan-500 hover:underline truncate">
+                                        <Globe className="w-3 h-3" /> {ld.website}
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                        {/* Status Badge */}
+                        <div className={`px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border ${selectedLead.estado === 'ready_to_contact' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                            selectedLead.estado === 'in_contact' ? 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' :
+                                selectedLead.estado === 'discarded' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                    'bg-zinc-800 text-zinc-400 border-zinc-700'
+                            }`}>
+                            {selectedLead.estado || 'DETECTED'}
+                        </div>
+
+                        <button
+                            onClick={() => setSelectedLead(null)}
+                            className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-zinc-500 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* MODAL CONTENT: TABS + SCROLLVIEW */}
+                <div className="flex-1 flex min-h-0 overflow-hidden">
+
+                    {/* SIDEBAR TABS (Desktop) */}
+                    <div className={`w-64 border-r hidden md:flex flex-col p-2 space-y-1 overflow-y-auto ${isDark ? 'border-white/10 bg-zinc-900/30' : 'border-gray-100 bg-gray-50/50'}`}>
+                        <button onClick={() => setModalTab('diagnostico')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${modalTab === 'diagnostico' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'}`}>
+                            <Activity className="w-4 h-4" /> Diagnóstico
+                        </button>
+                        <button onClick={() => setModalTab('auditoria')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${modalTab === 'auditoria' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'}`}>
+                            <Shield className="w-4 h-4" /> Auditoría
+                        </button>
+                        <button onClick={() => setModalTab('estrategia')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${modalTab === 'estrategia' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'}`}>
+                            <Zap className="w-4 h-4" /> Estrategia
+                        </button>
+                        <button onClick={() => setModalTab('trabajo')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${modalTab === 'trabajo' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'}`}>
+                            <FileText className="w-4 h-4" /> Trabajo
+                        </button>
+                    </div>
+
+                    {/* MAIN SCROLLABLE CONTENT */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20">
+                        {/* Mobile Tabs */}
+                        <div className="md:hidden flex overflow-x-auto p-2 border-b border-white/10 gap-2 shrink-0">
+                            {['diagnostico', 'auditoria', 'estrategia', 'trabajo'].map((t) => (
+                                <button key={t} onClick={() => setModalTab(t as any)}
+                                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase whitespace-nowrap ${modalTab === t ? 'bg-cyan-500 text-black' : 'bg-black/40 text-zinc-500'}`}>
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tab Content */}
+                        <div className="p-4 md:p-8 max-w-5xl mx-auto">
+                            {modalTab === 'diagnostico' && (
+                                <ModalTabDiagnostico
+                                    selectedLead={selectedLead}
+                                    analysis={analysis}
+                                    isDark={isDark}
+                                    // Passing handlers from radar
+                                    copyToClipboard={copyToClipboard}
+                                    isEditingContact={isEditingContact}
+                                    setIsEditingContact={setIsEditingContact}
+                                    editData={editData}
+                                    setEditData={setEditData}
+                                    isSaving={isSaving}
+                                    setIsSaving={setIsSaving}
+                                    // Handlers for "Estrategia Ganadora" which is part of Diagnostico UI in original
+                                    generateTemplate={generateTemplate}
+                                    aiTemplate={aiTemplate}
+                                    setAiTemplate={setAiTemplate}
+                                    isGeneratingTemplate={isGeneratingTemplate}
+                                    copiedField={copiedField}
+                                    // Notes & Activity
+                                    newNote={newNote}
+                                    setNewNote={setNewNote}
+                                    saveNote={saveNote}
+                                    notes={notes}
+                                    deleteNote={deleteNote}
+                                    isSavingNote={isSavingNote}
+                                    leadActivities={leadActivities}
+                                    // ... any other props needed
+                                    // We need to inject the update logic for contact edit
+                                    onUpdateContact={async () => {
+                                        setIsSaving(true);
+                                        const leadId = selectedLead.id || selectedLead.db_id;
+                                        if (!leadId) return;
+                                        try {
+                                            const updatedSourceData = {
+                                                ...(selectedLead.source_data || {}),
+                                                email: editData.email,
+                                                emails: [editData.email, ...(selectedLead.source_data?.emails?.filter((e: string) => e !== editData.email) || [])].filter(Boolean),
+                                                whatsapp: editData.whatsapp,
+                                                phone: editData.telefono,
+                                                demo_url: editData.demo_url
+                                            };
+                                            await supabase.from('leads').update({
+                                                email: editData.email,
+                                                telefono: editData.telefono,
+                                                demo_url: editData.demo_url,
+                                                source_data: updatedSourceData
+                                            }).eq('id', leadId);
+
+                                            // Optimistic update
+                                            const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
+                                            setSelectedLead(updatedLead);
+                                            // We should also update pipeline leads if possible but useRadar doesn't expose list setter easily for search
+                                            fetchPipeline();
+                                            setIsEditingContact(false);
+                                        } catch (err) { console.error(err); } finally { setIsSaving(false); }
+                                    }}
+                                />
+                            )}
+
+                            {modalTab === 'auditoria' && (
+                                <ModalTabAuditoria
+                                    selectedLead={selectedLead}
+                                    isDark={isDark}
+                                    isReanalyzing={radar.isReanalyzing}
+                                    setIsReanalyzing={radar.setIsReanalyzing}
+                                />
+                            )}
+
+                            {modalTab === 'estrategia' && (
+                                <ModalTabEstrategia
+                                    selectedLead={selectedLead}
+                                    analysis={analysis}
+                                    isDark={isDark}
+                                    copyToClipboard={copyToClipboard}
+                                />
+                            )}
+
+                            {modalTab === 'trabajo' && (
+                                <ModalTabTrabajo
+                                    selectedLead={selectedLead}
+                                    ld={ld}
+                                    isDark={isDark}
+                                    analysis={analysis}
+                                    // Contact Editing
+                                    isEditingContact={isEditingContact}
+                                    setIsEditingContact={setIsEditingContact}
+                                    editData={editData}
+                                    setEditData={setEditData}
+                                    onSaveContact={async () => {
+                                        setIsSaving(true);
+                                        const leadId = selectedLead.id || selectedLead.db_id;
+                                        if (!leadId) return;
+                                        try {
+                                            const updatedSourceData = {
+                                                ...(selectedLead.source_data || {}),
+                                                email: editData.email,
+                                                emails: [editData.email, ...(selectedLead.source_data?.emails?.filter((e: string) => e !== editData.email) || [])].filter(Boolean),
+                                                whatsapp: editData.whatsapp,
+                                                phone: editData.telefono,
+                                                demo_url: editData.demo_url
+                                            };
+                                            await supabase.from('leads').update({
+                                                email: editData.email,
+                                                telefono: editData.telefono,
+                                                demo_url: editData.demo_url,
+                                                source_data: updatedSourceData
+                                            }).eq('id', leadId);
+
+                                            const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
+                                            setSelectedLead(updatedLead);
+                                            fetchPipeline();
+                                            setIsEditingContact(false);
+                                        } catch (err) { console.error(err); } finally { setIsSaving(false); }
+                                    }}
+                                    isSaving={isSaving}
+
+                                    // Chat
+                                    chatMessages={chatMessages}
+                                    newChatMessage={newChatMessage}
+                                    setNewChatMessage={setNewChatMessage}
+                                    onSendChatMessage={sendChatMessage}
+                                    chatAuthor={chatAuthor}
+                                    setChatAuthor={setChatAuthor}
+
+                                    // AI & Activity
+                                    leadActivities={leadActivities}
+                                    onGenerateTemplate={generateTemplate}
+                                    isGeneratingTemplate={isGeneratingTemplate}
+                                    aiTemplate={aiTemplate}
+                                    setAiTemplate={setAiTemplate}
+                                    copyToClipboard={copyToClipboard}
+                                    copiedField={copiedField}
+                                    getLeadData={getLeadData}
+                                    onLeadUpdate={setSelectedLead}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* MODAL FOOTER */}
+                <div className="p-6 border-t border-white/10 bg-zinc-900/50 sticky bottom-0 space-y-4">
+                    {/* PREVIEW */}
+                    {selectedLead.id === 'preview' && (
+                        <div className="flex justify-end gap-3 w-full border-t border-white/5 pt-4">
+                            <button onClick={() => setSelectedLead(null)} className="px-4 py-2 text-zinc-400 hover:text-white text-xs font-bold uppercase transition-colors">Cancelar</button>
+                            <button disabled={isSaving} onClick={async () => {
+                                setIsSaving(true);
+                                try {
+                                    const res = await fetch('/api/radar/manual', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            nombre: selectedLead.nombre,
+                                            sitio_web: selectedLead.sitio_web,
+                                            telefono: selectedLead.telefono,
+                                            direccion: selectedLead.direccion
+                                        })
+                                    });
+                                    if ((await res.json()).success) {
+                                        setSelectedLead(null);
+                                        // radar.setActiveTab('pipeline')? No exposed in logic
+                                        fetchPipeline();
+                                    }
+                                } finally { setIsSaving(false); }
+                            }} className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl text-xs font-bold uppercase hover:shadow-lg flex items-center gap-2">
+                                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Confirmar
+                            </button>
+                        </div>
+                    )}
+
+                    {/* DETECTED */}
+                    {(!selectedLead.estado || selectedLead.estado === 'detected') && selectedLead.id !== 'preview' && (
+                        <div className="flex flex-col gap-4">
+                            <div className="bg-black/30 p-2 rounded-xl">
+                                <textarea value={reviewNote} onChange={(e) => setReviewNote(e.target.value)} placeholder="Nota de revisión..." className="w-full bg-transparent text-sm text-white resize-none outline-none" rows={1} />
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-xs text-zinc-600">Zona: {location}</span>
+                                <div className="flex gap-3">
+                                    <button onClick={async () => {
+                                        setIsSaving(true);
+                                        const id = selectedLead.id || selectedLead.db_id;
+                                        await supabase.from('leads').update({ estado: 'discarded', nota_revision: reviewNote, revisado_por: currentUser }).eq('id', id);
+                                        await logActivity(id, 'discarded', 'detected', 'discarded', reviewNote);
+                                        removeFromLists(id);
+                                        setSelectedLead(null);
+                                        setIsSaving(false);
+                                    }} className="px-5 py-3 rounded-xl font-medium text-sm bg-red-500/10 text-red-400 hover:bg-red-500/20 flex gap-2">
+                                        <Trash2 className="w-4 h-4" /> Descartar
+                                    </button>
+                                    <button onClick={async () => {
+                                        setIsSaving(true);
+                                        const id = selectedLead.id || selectedLead.db_id;
+                                        await supabase.from('leads').update({ estado: 'ready_to_contact', nota_revision: reviewNote, revisado_por: currentUser }).eq('id', id);
+                                        await logActivity(id, 'qualified', 'detected', 'ready_to_contact', reviewNote);
+                                        fetchPipeline();
+                                        removeFromLists(id);
+                                        setSelectedLead(null);
+                                        setIsSaving(false);
+                                    }} className="px-6 py-3 rounded-xl font-bold text-sm bg-green-500 text-black hover:bg-green-400 flex gap-2 shadow-lg">
+                                        <CheckCircle2 className="w-4 h-4" /> Guardar para Contacto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PIPELINE ACTIONS (Simplified) */}
+                    {['ready_to_contact', 'in_contact', 'proposal_sent'].includes(selectedLead.estado) && (
+                        <div className="flex justify-between items-center">
+                            <div className="text-xs text-zinc-500">Estado: <span className="text-white font-bold">{selectedLead.estado}</span></div>
+                            <div className="flex gap-2">
+                                {selectedLead.estado === 'ready_to_contact' && (
+                                    <button onClick={async () => {
+                                        setIsSaving(true);
+                                        const id = selectedLead.id || selectedLead.db_id;
+                                        await supabase.from('leads').update({ estado: 'in_contact', revisado_por: currentUser }).eq('id', id);
+                                        await logActivity(id, 'contacted', 'ready_to_contact', 'in_contact');
+                                        fetchPipeline();
+                                        setSelectedLead(null);
+                                        setIsSaving(false);
+                                    }} className="px-4 py-2 bg-cyan-500 text-black font-bold rounded-xl text-sm hover:bg-cyan-400 flex gap-2">
+                                        <MessageCircle className="w-4 h-4" /> Marcar Contactado
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+            </div>
+        </div>
+    );
+}
