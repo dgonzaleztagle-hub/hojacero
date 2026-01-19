@@ -68,6 +68,11 @@ export default function Hero() {
                     </p>
                 </div>
 
+                {/* SUB-SLOGAN */}
+                <p className="mt-4 text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 animate-pulse">
+                    web apps • mkt
+                </p>
+
                 {/* CTAs - Estilo V2 */}
                 <div ref={ctaRef} className="mt-16 flex flex-wrap justify-center gap-8">
                     <a
@@ -88,9 +93,12 @@ export default function Hero() {
             </div>
 
             {/* STATEMENT TÉCNICO */}
-            <div className="absolute bottom-12 left-6 md:left-12 max-w-xs text-[10px] font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-12 left-6 md:left-12 max-w-xs text-[10px] font-mono uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex flex-col gap-1">
                 <p>Spatial UI experiment.</p>
                 <p>Santiago / Worldwide</p>
+                <a href="mailto:contacto@hojacero.cl" className="hover:text-accent mt-1 block decoration-dotted underline underline-offset-4">
+                    contacto@hojacero.cl
+                </a>
             </div>
 
             {/* SCROLL INDICATOR */}
