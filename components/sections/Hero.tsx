@@ -26,10 +26,9 @@ export default function Hero() {
     useEffect(() => {
         const tl = gsap.timeline({ defaults: { ease: 'power4.out', duration: 1.5 } });
 
-        if (title1Ref.current && title2Ref.current && subtitleRef.current && ctaRef.current) {
-            tl.fromTo(title1Ref.current, { y: '100%', opacity: 0 }, { y: '0%', opacity: 1, delay: 0.2 })
-                .fromTo(title2Ref.current, { y: '100%', opacity: 0 }, { y: '0%', opacity: 1 }, '-=1.2')
-                .fromTo(subtitleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1 }, '-=0.8')
+        if (subtitleRef.current && ctaRef.current) {
+            // Title is now static on load as requested
+            tl.fromTo(subtitleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, delay: 0.2 })
                 .fromTo(ctaRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1 }, '-=0.6');
         }
 
@@ -37,13 +36,13 @@ export default function Hero() {
 
     return (
         <section ref={containerRef} className="h-screen w-full flex flex-col justify-center items-center relative overflow-hidden mix-blend-difference z-10">
-            <div className="relative z-10 text-center">
-                {/* TÍTULO PRINCIPAL */}
-                <h1 className="overflow-hidden">
-                    <span ref={title1Ref} className="block text-[15vw] leading-[0.8] uppercase font-bold font-display tracking-tighter">
+            <div className="relative z-10 text-center flex flex-col items-center">
+                {/* TÍTULO PRINCIPAL - Static */}
+                <h1 className="leading-[0.8]">
+                    <span className="block text-[15vw] uppercase font-bold font-display tracking-tighter">
                         HOJA
                     </span>
-                    <span ref={title2Ref} className="block text-[15vw] leading-[0.8] uppercase font-bold font-display tracking-tighter text-outline-accent hover:text-accent transition-colors duration-500 cursor-none">
+                    <span className="block text-[15vw] uppercase font-bold font-display tracking-tighter text-outline-accent hover:text-accent transition-colors duration-500 cursor-none">
                         CERO_
                     </span>
                 </h1>
@@ -51,46 +50,52 @@ export default function Hero() {
                 {/* SLOGAN - Architects of Digital Experiences */}
                 <div
                     ref={subtitleRef}
-                    className="mt-12 cursor-help relative h-16 md:h-20 flex flex-col items-center justify-start group"
+                    className="mt-8 cursor-help relative h-8 md:h-12 w-full flex justify-center group"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
-                    role="text"
-                    aria-label="Architects of Digital Experiences - Arquitectos de Experiencias Digitales"
                 >
                     {/* Versión Inglés (Default) */}
-                    <p className={`transition-all duration-500 absolute top-0 left-0 w-full text-xl md:text-3xl font-light tracking-[0.15em] uppercase ${isHovered ? 'opacity-0 blur-sm scale-95' : 'opacity-100 blur-0 scale-100'}`}>
+                    <p className={`transition-all duration-500 absolute top-0 text-xl md:text-3xl font-light tracking-[0.15em] uppercase whitespace-nowrap ${isHovered ? 'opacity-0 blur-sm scale-95' : 'opacity-100 blur-0 scale-100'}`}>
                         Architects of Digital Experiences
                     </p>
 
                     {/* Versión Español (Hover) */}
-                    <p className={`transition-all duration-500 absolute top-0 left-0 w-full text-xl md:text-3xl font-light tracking-[0.15em] uppercase text-accent ${isHovered ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'}`}>
+                    <p className={`transition-all duration-500 absolute top-0 text-xl md:text-3xl font-light tracking-[0.15em] uppercase text-accent whitespace-nowrap ${isHovered ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'}`}>
                         Arquitectos de Experiencias Digitales
                     </p>
                 </div>
 
-                {/* SUB-SLOGAN ANIMADO */}
-                <div className="mt-6 h-6 overflow-hidden relative">
-                    <div className="animate-slide-up-fade flex flex-col items-center gap-2">
-                        <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-cyan-200">
-                            WEB APPS
-                        </p>
-                        <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-purple-200">
-                            MARKETING
-                        </p>
-                        <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-emerald-200">
-                            ECOMMERCE
-                        </p>
-                        <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-amber-200">
-                            SOFTWARE
-                        </p>
+                {/* SUB-SLOGAN ANIMADO - FIXED CENTERING & SIZE */}
+                <div className="mt-4 h-5 md:h-6 overflow-hidden relative w-full flex justify-center">
+                    <div className="animate-slide-up-fade flex flex-col items-center w-full">
+                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
+                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-cyan-200 whitespace-nowrap">
+                                WEB APPS
+                            </p>
+                        </div>
+                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
+                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-purple-200 whitespace-nowrap">
+                                MARKETING
+                            </p>
+                        </div>
+                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
+                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-emerald-200 whitespace-nowrap">
+                                ECOMMERCE
+                            </p>
+                        </div>
+                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
+                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-amber-200 whitespace-nowrap">
+                                SOFTWARE
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <style jsx>{`
                     @keyframes slide-up-fade {
                         0%, 20% { transform: translateY(0); }
-                        25%, 45% { transform: translateY(-33%); }
-                        50%, 70% { transform: translateY(-66%); }
-                        75%, 95% { transform: translateY(-100%); } // Adjust based on height
+                        25%, 45% { transform: translateY(-25%); }
+                        50%, 70% { transform: translateY(-50%); }
+                        75%, 95% { transform: translateY(-75%); }
                         100% { transform: translateY(0); }
                     }
                     .animate-slide-up-fade {
@@ -125,6 +130,9 @@ export default function Hero() {
                     <p>Santiago / Worldwide</p>
                     <a href="mailto:contacto@hojacero.cl" className="hover:text-cyan-400 mt-1 block decoration-dotted underline underline-offset-4 transition-colors">
                         contacto@hojacero.cl
+                    </a>
+                    <a href="tel:+56958946617" className="hover:text-green-400 block mt-0.5">
+                        +56 9 5894 6617
                     </a>
                 </div>
 

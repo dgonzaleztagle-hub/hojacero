@@ -517,7 +517,7 @@ export default function PricingPage() {
 
                                             {/* CTA */}
                                             <motion.a
-                                                href={`https://wa.me/56972739105?text=Hola%20HojaCero%2C%20me%20interesa%20${plan.name}`}
+                                                href="https://wa.me/56958946617?text=Hola%20HojaCero%2C%20tengo%20dudas%20sobre%20los%20planes."
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className={`block w-full py-4 rounded-xl text-center text-sm font-semibold transition-all
