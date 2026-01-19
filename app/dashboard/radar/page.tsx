@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useDashboard } from '../DashboardContext';
 import {
@@ -22,7 +22,7 @@ import { useSearchParams } from 'next/navigation'; // Add import
 
 // ... imports
 
-export default function RadarPage() {
+function RadarContent() {
     const { userRole, theme } = useDashboard();
     const supabase = createClient();
     const searchParams = useSearchParams(); // Get params
@@ -2233,6 +2233,18 @@ export default function RadarPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function RadarPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-[50vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+            </div>
+        }>
+            <RadarContent />
+        </Suspense>
     );
 }
 
