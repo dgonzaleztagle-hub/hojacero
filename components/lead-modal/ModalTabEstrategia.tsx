@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Lightbulb, CheckCircle2, Circle, ListTodo, Sparkles, Mail, Instagram, ArrowRight, BookOpen, Copy, Download, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ReportBuilderModal } from '../report/ReportBuilderModal';
 
 interface ModalTabEstrategiaProps {
     selectedLead: any;
@@ -13,12 +12,9 @@ interface ModalTabEstrategiaProps {
 export const ModalTabEstrategia = ({ selectedLead, isDark }: ModalTabEstrategiaProps) => {
     const deepAnalysis = selectedLead.source_data?.deep_analysis;
     const tasks = deepAnalysis?.actionable_tasks || [];
-    const contentIdeas = deepAnalysis?.content_ideas || { social_posts: [], email_subjects: [] };
 
     // Local state for checking off tasks (gamification)
     const [checkedTasks, setCheckedTasks] = useState<Set<number>>(new Set());
-    // Report Builder Modal State
-    const [isReportBuilderOpen, setIsReportBuilderOpen] = useState(false);
 
     const toggleTask = (index: number) => {
         const newChecked = new Set(checkedTasks);
@@ -135,113 +131,6 @@ export const ModalTabEstrategia = ({ selectedLead, isDark }: ModalTabEstrategiaP
                     })}
                 </div>
             </div>
-
-            {/* SECTION 2: Creative Studio (Content Ideas) */}
-            <div className="space-y-4 pt-4 border-t border-white/5">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-purple-400 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" /> Estudio Creativo (Ideas IA)
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* SOCIAL POSTS */}
-                    <div className={`rounded-2xl border p-5 ${isDark ? 'bg-zinc-900/40 border-white/5' : 'bg-white border-gray-100'}`}>
-                        <div className="flex items-center gap-2 mb-4 text-pink-400">
-                            <Instagram className="w-5 h-5" />
-                            <span className="font-bold text-sm">Posts Sugeridos</span>
-                        </div>
-                        <ul className="space-y-4">
-                            {contentIdeas.social_posts?.map((post: any, i: number) => (
-                                <li key={i} className="flex gap-3">
-                                    <div className="mt-1 w-1.5 h-1.5 rounded-full bg-pink-500 shrink-0" />
-                                    <p className={`text-sm leading-relaxed ${isDark ? 'text-zinc-300' : 'text-gray-600'}`}>
-                                        "{post.idea}"
-                                    </p>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* EMAILS */}
-                    <div className={`rounded-2xl border p-5 ${isDark ? 'bg-zinc-900/40 border-white/5' : 'bg-white border-gray-100'}`}>
-                        <div className="flex items-center gap-2 mb-4 text-amber-400">
-                            <Mail className="w-5 h-5" />
-                            <span className="font-bold text-sm">Asuntos de Email</span>
-                        </div>
-                        <ul className="space-y-3">
-                            {contentIdeas.email_subjects?.map((subj: string, i: number) => (
-                                <li key={i} className={`p-3 rounded-lg text-sm border flex items-center justify-between group cursor-pointer ${isDark ? 'bg-zinc-800/50 border-white/5 hover:border-amber-500/30' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}>
-                                    <span className={isDark ? 'text-zinc-300' : 'text-gray-700'}>{subj}</span>
-                                    <ArrowRight className="w-3 h-3 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            {/* INTERNAL TOOLS & ACTIONS - Updated for Internal Team Usage */}
-            <div className={`p-6 rounded-3xl border relative overflow-hidden ${isDark ? 'bg-gradient-to-br from-zinc-900 via-zinc-950 to-black border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                {/* Background Decoration */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
-
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-                    <div className="space-y-2 max-w-lg">
-                        <h3 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            <Zap className="w-5 h-5 text-cyan-400" />
-                            Herramientas Comerciales
-                        </h3>
-                        <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
-                            Usa esta estrategia generada por IA para armar tu propuesta o contactar al cliente.
-                        </p>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => {
-                                // Generate a text summary of the strategy
-                                const text = `
-Estrategia para ${selectedLead.title || 'Cliente'}:
---------------------------------
-${tasks.length > 0 ? `✅ Avance: ${checkedTasks.size}/${tasks.length} tareas completadas.` : ''}
-
-🎯 Foco: ${deepAnalysis.salesStrategy?.hook || 'Mejorar presencia digital'}
-
-🛠️ Acciones Recomendadas:
-${tasks.slice(0, 5).map((t: any) => `- ${t.title}`).join('\n')}
-
-💡 Ideas de Contenido:
-${contentIdeas?.social_posts?.slice(0, 3).map((p: any) => `- ${p.idea}`).join('\n') || 'Pendientes'}
-                                `.trim();
-                                navigator.clipboard.writeText(text);
-                                alert('Estrategia copiada al portapapeles');
-                            }}
-                            className={`px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${isDark
-                                ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-white/5 hover:border-white/20'
-                                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                                }`}
-                        >
-                            <Copy className="w-4 h-4" />
-                            Copiar Resumen
-                        </button>
-
-                        <button
-                            onClick={() => setIsReportBuilderOpen(true)}
-                            className="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-black rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg shadow-cyan-500/20"
-                        >
-                            <Download className="w-4 h-4" />
-                            Exportar PDF
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* REPORT BUILDER MODAL */}
-            <ReportBuilderModal
-                isOpen={isReportBuilderOpen}
-                onClose={() => setIsReportBuilderOpen(false)}
-                lead={selectedLead}
-                isDark={isDark}
-            />
         </div>
     );
 };

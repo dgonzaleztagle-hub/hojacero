@@ -18,7 +18,7 @@ export const Column = ({ id, title, count, items }: ColumnProps) => {
     });
 
     return (
-        <div className="flex flex-col w-[300px] h-full flex-shrink-0">
+        <div className="flex flex-col w-full md:w-[260px] h-full flex-shrink-0">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 px-1">
                 <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
@@ -32,8 +32,14 @@ export const Column = ({ id, title, count, items }: ColumnProps) => {
             {/* Droppable Area */}
             <div
                 ref={setNodeRef}
-                className="flex-1 bg-[#0A0A0A] rounded-2xl p-2 border border-[#1A1A1A] overflow-y-auto min-h-[150px]"
+                className="flex-1 bg-[#0A0A0A] rounded-xl p-1.5 border border-[#1A1A1A] overflow-y-auto min-h-[150px] scrollbar-none"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
+                <style jsx>{`
+                    div::-webkit-scrollbar {
+                        display: none;
+                    }
+                `}</style>
                 <SortableContext
                     id={id}
                     items={items.map((item) => item.id)}

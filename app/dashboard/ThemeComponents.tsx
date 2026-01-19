@@ -8,15 +8,15 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
 
     return (
         <div className={`min-h-screen flex dashboard-container transition-colors duration-300 ${theme === 'dark'
-                ? 'bg-neutral-950 text-white'
-                : 'bg-gray-100 text-gray-900'
+            ? 'bg-neutral-950 text-white'
+            : 'bg-gray-100 text-gray-900'
             }`}>
             {/* Theme Toggle Button - Fixed position */}
             <button
                 onClick={toggleTheme}
                 className={`fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg transition-all hover:scale-110 ${theme === 'dark'
-                        ? 'bg-zinc-800 text-yellow-400 hover:bg-zinc-700'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                    ? 'bg-zinc-800 text-yellow-400 hover:bg-zinc-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                     }`}
                 title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
@@ -28,13 +28,16 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
     );
 }
 
+import MobileHeader from '@/components/layout/sidebar/MobileHeader';
+
 export function MainContent({ children }: { children: React.ReactNode }) {
     const { theme } = useDashboard();
 
     return (
-        <main className={`flex-1 ml-64 p-8 transition-colors duration-300 ${theme === 'dark' ? 'bg-neutral-950' : 'bg-gray-100'
+        <main className={`flex-1 md:ml-64 transition-colors duration-300 flex flex-col ${theme === 'dark' ? 'bg-neutral-950' : 'bg-gray-100'
             }`}>
-            <div className="max-w-7xl mx-auto">
+            <MobileHeader />
+            <div className="w-full h-full p-4">
                 {children}
             </div>
         </main>

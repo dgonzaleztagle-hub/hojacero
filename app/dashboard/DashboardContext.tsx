@@ -68,6 +68,9 @@ type DashboardContextType = {
     toggleUserRole: () => void;
     theme: Theme;
     toggleTheme: () => void;
+    isSidebarOpen: boolean;
+    toggleSidebar: () => void;
+    closeSidebar: () => void;
 };
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -100,8 +103,18 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+    const closeSidebar = () => setIsSidebarOpen(false);
+
     return (
-        <DashboardContext.Provider value={{ currentClient, switchClient, clients: MOCK_CLIENTS, userRole, toggleUserRole, theme, toggleTheme }}>
+        <DashboardContext.Provider value={{
+            currentClient, switchClient, clients: MOCK_CLIENTS,
+            userRole, toggleUserRole,
+            theme, toggleTheme,
+            isSidebarOpen, toggleSidebar, closeSidebar
+        }}>
             {children}
         </DashboardContext.Provider>
     );

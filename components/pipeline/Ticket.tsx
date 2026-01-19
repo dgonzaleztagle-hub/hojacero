@@ -14,11 +14,12 @@ export type TicketProps = {
     tags?: string[];
     vibe?: 'Dev' | 'Mkt' | 'Full';
     lastContact?: string;
+    isStale?: boolean; // New prop
     onClick?: () => void;
     onAction?: (action: string, id: string) => void;
 };
 
-export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, onClick, onAction }: TicketProps) => {
+export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, isStale, onClick, onAction }: TicketProps) => {
     const {
         attributes,
         listeners,
@@ -45,8 +46,9 @@ export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, onCli
             style={style}
             onClick={onClick}
             className={`
-        group relative p-3 mb-3 bg-[#111111] border border-[#222] rounded-xl 
-        hover:border-[#444] hover:shadow-lg hover:shadow-purple-900/10 transition-all duration-200
+        group relative p-2.5 mb-2 bg-[#09090b] border rounded-xl 
+        ${isStale ? 'border-red-500/50 shadow-[0_0_10px_-3px_rgba(239,68,68,0.3)]' : 'border-white/5 check-border'}
+        hover:border-white/10 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-200
         cursor-pointer active:cursor-grabbing
       `}
             {...attributes}
@@ -58,10 +60,13 @@ export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, onCli
             </div>
 
             {/* Header / Company */}
-            <div className="flex justify-between items-start mb-1 pr-4">
-                <h3 className="text-sm font-semibold text-white truncate max-w-[85%]">{company}</h3>
+            <div className="flex justify-between items-start mb-0.5 pr-4">
+                <div className="flex items-center gap-1.5 max-w-[90%]">
+                    {isStale && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" title="Sin respuesta > 3 días" />}
+                    <h3 className="text-sm font-bold text-gray-200 truncate">{company}</h3>
+                </div>
             </div>
-            <p className="text-[11px] text-gray-500 truncate mb-3">{title}</p>
+            <p className="text-xs text-zinc-500 truncate mb-2">{title}</p>
 
             {/* Tags Row */}
             <div className="flex flex-wrap gap-1.5 mb-3">
@@ -84,8 +89,8 @@ export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, onCli
 
             {/* Actions Footer */}
             <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
-                <div className="flex items-center gap-2 text-[10px] text-gray-600">
-                    <Calendar size={10} />
+                <div className={`flex items-center gap-2 text-[10px] ${isStale ? 'text-red-400 font-medium' : 'text-gray-600'}`}>
+                    {isStale ? <AlertCircle size={10} /> : <Calendar size={10} />}
                     <span>{lastContact || 'N/A'}</span>
                 </div>
 

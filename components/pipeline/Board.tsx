@@ -17,6 +17,7 @@ import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable';
 import { Column } from './Column';
 import { Ticket, TicketProps } from './Ticket';
 import { Loader2 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 // Mock Data Type
 type BoardData = {
@@ -63,7 +64,8 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
                     title: l.categoria || 'Sin categoría',
                     company: l.nombre,
                     tags: l.tags || [],
-                    lastContact: new Date(l.created_at).toLocaleDateString('es-CL', { month: 'short', day: 'numeric' }),
+                    isStale: (stage === 'contactado' || stage === 'in_contact') && (new Date().getTime() - new Date(l.last_activity_at || l.created_at).getTime() > 3 * 24 * 60 * 60 * 1000),
+                    lastContact: new Date(l.last_activity_at || l.created_at).toLocaleDateString('es-CL', { month: 'short', day: 'numeric' }),
                     vibe: l.service_type === 'dev' ? 'Dev' :
                         (l.service_type === 'marketing' ? 'Mkt' :
                             (l.service_type === 'full' ? 'Full' : undefined)),
@@ -200,6 +202,55 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
 
     const activeItem = activeId ? Object.values(items).flat().find(i => i.id === activeId) : null;
 
+    const isMobile = useIsMobile();
+    const [activeMobileTab, setActiveMobileTab] = useState('radar');
+
+    const columnOrder = ['radar', 'contactado', 'reunion', 'negociacion', 'produccion', 'perdido'];
+    const columnTitles: Record<string, string> = {
+        radar: 'Radar',
+        contactado: 'Contactado',
+        reunion: 'Reunión',
+        negociacion: 'Negociación',
+        produccion: 'Producción',
+        perdido: 'Perdido'
+    };
+
+    if (isMobile) {
+        return (
+            <div className="flex flex-col h-full bg-black/20">
+                {/* Mobile Tabs Header */}
+                <div className="flex overflow-x-auto border-b border-white/10 hide-scrollbar bg-neutral-900/50 sticky top-0 z-10">
+                    {columnOrder.map(colId => (
+                        <button
+                            key={colId}
+                            onClick={() => setActiveMobileTab(colId)}
+                            className={`
+                                flex-shrink-0 px-4 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2
+                                ${activeMobileTab === colId
+                                    ? 'text-cyan-400 border-cyan-400 bg-white/5'
+                                    : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                }
+                            `}
+                        >
+                            {columnTitles[colId]} ({items[colId]?.length || 0})
+                        </button>
+                    ))}
+                </div>
+
+                {/* Active Column Content - Full Width */}
+                <div className="flex-1 overflow-hidden p-2">
+                    <Column
+                        id={activeMobileTab}
+                        title={columnTitles[activeMobileTab]}
+                        count={items[activeMobileTab]?.length || 0}
+                        items={items[activeMobileTab] || []}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // Default Desktop View (Drag & Drop)
     return (
         <DndContext
             sensors={sensors}
@@ -208,7 +259,7 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="flex h-full gap-6 overflow-x-auto pb-4 items-start select-none">
+            <div className="flex flex-1 h-full gap-3 overflow-x-auto pb-2 items-stretch select-none scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
                 <Column id="radar" title="Radar" count={items.radar?.length || 0} items={items.radar || []} />
                 <Column id="contactado" title="Contactado" count={items.contactado?.length || 0} items={items.contactado || []} />
                 <Column id="reunion" title="Reunión" count={items.reunion?.length || 0} items={items.reunion || []} />

@@ -271,59 +271,72 @@ export default function MetricsPage() {
                 {/* Visual Chart Section */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Revenue Chart */}
-                    <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 relative overflow-hidden">
+                        {/* Background Grid Lines (Decorative) */}
+                        <div className="absolute inset-x-0 bottom-10 top-20 flex flex-col justify-between pointer-events-none opacity-20 px-6">
+                            <div className="w-full h-px bg-white/10 border-t border-dashed border-white/20"></div>
+                            <div className="w-full h-px bg-white/10 border-t border-dashed border-white/20"></div>
+                            <div className="w-full h-px bg-white/10 border-t border-dashed border-white/20"></div>
+                        </div>
+
+                        <div className="flex justify-between items-center mb-10 relative z-10">
                             <h2 className="text-xl font-semibold flex items-center gap-2">
                                 <BarChart2 className="w-5 h-5 text-indigo-400" />
                                 Tendencia de Ingresos (6 Meses)
                             </h2>
-                            <div className="flex gap-4 text-xs">
-                                <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-indigo-500 rounded-sm"></div>
-                                    <span className="text-zinc-400">Mantención</span>
+                            <div className="flex gap-4 text-xs bg-zinc-900/80 px-3 py-1.5 rounded-full border border-white/5">
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-2 h-2 bg-gradient-to-tr from-indigo-500 to-blue-500 rounded-full"></div>
+                                    <span className="text-zinc-400 font-medium">Mantención</span>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <div className="w-3 h-3 bg-pink-500 rounded-sm"></div>
-                                    <span className="text-zinc-400">Implementación</span>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-2 h-2 bg-gradient-to-tr from-pink-500 to-rose-500 rounded-full"></div>
+                                    <span className="text-zinc-400 font-medium">Implementación</span>
                                 </div>
                             </div>
                         </div>
-                        <div className="h-64 flex items-end justify-between px-4 gap-4 border-b border-white/5 pb-2">
+
+                        {/* Chart Container */}
+                        <div className="h-64 flex items-end justify-around px-2 gap-4 relative z-10">
                             {metrics.chartData?.map((data: any, i: number) => (
-                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
-                                    <div className="w-full relative flex flex-col justify-end gap-0.5 rounded-t-lg overflow-hidden transition-all duration-500" style={{ height: `${data.totalPercentage}%` }}>
-                                        {/* Implementation Segment (Top) */}
+                                <div key={i} className="flex flex-col items-center justify-end h-full group w-16">
+                                    {/* Value Label (Top) */}
+                                    <div className={`mb-2 text-[10px] font-mono font-bold transition-all duration-300 ${data.total > 0 ? 'text-white translate-y-0 opacity-100' : 'text-transparent translate-y-2 opacity-0'}`}>
+                                        {data.total > 0 ? formatCurrency(data.total) : '$0'}
+                                    </div>
+
+                                    {/* Bar Container */}
+                                    <div className="w-8 md:w-10 relative flex flex-col justify-end bg-zinc-800/30 rounded-t-lg overflow-hidden backdrop-blur-sm transition-all duration-500 group-hover:bg-zinc-800/50" style={{ height: `${data.totalPercentage}%`, minHeight: data.total > 0 ? '4px' : '0px' }}>
+
+                                        {/* Implementation Segment */}
                                         {data.implementacion > 0 && (
                                             <div
-                                                className="w-full bg-pink-500/80 hover:bg-pink-500 transition-colors relative group/imp"
+                                                className="w-full bg-gradient-to-t from-pink-600 to-pink-400 relative group/imp border-b border-pink-900/20"
                                                 style={{ height: `${(data.implementacion / data.total) * 100}%` }}
                                             >
-                                                <div className="invisible group-hover/imp:visible absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-xs px-2 py-1 rounded z-20 whitespace-nowrap border border-white/10">
+                                                <div className="opacity-0 group-hover/imp:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-pink-900/90 text-pink-200 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap pointer-events-none transition-opacity z-20">
                                                     IMP: {formatCurrency(data.implementacion)}
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* Mantencion Segment (Bottom) */}
+                                        {/* Mantencion Segment */}
                                         {data.mantencion > 0 && (
                                             <div
-                                                className="w-full bg-indigo-500/80 hover:bg-indigo-500 transition-colors relative group/man"
+                                                className="w-full bg-gradient-to-t from-indigo-600 to-indigo-400 relative group/man"
                                                 style={{ height: `${(data.mantencion / data.total) * 100}%` }}
                                             >
-                                                <div className="invisible group-hover/man:visible absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-xs px-2 py-1 rounded z-20 whitespace-nowrap border border-white/10">
+                                                <div className="opacity-0 group-hover/man:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-indigo-900/90 text-indigo-200 text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap pointer-events-none transition-opacity z-20">
                                                     MAN: {formatCurrency(data.mantencion)}
                                                 </div>
                                             </div>
                                         )}
-
-                                        {/* Total Label on Top (Always visible if data > 0) */}
-                                        {data.total > 0 && (
-                                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] text-zinc-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {formatCurrency(data.total)}
-                                            </div>
-                                        )}
                                     </div>
-                                    <span className="text-xs text-zinc-500 font-medium uppercase mt-2">{data.month}</span>
+
+                                    {/* X-Axis Label */}
+                                    <span className="text-[10px] text-zinc-500 font-medium uppercase mt-3 tracking-wider group-hover:text-zinc-300 transition-colors">
+                                        {data.month}
+                                    </span>
                                 </div>
                             ))}
                         </div>

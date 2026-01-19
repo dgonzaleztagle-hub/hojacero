@@ -6,15 +6,33 @@ import { useDashboard } from '../DashboardContext';
 import {
     Search, Loader2, Globe, MapPin, Star, AlertCircle, Save, ChevronRight, Target,
     Mail, Phone, MessageCircle, Instagram, Facebook, Shield, ShieldOff, Zap, TrendingUp,
-    ExternalLink, Copy, CheckCircle2, XCircle, ClipboardList, Trash2, Link2, ShieldAlert, Users, AlertTriangle
+    ExternalLink, Copy, CheckCircle2, XCircle, ClipboardList, Trash2, Link2, ShieldAlert, Users, AlertTriangle, Send
 } from 'lucide-react';
+
+interface ChatMessage {
+    id: string;
+    author: 'Yo' | 'Gaston' | 'Sistema';
+    message: string;
+    created_at: string;
+}
 import { PipelineBoard } from '@/components/pipeline/Board';
 import { ModalTabDiagnostico, ModalTabAuditoria, ModalTabEstrategia, ModalTabTrabajo } from '@/components/lead-modal';
+
+import { useSearchParams } from 'next/navigation'; // Add import
+
+// ... imports
 
 export default function RadarPage() {
     const { userRole, theme } = useDashboard();
     const supabase = createClient();
-    const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'history'>('scanner');
+    const searchParams = useSearchParams(); // Get params
+    const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'history'>('pipeline');
+
+    // ... rest of state ...
+
+
+
+    // ... existing fetchLeadActivities ...
     const [historyLeads, setHistoryLeads] = useState<any[]>([]);
     const [pipelineLeads, setPipelineLeads] = useState<any[]>([]);
     const [query, setQuery] = useState('');
@@ -38,6 +56,11 @@ export default function RadarPage() {
     const [isSavingNote, setIsSavingNote] = useState(false);
     const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo'>('diagnostico');
 
+    // Chat / Bitácora State
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [newChatMessage, setNewChatMessage] = useState('');
+    const [chatAuthor, setChatAuthor] = useState<'Yo' | 'Gaston'>('Yo');
+
     // Manual Entry State
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
     const [manualData, setManualData] = useState({ nombre: '', web: '', direccion: '', telefono: '' });
@@ -47,6 +70,38 @@ export default function RadarPage() {
 
     // Deep Analysis State
     const [isDeepAnalyzing, setIsDeepAnalyzing] = useState(false);
+
+    // Auto-Open Lead from URL (Deep Linking)
+    useEffect(() => {
+        const targetId = searchParams.get('leadId');
+        if (targetId && !selectedLead) {
+            const checkAndOpen = async () => {
+                // 1. Try finding in loaded lists
+                let target = leads.find(l => l.id === targetId) || pipelineLeads.find(l => l.id === targetId);
+
+                // 2. If not found locally, fetch from DB
+                if (!target) {
+                    const { data } = await supabase.from('leads').select('*').eq('id', targetId).single();
+                    if (data) target = data;
+                }
+
+                // 3. Open if found
+                if (target) {
+                    setSelectedLead(target);
+
+                    // Load related data
+                    fetchLeadActivities(target.id || target.db_id);
+                    fetchNotes(target.id || target.db_id);
+                    fetchChatMessages(target.id || target.db_id);
+
+                    // Clean URL
+                    window.history.replaceState(null, '', '/dashboard/radar');
+                }
+            };
+
+            checkAndOpen();
+        }
+    }, [searchParams, leads, pipelineLeads]);
 
     // Helper function to log activity to lead_activity_log
     const logActivity = async (
@@ -87,6 +142,37 @@ export default function RadarPage() {
             .eq('lead_id', leadId)
             .order('created_at', { ascending: false });
         if (data) setNotes(data);
+    };
+
+    const fetchChatMessages = async (leadId: string) => {
+        const { data } = await supabase
+            .from('bitacora_clientes')
+            .select('*')
+            .eq('lead_id', leadId)
+            .order('created_at', { ascending: true });
+        if (data) setChatMessages(data as ChatMessage[]);
+    };
+
+    const sendChatMessage = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        const leadId = selectedLead?.id || selectedLead?.db_id;
+        if (!leadId || !newChatMessage.trim()) return;
+
+        try {
+            const { error } = await supabase.from('bitacora_clientes').insert({
+                lead_id: leadId,
+                author: chatAuthor,
+                message: newChatMessage.trim(),
+                created_at: new Date().toISOString()
+            });
+
+            if (error) throw error;
+
+            setNewChatMessage('');
+            fetchChatMessages(leadId);
+        } catch (err: any) {
+            alert('Error al enviar mensaje: ' + err.message);
+        }
     };
 
     const saveNote = async () => {
@@ -255,9 +341,9 @@ export default function RadarPage() {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20">
+        <div className="flex flex-col h-[calc(100vh-2rem)] space-y-2 animate-in fade-in duration-500 max-w-full mx-auto pb-0 px-4">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-2 border-b border-white/10 pb-2">
                 <div>
                     <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
                         <TargetIcon />
@@ -301,13 +387,6 @@ export default function RadarPage() {
             {/* TABS */}
             <div className="flex gap-4 border-b border-white/10">
                 <button
-                    onClick={() => setActiveTab('scanner')}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'scanner' ? 'text-cyan-400' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                    🔍 Escáner
-                    {activeTab === 'scanner' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400"></div>}
-                </button>
-                <button
                     onClick={() => setActiveTab('pipeline')}
                     className={`pb-3 px-1 text-sm font-medium transition-colors relative flex items-center gap-2 ${activeTab === 'pipeline' ? 'text-green-400' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
@@ -316,6 +395,13 @@ export default function RadarPage() {
                         <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full">{pipelineLeads.length}</span>
                     )}
                     {activeTab === 'pipeline' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400"></div>}
+                </button>
+                <button
+                    onClick={() => setActiveTab('scanner')}
+                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'scanner' ? 'text-cyan-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                    🔍 Escáner
+                    {activeTab === 'scanner' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400"></div>}
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
@@ -390,7 +476,7 @@ export default function RadarPage() {
                         return (
                             <div
                                 key={lead.id || idx}
-                                onClick={() => { setSelectedLead(lead); fetchLeadActivities(lead.id || lead.db_id); fetchNotes(lead.id || lead.db_id); }}
+                                onClick={() => { setSelectedLead(lead); fetchLeadActivities(lead.id || lead.db_id); fetchNotes(lead.id || lead.db_id); fetchChatMessages(lead.id || lead.db_id); }}
                                 className="group grid grid-cols-12 gap-4 p-4 items-center bg-black border border-white/5 rounded-xl hover:border-cyan-500/30 hover:bg-white/[0.02] cursor-pointer transition-all"
                             >
                                 {/* NAME & ADDRESS */}
@@ -479,7 +565,7 @@ export default function RadarPage() {
 
             {/* === PIPELINE TAB (New Kanban Board) === */}
             {activeTab === 'pipeline' && (
-                <div className="h-[75vh] animate-in fade-in duration-500">
+                <div className="flex-1 min-h-0 animate-in fade-in duration-500 mt-2">
                     <PipelineBoard
                         leads={pipelineLeads}
                         onLeadMove={() => fetchPipeline()}
@@ -498,6 +584,7 @@ export default function RadarPage() {
                                 setReviewNote(found.nota_revision || '');
                                 fetchLeadActivities(found.id || found.db_id);
                                 fetchNotes(found.id || found.db_id);
+                                fetchChatMessages(found.id || found.db_id);
                             }
                         }}
                     />
@@ -771,12 +858,27 @@ export default function RadarPage() {
                                             }
                                         }}
                                         isSaving={isSaving}
+                                        onLeadUpdate={(updatedLead) => {
+                                            setSelectedLead(updatedLead);
+                                            // Update the lead in the main list as well to reflect changes without refresh
+                                            setLeads(leads.map(l => l.id === updatedLead.id ? updatedLead : l));
+                                        }}
+
+                                        // Notes (Legacy / Optional if keeping both)
                                         notes={notes}
                                         newNote={newNote}
                                         setNewNote={setNewNote}
                                         onSaveNote={saveNote}
                                         onDeleteNote={deleteNote}
                                         isSavingNote={isSavingNote}
+                                        // Chat (New)
+                                        chatMessages={chatMessages}
+                                        newChatMessage={newChatMessage}
+                                        setNewChatMessage={setNewChatMessage}
+                                        chatAuthor={chatAuthor}
+                                        setChatAuthor={setChatAuthor}
+                                        onSendChatMessage={sendChatMessage}
+                                        // Activity
                                         leadActivities={leadActivities}
                                         onGenerateTemplate={generateTemplate}
                                         isGeneratingTemplate={isGeneratingTemplate}

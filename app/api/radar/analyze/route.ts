@@ -152,7 +152,7 @@ export async function POST(req: Request) {
             backlinkOpportunities: [] as string[],
             topCompetitors: [] as string[],
             actionable_tasks: [] as any[],
-            content_ideas: { social_posts: [] as any[], email_subjects: [] as string[] },
+            sales_angles: [] as string[],
             analysisReport: "Análisis pendiente",
             salesStrategy: {
                 hook: "Pendiente",
@@ -182,7 +182,11 @@ export async function POST(req: Request) {
         } else {
             const prompt = `
             Act as an ELITE SEO Strategist & Competitor Analyst (Ubersuggest/Semrush/Ahrefs level).
-            
+
+            CONTEXT (WHO YOU ARE):
+            You are "HojaCero", a Premium Web Design & Strategic Marketing Agency.
+            You are analyzing a prospect (TARGET BUSINESS) to find opportunities to SELL THEM your services (Web Design, SEO, Ads).
+
             TARGET BUSINESS:
             - Name: "${businessName}"
             - Reported Type: ${businessType || 'General'}
@@ -198,52 +202,35 @@ export async function POST(req: Request) {
             ${searchContext}
 
             TASK:
-            1. FIRST, determine the TRUE nature of the business using EVIDENCE 3.
-            2. Analyze the technical health (SSL, MX records, Server Speed).
-            3. Generate a DEEP DIVE REPORT for this specific niche.
+            1. First, understand what the business DOES.
+            2. Find gaps in their digital presence (Slow site? Ugly design? No SEO?).
+            3. Generate a Report for HojaCero's sales team to use.
 
-            Generate a DEEP DIVE REPORT in JSON format that simulates a full SEO suite audit + Digital Marketing Coach:
+            output strictly JSON matching this structure:
             {
-                "seoScore": [0-100 score based on audit + opportunity],
-                "buyerPersona": "Brief description of the decision maker (e.g. 'Gerente de Operaciones estresado por...').",
-                "painPoints": ["Pain 1", "Pain 2", "Pain 3"],
+                "seoScore": [0-100 score],
+                "buyerPersona": "Brief description of the Target's Ideal Customer (e.g. 'Novios buscando centro de eventos')",
+                "painPoints": ["Pain 1 (e.g. Sitio lento)", "Pain 2 (No aparece en Google)", "Pain 3 (Diseño antiguo)"],
                 "missingKeywords": ["keyword 1", "keyword 2", "keyword 3", "keyword 4", "keyword 5"],
-                "competitorGap": "Analysis of what competitors like (Generic Competitor A, B) are doing that this business is not.",
-                "technicalIssues": ["Critical issue 1 (e.g. Slow LCP)", "Issue 2 (Mobile Usability)", "Issue 3 (SSL/Security)"],
-                "contentStrategy": "Specific blog/landing page title and structure to capture easy traffic.",
-                "backlinkOpportunities": ["Site Type A (e.g. Local Directories)", "Site Type B (e.g. Industry Blogs)"],
-                "topCompetitors": ["Competitor Name 1", "Competitor Name 2"],
+                "competitorGap": "Analysis of what competitors are doing better.",
+                "technicalIssues": ["Issue 1", "Issue 2", "Issue 3"],
+                "contentStrategy": "Strategy for the CLIENT to grow (e.g. 'Blog about wedding tips').",
+                "backlinkOpportunities": ["Site A", "Site B"],
+                "topCompetitors": ["Comp 1", "Comp 2"],
                 "actionable_tasks": [
-                    { "title": "Direct Action 1 (e.g. 'Install SSL')", "difficulty": "Easy|Medium|Hard", "impact": "High|Medium", "category": "Technical" },
-                    { "title": "Direct Action 2 (e.g. 'Claim GMB Listing')", "difficulty": "Easy", "impact": "High", "category": "Presence" },
-                    { "title": "Direct Action 3", "difficulty": "Medium", "impact": "Medium", "category": "Content" },
-                    { "title": "Direct Action 4", "difficulty": "Hard", "impact": "High", "category": "Technical" }
+                    { "title": "Direct Action 1", "difficulty": "Easy", "impact": "High", "category": "Technical" }
                 ],
-                "content_ideas": {
-                    "social_posts": [
-                        { "platform": "Instagram/LinkedIn", "idea": "Content Idea 1" },
-                        { "platform": "Instagram/LinkedIn", "idea": "Content Idea 2" },
-                        { "platform": "Instagram/LinkedIn", "idea": "Content Idea 3" }
-                    ],
-                    "email_subjects": [
-                        "Clickbait Subject 1",
-                        "Value Subject 2"
-                    ]
-                }
+                "sales_angles": [
+                    "Angle 1 (e.g. 'Focus on Lost Revenue due to slow site')",
+                    "Angle 2 (e.g. 'Focus on Competitor Advantage')",
+                    "Angle 3 (e.g. 'Focus on Premium Brand perception')"
+                ]
             }
 
             Rules:
-            - If no website, SEO score < 20.
-            - If no SSL (https: false in tech specs) or missing MX records, PENALIZE SCORE HEAVILY.
-            - PAGE SPEED METRICS (Use EVIDENCE 2):
-              - If Mobile Score < 50: Critical Issue "Velocidad Móvil Crítica".
-              - If CLS > 0.1: Issue "Inestabilidad Visual (Layout Shift)".
-              - If LCP > 2.5s: Issue "Carga Lenta (LCP)".
-            - Keywords must be transactional and high-intent for this specific niche in Chile (Spanish).
-            - BE RUTHLESS on Technical Issues (mention Core Web Vitals, Mobile Responsiveness, Semantic HTML, Security Headers).
-            - "buyerPersona" must be psychological and specific (Job Title + Anxiety).
-            - "actionable_tasks": MUST include mix of "Quick Wins" (Easy/High Impact) and "Long Term" (Content).
-            - "content_ideas": MUST be specific to their industry (e.g. if Dentist: "5 tips to avoid cavities").
+            - "sales_angles": 3 Distinct psychological angles HOJACERO can use to close the deal. NOT email subject lines, but ANGLES.
+            - "buyerPersona": The CLIENT's customer.
+            - Be critical on Technical Issues.
             - Provide STRICTLY JSON.
             `;
 
@@ -251,7 +238,7 @@ export async function POST(req: Request) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_API_KEY}`
+                    'Authorization': `Bearer ${GROQ_API_KEY} `
                 },
                 body: JSON.stringify({
                     model: 'llama-3.3-70b-versatile',
