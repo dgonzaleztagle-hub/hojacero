@@ -50,7 +50,7 @@ export default function Hero() {
                 {/* SLOGAN - Architects of Digital Experiences */}
                 <div
                     ref={subtitleRef}
-                    className="mt-8 cursor-help relative h-8 md:h-12 w-full flex justify-center group"
+                    className="mt-12 cursor-help relative h-8 md:h-12 w-full flex justify-center group"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
@@ -65,43 +65,24 @@ export default function Hero() {
                     </p>
                 </div>
 
-                {/* SUB-SLOGAN ANIMADO - FIXED CENTERING & SIZE */}
-                <div className="mt-4 h-5 md:h-6 overflow-hidden relative w-full flex justify-center">
-                    <div className="animate-slide-up-fade flex flex-col items-center w-full">
-                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
-                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-cyan-200 whitespace-nowrap">
-                                WEB APPS
-                            </p>
-                        </div>
-                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
-                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-purple-200 whitespace-nowrap">
-                                MARKETING
-                            </p>
-                        </div>
-                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
-                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-emerald-200 whitespace-nowrap">
-                                ECOMMERCE
-                            </p>
-                        </div>
-                        <div className="h-5 md:h-6 flex items-center justify-center w-full">
-                            <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light opacity-60 text-amber-200 whitespace-nowrap">
-                                SOFTWARE
-                            </p>
-                        </div>
-                    </div>
+                {/* SUB-SLOGAN STATIC - Clean & Premium */}
+                <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 w-full">
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light text-zinc-400">
+                        WEB
+                    </p>
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light text-zinc-500 hidden md:block">•</p>
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light text-cyan-200">
+                        WEB APPS
+                    </p>
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light text-zinc-500 hidden md:block">•</p>
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light text-emerald-200">
+                        ECOMMERCE
+                    </p>
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light text-zinc-500 hidden md:block">•</p>
+                    <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] font-light text-purple-200">
+                        MARKETING
+                    </p>
                 </div>
-                <style jsx>{`
-                    @keyframes slide-up-fade {
-                        0%, 20% { transform: translateY(0); }
-                        25%, 45% { transform: translateY(-25%); }
-                        50%, 70% { transform: translateY(-50%); }
-                        75%, 95% { transform: translateY(-75%); }
-                        100% { transform: translateY(0); }
-                    }
-                    .animate-slide-up-fade {
-                        animation: slide-up-fade 8s infinite cubic-bezier(0.4, 0, 0.2, 1);
-                    }
-                `}</style>
 
 
                 {/* CTAs - Estilo V2 */}
