@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 const menuItems = [
     { label: 'Work', href: '#portfolio', isScroll: true },
+    { label: 'Vision', href: '/vision', isScroll: false },
     { label: 'Studio', href: '#services', isScroll: true },
     { label: 'Pricing', href: '/pricing', isScroll: false },
     { label: 'Contact', href: '#cta', isScroll: true },

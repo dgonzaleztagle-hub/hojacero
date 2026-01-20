@@ -117,3 +117,43 @@ Para evitar el "tira y afloja" estético, estas reglas son ley marcial a menos q
 - **Contenido (El QUÉ)**: Es sagrado. No se resume, no se corta. Si es largo, es largo.
 - **Forma (El CÓMO)**: Es arte. Tomamos ese contenido crudo y lo "reimaginamos" visualmente (Bento, Editorial, Interactivo).
 - **Regla**: Copiamos el 100% de la información del cliente, pero la presentamos como si fuera un premio Awwwards.
+
+---
+
+## 🧪 HOJACERO FX STACK (V3.5) - ARSENAL DISPONIBLE
+
+Estas son las capacidades visuales avanzadas disponibles en el sistema. Considéralas "posibilidades de diseño" para elevar el nivel cuando el contexto lo justifique.
+
+> [!IMPORTANT]
+> **CLAÚSULA DE LIBERTAD CREATIVA (Anti-Lazy):**
+> Esta lista NO es exhaustiva. Si el prompt o el brief del cliente sugieren un efecto que NO está aquí (ej: distorsión de agua, partículas de polvo, 3D physics), **TIENES LA OBLIGACIÓN DE INVENTARLO** usando R3F/Three.js o GSAP.
+> **No dejes que este menú limite tu imaginación.** Tu objetivo es "Awwwards", no "cumplir checklist".
+
+### 📜 Política de Uso Estratégico (Hojo Policy)
+*Sugerencia de aplicación para maximizar impacto sin saturar:*
+
+1.  **Nivel 1 (The Hook):** *BurningPaper*. Ideal para Intros o Heros de alto impacto. (Max 1 por página).
+2.  **Nivel 2 (The Flow):** *ParallaxBento, EditorialReveal*. Para contar la historia y presentar contenido denso.
+3.  **Nivel 3 (The Feel):** *LiquidBackground, MagneticUI*. Para atmósferas inmersivas (Dark Mode/Tech).
+
+### 🧰 Catálogo de Componentes (The Palette)
+
+*   **LiquidBackground**: Motor WebGL de fluidos.
+    *   *Uso:* Reemplazo de fondos estáticos en estilos agresivos/tech.
+    *   *Import:* `import { LiquidBackground } from '@/components/fx/LiquidBackground'`
+
+*   **BurningPaper**: Efecto de disolución procedural con bordes quemados.
+    *   *Uso:* Revelación dramática de contenido o transiciones de scroll.
+    *   *Import:* `import { BurningPaper } from '@/components/fx/BurningPaper'`
+
+*   **EditorialReveal**: Animación de texto por máscaras (tipo Vogue/New York Times).
+    *   *Uso:* Títulos H1/H2 que requieren elegancia serifa.
+    *   *Import:* `import { EditorialReveal } from '@/components/fx/EditorialReveal'`
+
+*   **MagneticUI**: Botones y elementos que siguen sutilmente al cursor.
+    *   *Uso:* Botones primarios (CTAs) para dar tactilidad.
+    *   *Import:* `import { MagneticButton } from '@/components/fx/MagneticButton'`
+
+*   **ParallaxBento**: Grilla de contenido con velocidades de scroll diferenciales.
+    *   *Uso:* Galerías de imágenes o "Features" donde queremos evitar el aburrimiento estático.
+    *   *Import:* `import { ParallaxBentoGrid } from '@/components/fx/ParallaxBento'`
