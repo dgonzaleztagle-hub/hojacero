@@ -166,17 +166,17 @@ export async function POST(req: Request) {
             console.error("❌ GROQ_API_KEY missing in Deep Analysis");
             deepAnalysis = {
                 ...deepAnalysis,
-                seoScore: 10,
-                technicalIssues: ["Falta configuración de API Key de IA"],
-                analysisReport: "No se ha configurado la API Key de Groq. Contacta al administrador.",
+                seoScore: 0,
+                technicalIssues: ["Error de Configuración: Falta GROQ_API_KEY"],
+                analysisReport: "Error: La API de Inteligencia (Groq) no está configurada en el servidor. Por favor, asegúrate de que GROQ_API_KEY esté en las variables de entorno.",
                 salesStrategy: {
-                    hook: "Configurar sistema",
-                    painPoints: ["Falta API Key"],
-                    proposedSolution: "Configurar .env",
+                    hook: "Configuración Requerida",
+                    painPoints: ["Falta GROQ_API_KEY"],
+                    proposedSolution: "Configurar variable de entorno GROQ_API_KEY",
                     estimatedValue: "N/A"
                 },
                 actionable_tasks: [
-                    { title: "Configurar GROQ_API_KEY", difficulty: "High", impact: "High", category: "Technical" }
+                    { title: "Configurar GROQ_API_KEY", difficulty: "Alta", impact: "Crítico", category: "Sistema" }
                 ]
             } as any;
         } else {

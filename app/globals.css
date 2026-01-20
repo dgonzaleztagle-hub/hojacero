@@ -22,6 +22,11 @@
     scrollbar-width: thin;
     scrollbar-color: #27272a transparent;
   }
+
+  /* 3D Utilities */
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
 }
 
 @theme {

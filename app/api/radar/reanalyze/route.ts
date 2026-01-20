@@ -12,7 +12,10 @@ export async function POST(req: Request) {
         }
 
         if (!GROQ_API_KEY) {
-            return NextResponse.json({ error: 'GROQ_API_KEY no está configurada' }, { status: 500 });
+            return NextResponse.json({
+                success: false,
+                error: 'Error de Configuración: La variable GROQ_API_KEY no está definida en el servidor.'
+            }, { status: 500 });
         }
 
         const supabase = await createClient();

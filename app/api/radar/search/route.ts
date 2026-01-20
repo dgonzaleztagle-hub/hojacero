@@ -253,7 +253,9 @@ IMPORTANTE:
                         }
                     } catch (e: any) {
                         console.warn(`⚠️ AI Analysis Warning for ${place.title}:`, e.message);
-                        analysis.analysisReport = `Error AI: ${e.message}`;
+                        analysis.analysisReport = e.message.includes("GROQ_API_KEY")
+                            ? "Error de Configuración: La API de Inteligencia no está configurada. Contacta al soporte."
+                            : `Error AI: ${e.message}`;
                     }
 
                     // Prepare DB Object with all enriched data

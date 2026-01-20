@@ -218,9 +218,9 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
         return {
             score: 10,
             scoreBreakdown: { sinWeb: 0, ratingBajo: 0, sinContactoDigital: 0, techObsoleta: 0, sinRedesSociales: 0 },
-            vibe: 'Sin Configuración',
+            vibe: 'Debe Configurar IA',
             opportunity: 'Configurar API Key',
-            analysisReport: 'No se ha configurado la API Key de Groq.',
+            analysisReport: 'Error de Configuración: La API de Inteligencia (Groq) no está configurada en el servidor. Contacta al administrador.',
             salesStrategy: {
                 hook: "Configurar sistema",
                 painPoints: ["Falta API Key"],
@@ -319,7 +319,7 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
             scoreBreakdown: {},
             vibe: 'Error',
             salesStrategy: { hook: "Error en IA", painPoints: ["Error"], proposedSolution: "Revisar", estimatedValue: "Bajo" },
-            analysisReport: "Error al conectar con Groq",
+            analysisReport: "Error de Configuración: La API de Inteligencia no respondió o no está configurada.",
             competitiveAnalysis: "N/A",
             recommendedChannel: "N/A"
         };

@@ -144,7 +144,7 @@ export const ReportTemplate = React.forwardRef<HTMLDivElement, ReportTemplatePro
 
                     {/* Branding Top */}
                     <div className="relative z-10 pt-8">
-                        <img src="/branding/h0-architect.png" alt="H0 Intelligence" className="w-24 mx-auto mb-6 opacity-90 mix-blend-multiply" />
+                        <img src="/h0 transparente.png" alt="H0 Intelligence" className="w-24 mx-auto mb-6 opacity-90" />
                         <div className="text-center">
                             <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400">Architects of Digital Experiences</h2>
                         </div>
@@ -185,7 +185,7 @@ export const ReportTemplate = React.forwardRef<HTMLDivElement, ReportTemplatePro
                 {/* Header Compacto */}
                 <header className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-200">
                     <div className="flex items-center gap-3">
-                        <img src="/branding/h0-architect.png" alt="H0" className="w-10 opacity-80 mix-blend-multiply" />
+                        <img src="/h0 transparente.png" alt="H0" className="w-10 opacity-80" />
                         <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Architects of Digital Experiences</span>
                     </div>
                     <div className="text-right">
@@ -304,7 +304,7 @@ export const ReportTemplate = React.forwardRef<HTMLDivElement, ReportTemplatePro
                 <div className="w-[210mm] h-[290mm] p-12 relative flex flex-col bg-white break-after-avoid print:break-inside-avoid overflow-hidden">
                     <header className="flex justify-between items-center mb-8 pb-4 border-b border-zinc-200">
                         <div className="flex items-center gap-3">
-                            <img src="/branding/h0-architect.png" alt="H0" className="w-10 opacity-80 mix-blend-multiply" />
+                            <img src="/h0 transparente.png" alt="H0" className="w-10 opacity-80" />
                             <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">Architects of Digital Experiences</span>
                         </div>
                         <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600">Hoja de Ruta</h2>
