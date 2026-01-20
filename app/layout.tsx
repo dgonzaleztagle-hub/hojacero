@@ -68,6 +68,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: "A-pwZp8YmWOMKHHO3kwLM44-36DD7D_3Z_GN7_LZ0Vk",
+  },
 };
 
 import Script from "next/script";

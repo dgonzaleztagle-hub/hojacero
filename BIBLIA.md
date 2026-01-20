@@ -22,8 +22,8 @@ Antes de construir, el agente realiza un **Deep Research** que anula cualquier "
 El agente es responsable de la infraestructura y la calidad sin molestar al usuario con "ruido de motor".
 
 1. **Ley de Puerto Cero:** Antes de iniciar `npm run dev`, el agente limpia proactivamente los puertos (3000/3001).
-2. **QA Silencioso (Ghost Review):** Antes de entregar, el agente abre el browser y verifica que no existan imágenes rotas ni errores 404/500 en la consola.
-3. **Manifiesto del Silencio:** Las notificaciones se reservan para hitos estratégicos o dudas críticas.
+2. **QA Técnico (No Visual):** El agente puede usar terminales para verificar builds, pero **NUNCA** debe usar herramientas de navegador para "mirar" la estética. Son lentas y no tienen "ojo".
+3. **Ley de la Ventana Fantasma:** El usuario siempre tiene el preview abierto. No le preguntes "qué ves", asume que lo ve. Pide feedback directo.
 
 ---
 
@@ -56,9 +56,42 @@ Este protocolo reemplaza el QA automatizado intrusivo por un ciclo de iteración
 
 ---
 
-## 📅 HISTORIAL DE REVELACIONES
-- **2026-01-19 (v2.2):** Sustitución de QA automatizado por Ciclo de Iteración Semimanual y Blindaje Estructural post-rescate Apimiel.
+- **2026-01-19 (v2.3):** Integración del "Protocolo Factory Final" (Hard Caps, Grid Defensivo, Proxy Physics) post-análisis Apimiel.
+- **2026-01-19 (v2.2):** Sustitución de QA automatizado por Ciclo de Iteración Semimanual y Blindaje Estructural.
 - **2026-01-19 (v2.1):** Integración de Grano de Verdad, Protocolo Mirror y Leyes de Automatización.
+
+---
+
+## 🏭 PROTOCOLO FACTORY FINAL (Anti-Iteración)
+Este protocolo se activa INMEDIATAMENTE después de aprobar el Landing Demo. Su objetivo es evitar las "10 horas de refinamiento" aplicando restricciones preventivas estricas.
+
+### 🛡️ Regla #1: Hard Cap (Ley Anti-Monstruo)
+*   **Axioma:** "El navegador siempre intentará llenar el espacio. No lo dejes."
+*   **Mandato:**
+    *   **NUNCA** dejar una etiqueta `<Image />` o `<img>` sin un contenedor con `max-w` explícito (ej: `max-w-[300px]`, `max-w-sm`).
+    *   Prohibido usar `w-full` en imágenes de producto o detalles verticales sin restricción.
+    *   *Objetivo:* Evitar que una foto ocupe toda la pantalla por error.
+
+### 🛡️ Regla #2: Grid Defensivo (Cinturón de Seguridad)
+*   **Axioma:** "Los breakpoints de Tailwind no son suficientes para densidades altas."
+*   **Mandato:**
+    *   Establecer siempre un **Suelo de Columnas**. Ej: `grid-cols-3 md:grid-cols-6`.
+    *   Nunca confiar en que el grid colapsará "graciosamente" a 1 columna. Forzar la densidad mínima para evitar el "Layout de lista kilométrica".
+
+### 🛡️ Regla #3: Physics Proxy (Ley de Interacción 3D)
+*   **Axioma:** "Lo que se toca no es lo que se ve."
+*   **Mandato:**
+    *   Al crear componentes interactivos (Diales, Carruseles, Objetos 3D):
+        1.  Crear una capa **Invisible** (`z-50`, `opacity-0`) que capture los eventos (`drag`, `click`).
+        2.  El componente **Visual** debe ser `pointer-events-none` y solo reaccionar a cambios de estado.
+    *   *Objetivo:* Evitar drift, traslaciones accidentales y conflictos de gestos.
+
+### 🛡️ Regla #4: Content-First Injection
+*   **Axioma:** "El Lorem Ipsum es una mentira peligrosa."
+*   **Mandato:**
+    *   Antes de diseñar una página secundaria (Sustentabilidad, Nosotros), EXIGIR o EXTRAER el texto real.
+    *   Si Texto > 300 caracteres -> Diseño Split o Bento OBLIGATORIO.
+    *   Si Texto < 300 caracteres -> Diseño Hero Centrado permitido.
 
 ---
 
