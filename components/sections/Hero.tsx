@@ -55,12 +55,12 @@ export default function Hero() {
                     onMouseLeave={() => setIsHovered(false)}
                 >
                     {/* Versión Inglés (Default) */}
-                    <p className={`transition-all duration-500 absolute top-0 text-xl md:text-3xl font-light tracking-[0.15em] uppercase whitespace-nowrap ${isHovered ? 'opacity-0 blur-sm scale-95' : 'opacity-100 blur-0 scale-100'}`}>
+                    <p className={`transition-all duration-500 absolute top-0 text-xs sm:text-lg md:text-3xl font-light tracking-[0.1em] md:tracking-[0.15em] uppercase w-full text-center px-4 ${isHovered ? 'opacity-0 blur-sm scale-95' : 'opacity-100 blur-0 scale-100'}`}>
                         Architects of Digital Experiences
                     </p>
 
                     {/* Versión Español (Hover) */}
-                    <p className={`transition-all duration-500 absolute top-0 text-xl md:text-3xl font-light tracking-[0.15em] uppercase text-accent whitespace-nowrap ${isHovered ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'}`}>
+                    <p className={`transition-all duration-500 absolute top-0 text-xs sm:text-lg md:text-3xl font-light tracking-[0.1em] md:tracking-[0.15em] uppercase text-accent w-full text-center px-4 ${isHovered ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-105'}`}>
                         Arquitectos de Experiencias Digitales
                     </p>
                 </div>

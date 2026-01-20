@@ -34,9 +34,16 @@ export default function Footer() {
             </div>
 
             <div className="mt-3 pt-3 border-t border-[#D4AF37]/5 flex flex-col md:flex-row justify-between items-center text-[10px] tracking-widest uppercase opacity-30 text-[#FDF5E6] gap-2">
-                <span>© 2026 HojaCero Factory</span>
+                <span>© 2026 Apimiel</span>
                 <span className="hidden md:block">•</span>
-                <span>Apimiel • Precisión Orgánica</span>
+                <a
+                    href="https://hojacero.cl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#D4AF37] transition-colors flex items-center gap-1 group"
+                >
+                    Designed by <span className="font-bold group-hover:text-white transition-colors">HOJACERO.CL</span>
+                </a>
             </div>
         </footer>
     );
