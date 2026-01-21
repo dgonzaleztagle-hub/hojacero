@@ -207,7 +207,7 @@ export const ModalTabTrabajo = ({
                         defaultSig = data.find((s: any) => s.label.toLowerCase().includes('daniel')) || {
                             id: 'temp-daniel',
                             label: 'Daniel Default',
-                            content: 'Daniel Gonzales<br>Founder & Lead Architect<br>Hojacero.cl'
+                            content: 'Daniel Gonzalez<br>Founder & Lead Architect<br>Hojacero.cl'
                         };
                     }
                 }

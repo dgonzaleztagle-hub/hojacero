@@ -128,7 +128,11 @@ export function useRadar() {
     };
 
     const fetchPipeline = async () => {
-        const { data } = await supabase.from('leads').select('*').in('estado', ['ready_to_contact', 'in_contact', 'proposal_sent', 'won', 'lost']).order('created_at', { ascending: false });
+        const { data } = await supabase.from('leads')
+            .select('*')
+            .in('estado', ['ready_to_contact', 'in_contact', 'proposal_sent', 'won', 'lost'])
+            .order('pipeline_order', { ascending: true })
+            .order('created_at', { ascending: false });
         if (data) setPipelineLeads(data);
     };
 
