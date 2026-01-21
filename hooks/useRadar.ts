@@ -123,7 +123,13 @@ export function useRadar() {
     };
 
     const fetchHistory = async () => {
-        const { data } = await supabase.from('leads').select('*').in('estado', ['detected', 'discarded']).order('created_at', { ascending: false });
+        // Fetch detected/discarded normally, OR archived leads
+        const { data } = await supabase
+            .from('leads')
+            .select('*')
+            .or('estado.eq.detected,estado.eq.discarded,pipeline_stage.eq.archived')
+            .order('created_at', { ascending: false });
+
         if (data) setHistoryLeads(data);
     };
 
