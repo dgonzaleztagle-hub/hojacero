@@ -4,11 +4,21 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 export async function POST(req: Request) {
     try {
-        const { leadData, type } = await req.json();
+        const { leadData, type, author } = await req.json();
 
         if (!GROQ_API_KEY) {
             return NextResponse.json({ error: 'Falta la API Key de Groq' }, { status: 500 });
         }
+
+        // Configurar Firma Dinámica
+        const isGaston = author === 'Gaston';
+        const signatureEmail = isGaston
+            ? "Gaston Jofre\nGerente de Marketing y Ventas\nHojacero.cl"
+            : "Daniel Gonzalez\nFounder & Lead Architect\nHojacero.cl";
+
+        const signatureWhatsapp = isGaston
+            ? "Gaston Jofre - Hojacero.cl"
+            : "Daniel Gonzalez - Hojacero.cl";
 
         // Datos del Lead
         const businessName = leadData.title || 'el negocio';
@@ -57,7 +67,8 @@ REGLAS DE ORO:
 - Cero jerga técnica (nada de "SEO", "Responsive", "Backend").
 - Usa 1 emoji máximo si es necesario para suavizar el tono.
 - Usa 1 emoji máximo si es necesario para suavizar el tono.
-- Firma: "Daniel Gonzalez - Hojacero.cl"
+- Usa 1 emoji máximo si es necesario para suavizar el tono.
+- Firma: "${signatureWhatsapp}"
 
 Responde SOLO el mensaje final.
 `;
@@ -69,7 +80,8 @@ Escribe un COLD EMAIL de CLASE MUNDIAL (Hunter Mode) para "${businessName}".
 OBJETIVO: Que abran el link o respondan "sí".
 
 ACERCA DE TI (HUNTER):
-Eres Daniel, de HojaCero. No eres una agencia de marketing genérica. Eres un "Arquitecto de Experiencias Digitales". Ayudas a negocios a dejar de perder dinero por tener webs feas o inexistentes.
+ACERCA DE TI (HUNTER):
+Eres ${isGaston ? 'Gaston' : 'Daniel'}, de HojaCero. No eres una agencia de marketing genérica. Eres un "${isGaston ? 'Consultor de Crecimiento Digital' : 'Arquitecto de Experiencias Digitales'}". Ayudas a negocios a dejar de perder dinero por tener webs feas o inexistentes.
 
 TUS ARMAS (ACTIVOS):
 ${assetContext}
@@ -95,7 +107,8 @@ REGLAS DE ESTILO:
 - NO vendas el servicio. Vende el SIGUIENTE PASO (ver el demo / leer el reporte).
 - NADA de palabras de relleno ("espero que estés bien", "somos una empresa líder").
 - NADA de palabras de relleno ("espero que estés bien", "somos una empresa líder").
-- Firma: "Daniel Gonzalez\nFounder & Lead Architect\nHojacero.cl"
+- NADA de palabras de relleno ("espero que estés bien", "somos una empresa líder").
+- Firma: "${signatureEmail}"
 
 Responde SOLO el cuerpo del email.
 `;

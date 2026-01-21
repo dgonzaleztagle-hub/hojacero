@@ -84,7 +84,11 @@ export const ModalTabTrabajo = ({
             const res = await fetch('/api/radar/template', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ leadData: { ...leadData, analysis: lead.source_data?.analysis || lead.analysis }, type })
+                body: JSON.stringify({
+                    leadData: { ...leadData, analysis: lead.source_data?.analysis || lead.analysis },
+                    type,
+                    author: chatAuthor
+                })
             });
             const data = await res.json();
             if (data.success) {
