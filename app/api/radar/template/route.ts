@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         // Configurar Firma Dinámica
         const isGaston = author === 'Gaston';
         const signatureEmail = isGaston
-            ? "Gaston Jofre\nGerente de Marketing y Ventas\nHojacero.cl"
+            ? "Gaston Jofre\nCo-Founder & Business Lead\nHojacero.cl"
             : "Daniel Gonzalez\nFounder & Lead Architect\nHojacero.cl";
 
         const signatureWhatsapp = isGaston
