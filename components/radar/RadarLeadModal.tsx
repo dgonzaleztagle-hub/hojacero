@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
     X, Target, Zap, Search, Shield, ShieldOff, Globe, MapPin, Star, AlertCircle,
     Save, Copy, CheckCircle2, MessageCircle, Mail, Phone, Instagram, Facebook,
-    Trash2, ExternalLink, Activity, FileText, ChevronRight, Loader2
+    Trash2, ExternalLink, Activity, FileText, ChevronRight, Loader2, CreditCard
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
 import { useRadar } from '@/hooks/useRadar';
 import { getAnalysis, getLeadData } from '@/utils/radar-helpers';
@@ -42,6 +43,66 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     } = radar;
 
     const supabase = createClient();
+
+    // Vault Logic State
+    const [inVault, setInVault] = useState(false);
+
+    // Check Vault Status
+    useEffect(() => {
+        const checkVault = async () => {
+            if (!selectedLead) return;
+            // Check by name or website
+            const query = selectedLead.website
+                ? `client_name.eq."${selectedLead.title || selectedLead.nombre}",site_url.eq."${selectedLead.website}"`
+                : `client_name.eq."${selectedLead.title || selectedLead.nombre}"`;
+
+            const { data } = await supabase
+                .from('monitored_sites')
+                .select('id')
+                .or(query)
+                .maybeSingle();
+
+            setInVault(!!data);
+        };
+        checkVault();
+    }, [selectedLead?.id, selectedLead?.website]);
+
+    const handleMoveToVault = async () => {
+        if (!confirm('¿Mover cliente a producción en el Vault?')) return;
+        setIsSaving(true);
+        try {
+            const { error } = await supabase.from('monitored_sites').insert({
+                client_name: selectedLead.title || selectedLead.nombre,
+                site_url: selectedLead.website || '',
+                status: 'active',
+                plan_type: 'Mensual',
+                // Default structure based on VaultClient expectation
+                is_active: true,
+                email_contacto: selectedLead.email,
+                dia_cobro: 5,
+                monto_mensual: 0,
+                cuotas_implementacion: 3,
+                cuotas_pagadas: 0,
+                contract_start: new Date().toISOString()
+            });
+
+            if (error) throw error;
+
+            toast.success('Cliente movido al Vault exitosamente');
+            setInVault(true);
+
+            await logActivity(selectedLead.id || selectedLead.db_id, 'moved_to_vault', 'won', 'vault', 'Cliente migrado a Vault');
+
+            // Open Vault
+            window.open('/dashboard/vault', '_blank');
+
+        } catch (err: any) {
+            console.error('Error vault:', err);
+            toast.error('Error al mover al Vault: ' + err.message);
+        } finally {
+            setIsSaving(false);
+        }
+    };
     const isDark = true; // Forcing dark mode based on previous UI or use theme logic
     const currentUser = 'Daniel'; // Hardcoded for now as per original
     const [reviewNote, setReviewNote] = useState(selectedLead?.nota_revision || '');
@@ -497,12 +558,29 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-bold text-green-400 uppercase tracking-wider">Cliente Cerrado</h4>
-                                    <p className="text-xs text-green-500/60">Este proyecto está en producción en el Vault.</p>
+                                    <p className="text-xs text-green-500/60">
+                                        {inVault ? 'Este proyecto está en producción en el Vault.' : 'Venta cerrada. Falta migrar al Vault.'}
+                                    </p>
                                 </div>
                             </div>
-                            <button className="px-4 py-2 bg-black/40 text-green-400 text-xs font-bold uppercase rounded-lg hover:bg-black/60 transition-colors border border-green-500/10">
-                                Ver Proyecto
-                            </button>
+
+                            {inVault ? (
+                                <button
+                                    onClick={() => window.open('/dashboard/vault', '_blank')}
+                                    className="px-4 py-2 bg-black/40 text-green-400 text-xs font-bold uppercase rounded-lg hover:bg-black/60 transition-colors border border-green-500/10 flex items-center gap-2"
+                                >
+                                    Ver en Vault <ExternalLink className="w-3 h-3" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleMoveToVault}
+                                    disabled={isSaving}
+                                    className="px-4 py-2 bg-green-500 text-black text-xs font-bold uppercase rounded-lg hover:bg-green-400 transition-colors shadow-lg shadow-green-900/20 flex items-center gap-2"
+                                >
+                                    <CreditCard className="w-3 h-3" />
+                                    Pasar a Vault
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
