@@ -5,7 +5,7 @@ import path from 'path';
 
 // Load envs from .env.local
 const envPath = path.resolve(process.cwd(), '.env.local');
-const envConfig = {};
+const envConfig: Record<string, string> = {};
 
 if (fs.existsSync(envPath)) {
     const envFile = fs.readFileSync(envPath, 'utf8');
