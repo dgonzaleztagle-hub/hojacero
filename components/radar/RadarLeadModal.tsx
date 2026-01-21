@@ -565,12 +565,36 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                             </div>
 
                             {inVault ? (
-                                <button
-                                    onClick={() => window.open('/dashboard/vault', '_blank')}
-                                    className="px-4 py-2 bg-black/40 text-green-400 text-xs font-bold uppercase rounded-lg hover:bg-black/60 transition-colors border border-green-500/10 flex items-center gap-2"
-                                >
-                                    Ver en Vault <ExternalLink className="w-3 h-3" />
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            if (!confirm('¿Archivar este lead? Desaparecerá del pipeline pero quedará en historial.')) return;
+                                            setIsSaving(true);
+                                            // Archive logic: change pipeline_stage to 'archived'
+                                            // This removes it from the board view
+                                            const { error } = await supabase.from('leads').update({ pipeline_stage: 'archived' }).eq('id', selectedLead.id || selectedLead.db_id);
+
+                                            if (error) {
+                                                toast.error('Error al archivar');
+                                            } else {
+                                                toast.success('Lead archivado');
+                                                fetchPipeline();
+                                                setSelectedLead(null);
+                                            }
+                                            setIsSaving(false);
+                                        }}
+                                        className="px-4 py-2 bg-zinc-800 text-zinc-400 text-xs font-bold uppercase rounded-lg hover:bg-zinc-700 transition-colors border border-white/5 flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                        Limpiar
+                                    </button>
+                                    <button
+                                        onClick={() => window.open('/dashboard/vault', '_blank')}
+                                        className="px-4 py-2 bg-black/40 text-green-400 text-xs font-bold uppercase rounded-lg hover:bg-black/60 transition-colors border border-green-500/10 flex items-center gap-2"
+                                    >
+                                        Ver en Vault <ExternalLink className="w-3 h-3" />
+                                    </button>
+                                </div>
                             ) : (
                                 <button
                                     onClick={handleMoveToVault}
