@@ -3,13 +3,20 @@ import { GROWTH_PLANS } from '@/components/growth/plans';
 
 type PlanTier = 'foundation' | 'velocity' | 'dominance';
 
+interface PlanTask {
+    title: string;
+    category: string;
+    is_recurring: boolean;
+    recurrence?: string;
+}
+
 export async function generatePlanTasks(clientId: string, tier: PlanTier) {
     const supabase = createClient();
-    const plan = GROWTH_PLANS[tier];
+    const plan = GROWTH_PLANS[tier as keyof typeof GROWTH_PLANS];
 
     if (!plan) throw new Error(`Invalid plan tier: ${tier}`);
 
-    const tasksToInsert = plan.tasks.map(task => ({
+    const tasksToInsert = (plan.tasks as PlanTask[]).map(task => ({
         client_id: clientId,
         title: task.title,
         category: task.category,

@@ -2,13 +2,7 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// Use service role for cron job access (no user auth needed)
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
 
 const ALERT_HOURS_BEFORE = 2; // Send alert when task is due in 2 hours
 const RECIPIENT_EMAIL = 'Gaston.jofre1995@gmail.com';
@@ -22,6 +16,12 @@ interface TaskAlert {
 }
 
 export async function GET(request: Request) {
+    // Initialize clients inside the handler to avoid build-time errors with env vars
+    const resend = new Resend(process.env.RESEND_API_KEY!);
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     try {
         // Verify cron secret for security
         const authHeader = request.headers.get('authorization');
