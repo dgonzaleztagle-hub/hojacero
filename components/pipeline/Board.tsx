@@ -167,6 +167,28 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
         });
     };
 
+    const updateColumnOrder = async (items: TicketProps[], stage: string) => {
+        try {
+            // Prepare batch updates
+            const updates = items.map((item, index) => ({
+                id: item.id,
+                pipeline_stage: stage,
+                pipeline_order: index
+            }));
+
+            await fetch('/api/pipeline/batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ updates })
+            });
+
+            // Trigger refresh in parent if needed (though local state is optimistic)
+            if (onLeadMove) onLeadMove(updates[0].id, stage); // Just to trigger refetch
+        } catch (error) {
+            console.error("Failed to save batch order", error);
+        }
+    };
+
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
 
@@ -175,24 +197,38 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
         // Find the target container (where we dropped)
         const targetContainer = over?.id ? (over.id in items ? over.id as string : findContainer(over.id as string)) : null;
 
+        if (!currentContainer || !targetContainer) {
+            setActiveId(null);
+            setOriginalContainer(null);
+            return;
+        }
+
         // If we have an original container and it's different from current, we moved between containers
-        if (originalContainer && currentContainer && originalContainer !== currentContainer) {
-            const currentItems = items[currentContainer];
-            const newIndex = currentItems.findIndex(i => i.id === active.id);
-            updateLeadPosition(active.id as string, currentContainer, newIndex !== -1 ? newIndex : 0);
+        if (originalContainer && originalContainer !== currentContainer) {
+            // The visual state 'items' is already updated by handleDragOver for the move?
+            // Actually, handleDragOver moves it *visually*. 
+            // handleDragEnd commits it.
+            // But wait, DndKit's handleDragOver modifies 'items' state directly during the drag.
+            // So 'items[currentContainer]' ALREADY contains the item in its new position?
+            // Yes, if handleDragOver logic is correct.
+
+            // So we just need to persist the current state of the currentContainer (destination)
+            const destItems = items[currentContainer];
+            updateColumnOrder(destItems, currentContainer);
         }
         // Same container reordering
-        else if (currentContainer && targetContainer === currentContainer && over?.id !== active.id) {
+        else if (currentContainer === targetContainer) {
             const activeIndex = items[currentContainer].findIndex((item) => item.id === active.id);
             const overIndex = items[currentContainer].findIndex((item) => item.id === over?.id);
 
-            if (activeIndex !== overIndex && overIndex !== -1) {
+            if (activeIndex !== overIndex) {
                 const newItems = arrayMove(items[currentContainer], activeIndex, overIndex);
                 setItems((prev) => ({
                     ...prev,
                     [currentContainer]: newItems,
                 }));
-                updateLeadPosition(active.id as string, currentContainer, overIndex);
+                // Persist the NEW order
+                updateColumnOrder(newItems, currentContainer);
             }
         }
 
