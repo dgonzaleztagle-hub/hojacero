@@ -13,6 +13,7 @@ export interface CredentialGroup {
 
 export interface Cliente {
     id: string;
+    lead_id?: string; // Optional for backward compatibility
     client_name: string;
     site_url: string;
     plan_type: string;

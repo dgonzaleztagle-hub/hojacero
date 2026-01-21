@@ -4,6 +4,7 @@ import {
     Save, Copy, CheckCircle2, MessageCircle, Mail, Phone, Instagram, Facebook,
     Trash2, ExternalLink, Activity, FileText, ChevronRight, Loader2, CreditCard
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
 import { useRadar } from '@/hooks/useRadar';
@@ -43,6 +44,16 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     } = radar;
 
     const supabase = createClient();
+    const router = useRouter();
+
+    // --- Vault Onboarding State ---
+    const [showVaultSetup, setShowVaultSetup] = useState(false);
+    const [vaultConfig, setVaultConfig] = useState({
+        hasMaintenance: true,
+        monthlyFee: 1.5, // Default UF
+        billingStart: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0], // Today + 5 default
+        currency: 'UF'
+    });
 
     // Vault Logic State
     const [inVault, setInVault] = useState(false);
@@ -68,37 +79,78 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     }, [selectedLead?.id, selectedLead?.website]);
 
     const handleMoveToVault = async () => {
-        if (!confirm('¿Mover cliente a producción en el Vault?')) return;
+        // if (!confirm('¿Mover cliente a producción en el Vault?')) return; // Replaced by setup modal
+        setShowVaultSetup(true);
+    };
+
+    const confirmVaultSetup = async () => {
         setIsSaving(true);
         try {
-            const { error } = await supabase.from('monitored_sites').insert({
+            // 1. Calculate Contract End (Next Payment Due)
+            // If Maintenance: Start Date + 1 Month + 5 Days Grace
+            // If One-Off: Start Date + 1 Year (Warranty)
+            const startDate = new Date(vaultConfig.billingStart);
+            const contractEnd = new Date(startDate);
+
+            if (vaultConfig.hasMaintenance) {
+                contractEnd.setMonth(contractEnd.getMonth() + 1);
+                contractEnd.setDate(contractEnd.getDate() + 5);
+            } else {
+                contractEnd.setFullYear(contractEnd.getFullYear() + 1);
+            }
+
+            const { data: siteData, error } = await supabase.from('monitored_sites').insert({
                 client_name: selectedLead.title || selectedLead.nombre,
                 site_url: selectedLead.website || '',
                 status: 'active',
-                plan_type: 'Mensual',
-                // Default structure based on VaultClient expectation
-                is_active: true,
+                plan_type: vaultConfig.hasMaintenance ? 'Mensual' : 'One-Off',
                 email_contacto: selectedLead.email,
-                dia_cobro: 5,
-                monto_mensual: 0,
+                dia_cobro: startDate.getDate(),
+                monto_mensual: vaultConfig.hasMaintenance ? parseFloat(vaultConfig.monthlyFee.toString()) : 0,
+                moneda: vaultConfig.currency, // Ensure column exists or map accordingly
                 cuotas_implementacion: 3,
                 cuotas_pagadas: 0,
-                contract_start: new Date().toISOString()
-            });
+                contract_start: vaultConfig.billingStart,
+                contract_end: contractEnd.toISOString(),
+                lead_id: selectedLead.id || selectedLead.db_id // Link to history
+            }).select('id').single();
 
-            if (error) throw error;
+            if (error) {
+                console.error("SUPABASE INSERT ERROR:", error);
+                throw error;
+            }
 
-            toast.success('Cliente movido al Vault exitosamente');
+            // 2. Create Kill Switch Entry
+            if (siteData) {
+                await supabase.from('site_status').insert({ id: siteData.id, is_active: true });
+            }
+
+            // 3. Auto-Archive Lead Logic
+            await supabase.from('leads').update({
+                pipeline_stage: 'archived',
+                estado: 'won'
+            }).eq('id', selectedLead.id || selectedLead.db_id);
+
+            toast.success('Cliente configurado y migrado al Vault');
             setInVault(true);
+            setShowVaultSetup(false);
 
-            await logActivity(selectedLead.id || selectedLead.db_id, 'moved_to_vault', 'won', 'vault', 'Cliente migrado a Vault');
+            await logActivity(selectedLead.id || selectedLead.db_id, 'moved_to_vault', 'won', 'vault', `Migrado a Vault. Mantención: ${vaultConfig.hasMaintenance ? 'SI' : 'NO'}`);
 
-            // Open Vault
-            window.open('/dashboard/vault', '_blank');
+            // Update Local State to reflect Archive
+            removeFromLists(selectedLead.id || selectedLead.db_id);
+            fetchPipeline(); // Ensure pipeline is refreshed
+
+            // Seamless Navigation
+            router.push('/dashboard/vault');
+
+            // Seamless Navigation
+            router.push('/dashboard/vault');
 
         } catch (err: any) {
-            console.error('Error vault:', err);
-            toast.error('Error al mover al Vault: ' + err.message);
+            console.error('Error vault raw:', err);
+            const msg = err.message || err.details || err.hint || JSON.stringify(err);
+            toast.error('Error al mover al Vault: ' + msg);
         } finally {
             setIsSaving(false);
         }
@@ -150,6 +202,98 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className={`relative w-full h-[95vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl transition-colors md:w-[95vw] md:max-w-7xl ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border-gray-200'}`}>
+
+                {/* VAULT SETUP OVERLAY */}
+                {showVaultSetup && (
+                    <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
+                        <div className="bg-zinc-900 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+                            <div className="text-center space-y-2">
+                                <div className="w-12 h-12 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Target className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold text-white">Configuración de Servicio</h3>
+                                <p className="text-zinc-400 text-sm">Define los términos operativos para {ld.title}</p>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Toggle Maintenance */}
+                                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-white">¿Mantención Mensual?</span>
+                                        <span className="text-xs text-zinc-500">Activa el Kill Switch recurrente</span>
+                                    </div>
+                                    <button
+                                        onClick={() => setVaultConfig({ ...vaultConfig, hasMaintenance: !vaultConfig.hasMaintenance })}
+                                        className={`w-12 h-6 rounded-full p-1 transition-colors ${vaultConfig.hasMaintenance ? 'bg-green-500' : 'bg-zinc-700'}`}
+                                    >
+                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${vaultConfig.hasMaintenance ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    </button>
+                                </div>
+
+                                {vaultConfig.hasMaintenance && (
+                                    <div className="animate-in slide-in-from-top-2 space-y-3">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-xs text-zinc-500 mb-1 block">Monto Mensual</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="number"
+                                                        value={vaultConfig.monthlyFee}
+                                                        onChange={(e) => setVaultConfig({ ...vaultConfig, monthlyFee: parseFloat(e.target.value) })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg py-2 pl-3 pr-8 text-white focus:border-green-500 outline-none"
+                                                    />
+                                                    <span className="absolute right-3 top-2 text-zinc-500 text-xs font-bold">{vaultConfig.currency}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-zinc-500 mb-1 block">Moneda</label>
+                                                <select
+                                                    value={vaultConfig.currency}
+                                                    onChange={(e) => setVaultConfig({ ...vaultConfig, currency: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-white focus:border-green-500 outline-none appearance-none"
+                                                >
+                                                    <option value="UF">UF</option>
+                                                    <option value="CLP">CLP</option>
+                                                    <option value="USD">USD</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs text-zinc-500 mb-1 block">Inicio Facturación</label>
+                                            <input
+                                                type="date"
+                                                value={vaultConfig.billingStart}
+                                                onChange={(e) => setVaultConfig({ ...vaultConfig, billingStart: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-3 text-white focus:border-green-500 outline-none [color-scheme:dark]"
+                                            />
+                                            <p className="text-[10px] text-zinc-500 mt-1">
+                                                * El Kill Switch se activará el {new Date(new Date(vaultConfig.billingStart).setMonth(new Date(vaultConfig.billingStart).getMonth() + 1)).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setShowVaultSetup(false)}
+                                    className="flex-1 py-3 bg-zinc-800 text-zinc-400 font-bold rounded-xl hover:bg-zinc-700 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmVaultSetup}
+                                    disabled={isSaving}
+                                    className="flex-1 py-3 bg-green-500 text-black font-bold rounded-xl hover:bg-green-400 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                                    Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* MODAL HEADER */}
                 <div className={`px-6 py-4 border-b flex items-center justify-between shrink-0 ${isDark ? 'border-white/10 bg-black/40' : 'border-gray-100 bg-white'}`}>
@@ -597,7 +741,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                 </div>
                             ) : (
                                 <button
-                                    onClick={handleMoveToVault}
+                                    onClick={() => setShowVaultSetup(true)}
                                     disabled={isSaving}
                                     className="px-4 py-2 bg-green-500 text-black text-xs font-bold uppercase rounded-lg hover:bg-green-400 transition-colors shadow-lg shadow-green-900/20 flex items-center gap-2"
                                 >

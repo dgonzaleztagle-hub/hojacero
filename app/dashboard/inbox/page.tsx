@@ -235,7 +235,7 @@ export default function InboxPage() {
     return (
         <div className="flex h-[calc(100vh-6rem)] bg-zinc-950 text-white rounded-2xl overflow-hidden border border-zinc-800 relative">
             {/* Sidebar List */}
-            <div className="w-1/3 border-r border-zinc-800 flex flex-col bg-zinc-900/50">
+            <div className={`flex-col bg-zinc-900/50 border-r border-zinc-800 md:flex w-full md:w-1/3 ${selectedEmail ? 'hidden' : 'flex'}`}>
                 <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
                     <h2 className="font-semibold text-lg flex items-center gap-2">
                         <Mail className="w-5 h-5 text-indigo-400" />
@@ -292,39 +292,48 @@ export default function InboxPage() {
             </div>
 
             {/* Email Detail View */}
-            <div className="flex-1 flex flex-col bg-zinc-950">
+            <div className={`flex-col bg-zinc-950 md:flex flex-1 ${selectedEmail ? 'flex' : 'hidden'}`}>
                 {selectedEmail ? (
                     <>
                         {/* Header */}
-                        <div className="p-6 border-b border-zinc-800 bg-zinc-900/30">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <h1 className="text-xl font-bold text-white">{selectedEmail.subject}</h1>
-                                        {/* Simple tag for demo */}
-                                        <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700">Inbox</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-sm text-zinc-400">
-                                        <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-                                            <User className="w-4 h-4" />
+                        <div className="p-4 md:p-6 border-b border-zinc-800 bg-zinc-900/30">
+                            <div className="flex flex-col gap-4">
+                                {/* Mobile Back Button */}
+                                <button
+                                    onClick={() => setSelectedEmail(null)}
+                                    className="md:hidden flex items-center gap-2 text-zinc-400 hover:text-white text-sm font-medium mb-2"
+                                >
+                                    ← Volver a la lista
+                                </button>
+
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                            <h1 className="text-lg md:text-xl font-bold text-white break-words">{selectedEmail.subject}</h1>
+                                            <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700 shrink-0">Inbox</span>
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-white font-medium">{selectedEmail.sender}</span>
-                                            <span className="text-zinc-500 text-xs">{new Date(selectedEmail.created_at).toLocaleString()}</span>
+                                        <div className="flex items-center gap-3 text-sm text-zinc-400">
+                                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                                                <User className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-white font-medium truncate">{selectedEmail.sender}</span>
+                                                <span className="text-zinc-500 text-xs">{new Date(selectedEmail.created_at).toLocaleString()}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-red-400 transition-colors" title="Borrar">
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex gap-2 shrink-0">
+                                        <button className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-red-400 transition-colors" title="Borrar">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Body */}
-                        <div className="flex-1 p-8 overflow-y-auto font-sans text-zinc-300 leading-relaxed">
-                            <div className="whitespace-pre-wrap">
+                        <div className="flex-1 p-4 md:p-8 overflow-y-auto font-sans text-zinc-300 leading-relaxed">
+                            <div className="whitespace-pre-wrap word-break-break-word">
                                 {getCleanBody(selectedEmail.body_text)}
                             </div>
                         </div>
@@ -358,7 +367,7 @@ export default function InboxPage() {
                             ) : (
                                 <button
                                     onClick={() => setReplying(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-zinc-200 rounded-lg text-sm font-semibold transition-colors"
+                                    className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-zinc-200 rounded-lg text-sm font-semibold transition-colors w-full md:w-auto justify-center"
                                 >
                                     <Reply className="w-4 h-4" />
                                     Responder
@@ -367,7 +376,7 @@ export default function InboxPage() {
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 gap-4">
+                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-500 gap-4 p-8 text-center">
                         <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center">
                             <Mail className="w-8 h-8 text-zinc-700" />
                         </div>

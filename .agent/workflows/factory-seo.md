@@ -22,69 +22,35 @@ Antes de ejecutar, asegúrate de tener:
 
 ---
 
-## Fase 0: Registro en Sistema de Retención
+## Fase 0: Registro de Retención (Hybrid Protocol)
 
-### 0.1 Recopilar Datos del Contrato
+### 0.1 Ejecutar Script Local (Automatización)
+Este script usa tus credenciales locales (`.env.local`) para registrar el sitio.
+Si falla la conexión automática, generará un archivo SQL para que lo corras manualmente.
 
-Pregunta al usuario o extrae de `discovery_notes.md`:
-```
-- Nombre del cliente: [nombre]
-- URL final del sitio: [url]
-- Día de mantención mensual: [1-28]
-- Tipo de plan: basic | pro | enterprise
-- Fecha inicio contrato: [fecha]
-- Fecha fin contrato: [fecha + 12 meses]
-- Tipo de hosting: vercel | netlify | cpanel | ftp | other
+```powershell
+node scripts/register-client-killswitch.js "[Nombre Cliente]" "[URL Final]"
 ```
 
-### 0.2 Insertar en Supabase
+### 0.2 Manejo de Resultados
 
-Usa el MCP de Supabase para insertar:
+**CASO A: ÉXITO (✅ Client Registered)**
+El script te dará un **UUID** (ej: `d8a2...`).
+*   **Copialo**. Lo necesitarás para la Fase 3.5.
 
-```sql
--- Insertar cliente en monitored_sites
-INSERT INTO monitored_sites (
-  client_name,
-  site_url,
-  local_path,
-  hosting_type,
-  maintenance_day,
-  plan_type,
-  status,
-  contract_start,
-  contract_end
-) VALUES (
-  '[nombre]',
-  '[url]',
-  'd:/clientes/[nombre-slug]/',
-  '[hosting_type]',
-  [dia],
-  '[plan]',
-  'active',
-  '[fecha_inicio]',
-  '[fecha_fin]'
-) RETURNING id;
-```
+**CASO B: FALLBACK (⚠️ MANUAL FALLBACK)**
+El script generó un archivo en `d:\proyectos\hojacero\sql\manual_register_[cliente].sql`.
+1.  Ve al Dashboard de Supabase -> SQL Editor.
+2.  Copia y pega el contenido de ese archivo.
+3.  Ejecuta el script.
+4.  Copia el **ID** que retorna la base de datos.
 
-**GUARDA EL ID RETORNADO** → Lo necesitas para el kill switch.
-
-### 0.3 Crear Registro de Kill Switch
-
-```sql
--- Crear registro en site_status con is_active = true
-INSERT INTO site_status (id, is_active)
-VALUES ('[id-de-paso-anterior]', true);
-```
-
-### 0.4 Crear Carpeta Local
-
+### 0.3 Crear Carpeta Local
 Crea la estructura de carpeta para el cliente:
-```
-d:/clientes/[nombre-slug]/
-  ├── site/          ← Copia del sitio
-  ├── reports/       ← PDFs de reportes mensuales
-  ├── backups/       ← Backups previos a cambios
-  └── metadata.json  ← { site_id, client_name, created_at }
+```powershell
+New-Item -ItemType Directory -Force -Path "d:\clientes\[nombre-slug]\site"
+New-Item -ItemType Directory -Force -Path "d:\clientes\[nombre-slug]\reports"
+New-Item -ItemType Directory -Force -Path "d:\clientes\[nombre-slug]\backups"
 ```
 
 ---

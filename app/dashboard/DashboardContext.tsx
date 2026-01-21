@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 // Tipos de Datos Mock
 export type ClientData = {
@@ -71,6 +72,8 @@ type DashboardContextType = {
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
     closeSidebar: () => void;
+    user: any;
+    profileName: 'Daniel' | 'Gaston';
 };
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -80,7 +83,40 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const [userRole, setUserRole] = useState<UserRole>('ADMIN');
     const [theme, setTheme] = useState<Theme>('dark');
 
-    // Load theme from localStorage on mount
+    const [profileName, setProfileName] = useState<'Daniel' | 'Gaston'>('Daniel');
+    const [user, setUser] = useState<any>(null); // Supabase User
+
+    const supabase = createClient();
+
+    useEffect(() => {
+        // 1. Get Session
+        const getSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+            identifyUser(session?.user?.email);
+        };
+        getSession();
+
+        // 2. Listen for Auth Changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+            identifyUser(session?.user?.email);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const identifyUser = (email?: string) => {
+        if (!email) return;
+        // Simple mapping logic
+        if (email.toLowerCase().includes('gaston')) {
+            setProfileName('Gaston');
+        } else {
+            setProfileName('Daniel');
+        }
+    };
+
+    // Theme Effect
     useEffect(() => {
         const savedTheme = localStorage.getItem('hojacero-theme') as Theme;
         if (savedTheme) setTheme(savedTheme);
@@ -104,7 +140,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     };
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
     const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
     const closeSidebar = () => setIsSidebarOpen(false);
 
@@ -113,7 +148,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
             currentClient, switchClient, clients: MOCK_CLIENTS,
             userRole, toggleUserRole,
             theme, toggleTheme,
-            isSidebarOpen, toggleSidebar, closeSidebar
+            isSidebarOpen, toggleSidebar, closeSidebar,
+            user, profileName // Expose Auth
         }}>
             {children}
         </DashboardContext.Provider>

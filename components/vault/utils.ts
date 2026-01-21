@@ -6,12 +6,29 @@ export type ClientStatus = {
     diasVencido: number;
 };
 
-export function getEstado(ultimoPago: string | null, diaCobro: number): ClientStatus {
+export function getEstado(ultimoPago: string | null, diaCobro: number, contractStart?: string): ClientStatus {
+    const hoy = new Date();
+
+    // CASO 1: Nunca ha pagado (Nuevo Cliente o Moroso total)
     if (!ultimoPago) {
-        return { estado: 'SIN PAGOS', color: 'text-red-400 bg-red-500/20', prioridad: 1, esCritico: true, diasVencido: 999 };
+        if (!contractStart) {
+            return { estado: 'SIN DATA', color: 'text-gray-400 bg-gray-500/10', prioridad: 5, esCritico: false, diasVencido: 0 };
+        }
+
+        const start = new Date(contractStart);
+        // Dias desde el inicio del contrato
+        const diasDesdeInicio = Math.floor((hoy.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+
+        // Si el contrato empezó en el futuro o hace menos de 30 días, está OK.
+        if (diasDesdeInicio < 30) {
+            return { estado: 'NUEVO', color: 'text-emerald-400 bg-emerald-500/10', prioridad: 5, esCritico: false, diasVencido: 0 };
+        }
+
+        // Si lleva más de 30 días sin pagar desde el inicio
+        return { estado: 'IMPAGO', color: 'text-red-400 bg-red-500/20', prioridad: 1, esCritico: true, diasVencido: diasDesdeInicio };
     }
 
-    const hoy = new Date();
+    // CASO 2: Tiene historial de pagos
     const ultimoPagoDate = new Date(ultimoPago);
     const diasDesdePago = Math.floor((hoy.getTime() - ultimoPagoDate.getTime()) / (1000 * 60 * 60 * 24));
 

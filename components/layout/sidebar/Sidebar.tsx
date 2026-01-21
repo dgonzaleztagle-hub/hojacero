@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard } from 'lucide-react';
+import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard, Rocket, BookOpen } from 'lucide-react';
+
+// ... (lines 5-34)
+
 import { usePathname } from 'next/navigation';
 import { useDashboard } from '@/app/dashboard/DashboardContext';
-
 import { createClient } from '@/utils/supabase/client';
 import { useState, useEffect } from 'react';
 
@@ -36,6 +38,8 @@ export default function Sidebar() {
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
         { label: 'PIPELINE', href: '/dashboard/pipeline', icon: KanbanSquare },
+        { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
+        { label: 'ACADEMY', href: '/dashboard/academy', icon: BookOpen },
         { label: 'AYUDA', href: '/dashboard/ayuda', icon: HelpCircle },
     ];
 

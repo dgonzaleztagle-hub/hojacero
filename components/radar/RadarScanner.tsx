@@ -6,12 +6,13 @@ interface RadarScannerProps {
     setQuery: (q: string) => void;
     location: string;
     setLocation: (l: string) => void;
+    profileName: string;
     isScanning: boolean;
     handleScan: () => void;
     error: string;
 }
 
-export function RadarScanner({ query, setQuery, location, setLocation, isScanning, handleScan, error }: RadarScannerProps) {
+export function RadarScanner({ query, setQuery, location, setLocation, profileName, isScanning, handleScan, error }: RadarScannerProps) {
     return (
         <>
             <div className="bg-black border border-white/10 p-1 rounded-2xl flex flex-col md:flex-row shadow-xl">
@@ -26,7 +27,7 @@ export function RadarScanner({ query, setQuery, location, setLocation, isScannin
                         onKeyDown={(e) => e.key === 'Enter' && handleScan()}
                     />
                 </div>
-                <div className="w-full md:w-1/3 relative group">
+                <div className="w-full md:w-1/3 relative group border-r border-white/10">
                     <div className="absolute top-3 left-4 text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Zona</div>
                     <input
                         type="text"
@@ -36,15 +37,25 @@ export function RadarScanner({ query, setQuery, location, setLocation, isScannin
                         className="w-full bg-transparent p-4 pb-2 pt-8 text-white focus:outline-none placeholder:text-zinc-700 h-16"
                     />
                 </div>
+
+                {/* User Badge */}
+                <div className="hidden md:flex flex-col justify-center px-4 min-w-[100px]">
+                    <span className="text-[9px] text-zinc-600 uppercase font-bold tracking-wider mb-1">Usuario</span>
+                    <span className="text-sm font-medium text-cyan-400 flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+                        {profileName}
+                    </span>
+                </div>
+
                 <button
                     onClick={handleScan}
                     disabled={isScanning || !query}
-                    className={`px-8 rounded-xl font-bold text-sm tracking-wide uppercase flex items-center justify-center gap-2 transition-all m-1
+                    className={`px-8 rounded-xl font-bold text-sm tracking-wide uppercase flex items-center justify-center gap-2 transition-all m-1 flex-shrink-0
                         ${isScanning ? 'bg-zinc-900 text-zinc-500 cursor-wait' : 'bg-white text-black hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(0,240,255,0.4)]'}
                     `}
                 >
                     {isScanning ? <Loader2 className="animate-spin w-4 h-4" /> : <Search className="w-4 h-4" />}
-                    {isScanning ? 'Escaneando...' : 'Escanear'}
+                    {isScanning ? '...' : 'Escanear'}
                 </button>
             </div>
 

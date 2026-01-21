@@ -43,6 +43,11 @@ export function RadarResultsList({ leads, onSelectLead }: RadarResultsListProps)
                             <div className="flex items-center gap-1 text-zinc-600 text-xs mt-0.5 truncate">
                                 <MapPin className="w-3 h-3 flex-shrink-0" />
                                 <span className="truncate">{lead.address || lead.direccion}</span>
+                                {(lead.revisado_por) && (
+                                    <span className="ml-2 px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[9px] border border-white/5">
+                                        🔍 {lead.revisado_por}
+                                    </span>
+                                )}
                             </div>
                         </div>
 

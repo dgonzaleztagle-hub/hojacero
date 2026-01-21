@@ -21,6 +21,8 @@ export async function POST(request: Request) {
         const { data, error } = await resend.emails.send({
             from: 'Hojacero <contacto@hojacero.cl>',
             to: [to],
+            // 🚨 ALERTA TÁCTICA: Copia oculta a los fundadores
+            bcc: ['dgonzaleztagle@gmail.com', 'Gaston.jofre1995@gmail.com'],
             subject: subject,
             html: html,
             text: text,

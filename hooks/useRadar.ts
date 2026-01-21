@@ -11,26 +11,35 @@ export interface ChatMessage {
 }
 
 export function useRadar() {
-    const { userRole, theme } = useDashboard();
+    const { userRole, theme, profileName } = useDashboard();
     const supabase = createClient();
     const searchParams = useSearchParams();
 
     // Tabs & Navigation
-    const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'history'>('scanner');
+    const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'closed' | 'history'>('scanner');
     const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo'>('diagnostico');
 
     // Data Lists
     const [historyLeads, setHistoryLeads] = useState<any[]>([]);
     const [pipelineLeads, setPipelineLeads] = useState<any[]>([]);
+    const [closedLeads, setClosedLeads] = useState<any[]>([]); // New list
     const [leads, setLeads] = useState<any[]>([]);
+
+    // ...
+
+
+
 
     // Scanner State
     const [query, setQuery] = useState('');
     const [location, setLocation] = useState('Santiago, Chile');
+    // const [currentUser, setCurrentUser] = useState... REMOVED
     const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState('');
 
-    // Selected Lead State
+    // ...
+
+
     const [selectedLead, setSelectedLead] = useState<any | null>(null);
     const [leadActivities, setLeadActivities] = useState<any[]>([]);
     const [notes, setNotes] = useState<any[]>([]);
@@ -133,6 +142,15 @@ export function useRadar() {
         if (data) setHistoryLeads(data);
     };
 
+    const fetchClosed = async () => {
+        const { data } = await supabase
+            .from('leads')
+            .select('*')
+            .or('pipeline_stage.eq.archived')
+            .order('updated_at', { ascending: false });
+        if (data) setClosedLeads(data);
+    };
+
     const fetchPipeline = async () => {
         const { data } = await supabase.from('leads')
             .select('*')
@@ -153,7 +171,7 @@ export function useRadar() {
             const res = await fetch('/api/radar/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, location })
+                body: JSON.stringify({ query, location, scannedBy: profileName })
             });
             const data = await res.json();
             if (data.success) {
@@ -340,7 +358,12 @@ export function useRadar() {
     useEffect(() => {
         if (activeTab === 'history') fetchHistory();
         if (activeTab === 'pipeline') fetchPipeline();
+        if (activeTab === 'closed') fetchClosed();
     }, [activeTab]);
+
+    // ... (Deep Linking effect remains) ...
+
+
 
     // Deep Linking
     useEffect(() => {
@@ -386,6 +409,7 @@ export function useRadar() {
         modalTab, setModalTab,
         historyLeads, setHistoryLeads,
         pipelineLeads, setPipelineLeads,
+        closedLeads, setClosedLeads,
         leads, setLeads,
         query, setQuery,
         location, setLocation,
@@ -419,7 +443,10 @@ export function useRadar() {
         fetchLeadActivities,
         fetchNotes,
         fetchChatMessages,
+
         fetchHistory,
-        fetchPipeline
+        fetchClosed,
+        fetchPipeline,
+        profileName
     };
 }

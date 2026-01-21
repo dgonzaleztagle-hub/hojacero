@@ -65,6 +65,15 @@ Busca el archivo `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md`.
 
 ---
 
+## Fase 0.5: Content Handshake (Anti-Agujero Negro)
+
+**ANTES** de construir componentes, valida el contenido real.
+1. Crea/Actualiza `content_map.md` con los textos extraídos para cada sección.
+2. **DETENTE** y pregunta al usuario: *"¿Este es el texto definitivo para Nosotros/Servicios? Confirma para no romper el diseño después."*
+3. Solo procede cuando el usuario diga "CORRECTO".
+
+---
+
 ## Fase 1: Definir Arquitectura del Sitio
 
 Basado en el `discovery_notes.md`, decide qué páginas crear:

@@ -27,8 +27,16 @@ Antes de ejecutar:
     $CLIENT = "apimiel"
     ```
 
-2.  Limpiar exports anteriores (opcional):
+3.  **Handshake Protocol (CRÍTICO):**
+    Verificar si ya existe un export previo válido.
     ```powershell
+    if (Test-Path "exports\$CLIENT\EXPORT_MANIFEST.json") {
+       Write-Host "⚠️ YA EXISTE UN EXPORT PREVIO." -ForegroundColor Yellow
+       Write-Host "Si tienes cambios manuales ahí, NO ejecutes 'Remove-Item' ciegamente."
+       Write-Host "Revisa si puedes iterar sobre esa carpeta en lugar de borrarla."
+    }
+    
+    # SOLO SI deseas re-generar de cero:
     Remove-Item -Recurse -Force "exports\$CLIENT" -ErrorAction SilentlyContinue
     ```
 

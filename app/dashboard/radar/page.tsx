@@ -21,7 +21,8 @@ function RadarContent() {
         selectedLead, setSelectedLead,
         handleScan,
         fetchLeadActivities, fetchNotes, fetchChatMessages,
-        userRole, setIsManualModalOpen
+        userRole, setIsManualModalOpen,
+        currentUser, setCurrentUser
     } = radar;
 
     // 2. Access Control
@@ -35,7 +36,10 @@ function RadarContent() {
     }
 
     // 3. Determine Display Data
-    const displayLeads = activeTab === 'scanner' ? leads : activeTab === 'history' ? historyLeads : [];
+    const displayLeads = activeTab === 'scanner' ? leads
+        : activeTab === 'history' ? historyLeads
+            : activeTab === 'closed' ? radar.closedLeads // Access from hook
+                : [];
 
     // 4. Render
     return (
@@ -65,10 +69,11 @@ function RadarContent() {
 
                 <button
                     onClick={() => setIsManualModalOpen(true)}
-                    className="bg-white text-black hover:bg-zinc-200 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                    className="bg-white text-black hover:bg-zinc-200 p-2 md:px-4 md:py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                    title="Ingresar Dato Manual"
                 >
                     <ClipboardList className="w-4 h-4" />
-                    Ingresar Dato
+                    <span className="hidden md:inline">Ingresar Dato</span>
                 </button>
             </div>
 
@@ -81,6 +86,13 @@ function RadarContent() {
                 >
                     🔍 Escáner
                     {activeTab === 'scanner' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400"></div>}
+                </button>
+                <button
+                    onClick={() => setActiveTab('closed')}
+                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'closed' ? 'text-green-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                    ✅ Cerrados
+                    {activeTab === 'closed' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400"></div>}
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
@@ -98,6 +110,9 @@ function RadarContent() {
                     setQuery={setQuery}
                     location={location}
                     setLocation={setLocation}
+                    profileName={radar.profileName || 'Desconocido'} // Use from hook return if possible, OR context. 
+                    // Wait, I need to make sure useRadar returns it OR I import context here. 
+                    // Let's modify useRadar to return it in next step if not already.
                     isScanning={isScanning}
                     handleScan={handleScan}
                     error={error}

@@ -18,7 +18,7 @@ export default function VaultDetail({ cliente, onClose }: VaultDetailProps) {
     // The parent controls 'cliente' being null or an object
 
     // Calculate status only if client exists
-    const estado = cliente ? getEstado(cliente.ultimo_pago, cliente.dia_cobro) : null;
+    const estado = cliente ? getEstado(cliente.ultimo_pago, cliente.dia_cobro, cliente.contract_start) : null;
 
     return (
         <AnimatePresence>

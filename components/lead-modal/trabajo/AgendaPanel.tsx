@@ -47,46 +47,53 @@ export const AgendaPanel = ({
             </div>
 
             <div className="space-y-4">
-                <div className="flex gap-2">
-                    {/* Quick Dates */}
-                    {[
-                        { label: 'Para Hoy', days: 0 },
-                        { label: 'Mañana', days: 1 },
-                        { label: 'Próx. Lunes', days: (1 + 7 - new Date().getDay()) % 7 || 7 } // Next Monday
-                    ].map((opt) => (
-                        <button
-                            key={opt.label}
-                            onClick={() => {
-                                const d = new Date();
-                                d.setDate(d.getDate() + opt.days);
-                                setDateInput(d.toISOString().split('T')[0]);
-                            }}
-                            className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${isDark
-                                ? 'bg-zinc-900 border-white/10 hover:border-amber-500/50 hover:text-amber-400 text-zinc-400'
-                                : 'bg-gray-50 border-gray-200 hover:border-amber-500 hover:text-amber-600 text-gray-600'}`}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
-                    <input
-                        type="date"
-                        value={dateInput}
-                        onChange={(e) => setDateInput(e.target.value)}
-                        className={`px-3 py-1.5 rounded-lg text-xs border outline-none focus:ring-1 focus:ring-amber-500/50 ${isDark
-                            ? 'bg-zinc-900 border-white/10 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'}`}
-                    />
-                    <input
-                        type="time"
-                        value={timeInput}
-                        onChange={(e) => setTimeInput(e.target.value)}
-                        className={`px-3 py-1.5 rounded-lg text-xs border outline-none focus:ring-1 focus:ring-amber-500/50 w-[80px] ${isDark
-                            ? 'bg-zinc-900 border-white/10 text-white'
-                            : 'bg-white border-gray-200 text-gray-900'}`}
-                    />
+                <div className="flex flex-col gap-2">
+                    {/* Quick Dates & Inputs Row */}
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 custom-scrollbar shrink-0">
+                            {[
+                                { label: 'Para Hoy', days: 0 },
+                                { label: 'Mañana', days: 1 },
+                                { label: 'Próx. Lunes', days: (1 + 7 - new Date().getDay()) % 7 || 7 } // Next Monday
+                            ].map((opt) => (
+                                <button
+                                    key={opt.label}
+                                    onClick={() => {
+                                        const d = new Date();
+                                        d.setDate(d.getDate() + opt.days);
+                                        setDateInput(d.toISOString().split('T')[0]);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-xs border transition-colors whitespace-nowrap ${isDark
+                                        ? 'bg-zinc-900 border-white/10 hover:border-amber-500/50 hover:text-amber-400 text-zinc-400'
+                                        : 'bg-gray-50 border-gray-200 hover:border-amber-500 hover:text-amber-600 text-gray-600'}`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2 flex-1">
+                            <input
+                                type="date"
+                                value={dateInput}
+                                onChange={(e) => setDateInput(e.target.value)}
+                                className={`flex-1 px-3 py-1.5 rounded-lg text-xs border outline-none focus:ring-1 focus:ring-amber-500/50 min-w-0 ${isDark
+                                    ? 'bg-zinc-900 border-white/10 text-white'
+                                    : 'bg-white border-gray-200 text-gray-900'}`}
+                            />
+                            <input
+                                type="time"
+                                value={timeInput}
+                                onChange={(e) => setTimeInput(e.target.value)}
+                                className={`px-3 py-1.5 rounded-lg text-xs border outline-none focus:ring-1 focus:ring-amber-500/50 w-[80px] shrink-0 ${isDark
+                                    ? 'bg-zinc-900 border-white/10 text-white'
+                                    : 'bg-white border-gray-200 text-gray-900'}`}
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row gap-2">
                     <input
                         type="text"
                         value={nextActionNote}
@@ -99,7 +106,7 @@ export const AgendaPanel = ({
                     <button
                         onClick={handleSaveAction}
                         disabled={isSavingAction}
-                        className={`px-4 py-2 rounded-lg font-bold text-xs uppercase flex items-center gap-2 transition-all ${isDark
+                        className={`px-4 py-2 rounded-lg font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all ${isDark
                             ? 'bg-amber-500 hover:bg-amber-400 text-black'
                             : 'bg-amber-500 hover:bg-amber-600 text-white'
                             } disabled:opacity-50`}

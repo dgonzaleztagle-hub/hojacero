@@ -94,7 +94,7 @@ async function scrapeContactInfo(websiteUrl: string): Promise<{
 
 export async function POST(req: Request) {
     try {
-        const { query, location } = await req.json();
+        const { query, location, scannedBy } = await req.json();
         const supabase = await createClient();
 
         if (!query || !location) {
@@ -286,6 +286,7 @@ IMPORTANTE:
                             opportunity: analysis.opportunity
                         },
                         zona_busqueda: location,
+                        revisado_por: scannedBy || 'Sistema',
                         fuente: 'radar'
                     };
 

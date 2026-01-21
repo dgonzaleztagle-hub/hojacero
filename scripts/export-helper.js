@@ -108,6 +108,15 @@ devDeps.forEach(dep => {
     }
 });
 
+// Inject Peer Dependencies manually
+if (usedDeps.has('@react-three/fiber') && !finalDeps['three']) {
+    finalDeps['three'] = rootPackageJson.dependencies['three'] || "^0.160.0";
+    log(`   Auto-injected peer dependency: three`, colors.cyan);
+}
+if (usedDeps.has('framer-motion') && !finalDeps['framer-motion']) {
+    finalDeps['framer-motion'] = rootPackageJson.dependencies['framer-motion'];
+}
+
 log(`   Found ${Object.keys(finalDeps).length} dependencies.`, colors.green);
 
 // --- 2. Asset Harvesting ---
@@ -137,9 +146,8 @@ function scanForAssets(dir) {
             let match;
             while ((match = assetRegex.exec(content)) !== null) {
                 const assetPath = match[1];
-                // basic filtering to avoid code paths like /api/ or /prospectos/
+                // basic filtering to avoid code paths like /api/
                 if (!assetPath.startsWith('/api') &&
-                    !assetPath.startsWith('/prospectos') &&
                     path.extname(assetPath) // must have extension
                 ) {
                     assetsToCopy.add(assetPath);
@@ -341,4 +349,16 @@ log(`\n✅ Export configuration complete!`, colors.cyan);
 log(`Next steps:`, colors.reset);
 log(`1. cd exports\\${clientName}`, colors.reset);
 log(`2. npm install`, colors.reset);
+// --- 7. Export Stamp (Handshake Protocol) ---
+const manifest = {
+    client: clientName,
+    exportedAt: new Date().toISOString(),
+    assetsCount: copiedAssets,
+    dependenciesCount: Object.keys(finalDeps).length,
+    status: "success",
+    version: "2.1.0" // Auto-patched version
+};
+fs.writeFileSync(path.join(targetDir, 'EXPORT_MANIFEST.json'), JSON.stringify(manifest, null, 2));
+log(`   Created EXPORT_MANIFEST.json`, colors.green);
+
 log(`3. npm run build`, colors.reset);

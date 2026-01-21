@@ -14,11 +14,11 @@ export default function Navbar() {
     }, []);
 
     const menuItems = [
-        { name: "Inicio", href: "/prospectos/apimiel" },
-        { name: "Nosotros", href: "/prospectos/apimiel/nosotros" },
-        { name: "Sustentabilidad", href: "/prospectos/apimiel/sustentabilidad" },
-        { name: "Productos", href: "/prospectos/apimiel/productos" },
-        { name: "Galería", href: "/prospectos/apimiel/galeria" }
+        { name: "Inicio", href: "/" },
+        { name: "Nosotros", href: "/nosotros" },
+        { name: "Sustentabilidad", href: "/sustentabilidad" },
+        { name: "Productos", href: "/productos" },
+        { name: "Galería", href: "/galeria" }
     ];
 
     const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function Navbar() {
 
                 {/* Logo Original - Lado Izquierdo */}
                 <div className="flex-shrink-0">
-                    <Link href="/prospectos/apimiel" className="block relative z-[1000]">
+                    <Link href="/" className="block relative z-[1000]">
                         <img
                             src="/prospectos/apimiel/assets/logo_original.png"
                             alt="Apimiel"

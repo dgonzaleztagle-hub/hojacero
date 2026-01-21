@@ -246,8 +246,8 @@ export default function AyudaPage() {
     };
 
     return (
-        <div className="p-6 max-w-5xl mx-auto">
-            <h1 className="text-3xl font-bold mb-2">📚 Centro de Ayuda</h1>
+        <div className="p-4 md:p-6 max-w-5xl mx-auto">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">📚 Centro de Ayuda</h1>
             <p className="text-gray-400 mb-6">Todo sobre HojaCero Factory - Click en cada card para más detalles</p>
 
             {/* Tabs */}
@@ -257,8 +257,8 @@ export default function AyudaPage() {
                         key={key}
                         onClick={() => { setActiveSection(key); setExpandedCard(null); }}
                         className={`px-4 py-2 rounded-lg transition-all text-sm ${activeSection === key
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                             }`}
                     >
                         {sections[key].title}

@@ -239,7 +239,7 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
     const activeItem = activeId ? Object.values(items).flat().find(i => i.id === activeId) : null;
 
     const isMobile = useIsMobile();
-    const [activeMobileTab, setActiveMobileTab] = useState('radar');
+
 
     const columnOrder = ['radar', 'contactado', 'reunion', 'negociacion', 'produccion', 'perdido'];
     const columnTitles: Record<string, string> = {
@@ -254,33 +254,31 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
     if (isMobile) {
         return (
             <div className="flex flex-col h-full bg-black/20">
-                {/* Mobile Tabs Header */}
-                <div className="flex overflow-x-auto border-b border-white/10 hide-scrollbar bg-neutral-900/50 sticky top-0 z-10">
+                {/* Swipeable Columns Container */}
+                <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4 gap-4 px-4 items-start">
                     {columnOrder.map(colId => (
-                        <button
-                            key={colId}
-                            onClick={() => setActiveMobileTab(colId)}
-                            className={`
-                                flex-shrink-0 px-4 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2
-                                ${activeMobileTab === colId
-                                    ? 'text-cyan-400 border-cyan-400 bg-white/5'
-                                    : 'text-zinc-500 border-transparent hover:text-zinc-300'
-                                }
-                            `}
-                        >
-                            {columnTitles[colId]} ({items[colId]?.length || 0})
-                        </button>
-                    ))}
-                </div>
+                        <div key={colId} className="min-w-[85vw] h-full snap-center flex flex-col pt-4">
+                            {/* Mobile Column Header */}
+                            <div className="flex items-center justify-between mb-3 px-1">
+                                <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                                    {columnTitles[colId]}
+                                </h3>
+                                <span className="bg-white/10 text-zinc-400 px-2 py-0.5 rounded text-xs font-mono">
+                                    {items[colId]?.length || 0}
+                                </span>
+                            </div>
 
-                {/* Active Column Content - Full Width */}
-                <div className="flex-1 overflow-hidden p-2">
-                    <Column
-                        id={activeMobileTab}
-                        title={columnTitles[activeMobileTab]}
-                        count={items[activeMobileTab]?.length || 0}
-                        items={items[activeMobileTab] || []}
-                    />
+                            {/* Column Content */}
+                            <div className="flex-1 relative">
+                                <Column
+                                    id={colId}
+                                    title="" // Title rendered above
+                                    count={0} // Count rendered above
+                                    items={items[colId] || []}
+                                />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         );

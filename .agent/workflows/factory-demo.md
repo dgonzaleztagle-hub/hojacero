@@ -143,6 +143,22 @@ LEGAL:
 | Construcción | Master Builder | TechBuild | Heritage Craftsman |
 | Fitness | Transformation Energy | Wellness Sanctuary | Performance Lab |
 
+
+## Fase 4.5: Mobile-First Hard Constraints (FAIL FAST)
+
+**ANTES** de generar assets, define la estructura pensando en 393px (iPhone 15).
+
+### Reglas de Hierro (Hard Caps):
+- [ ] **Hero Headline:** Mínimo `text-4xl` (36px). Si es menor, el usuario no lee.
+- [ ] **Márgenes:** `px-6` (24px) mínimo en contenedores. Nada pegado al borde.
+- [ ] **Touch Targets:** Botones mínimo `h-12` (48px) de altura.
+- [ ] **Stacking:** Todo lo que sea `flex-row` en desktop DEBE ser `flex-col` en mobile.
+
+**Simulación Mental:**
+"Si abro esto en el baño con una mano, ¿puedo navegar sin frustrarme?"
+
+---
+
 ## Fase 5: Generar Assets (Asset Generation Protocol)
 
 Usa `generate_image` para crear imágenes específicas:

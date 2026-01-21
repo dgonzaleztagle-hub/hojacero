@@ -50,7 +50,7 @@ export default function Hero() {
                     transition={{ delay: 1.5, duration: 1 }}
                     className="mt-12"
                 >
-                    <Link href="/prospectos/apimiel/productos" className="inline-block group relative px-8 py-4 bg-transparent border border-[#D4AF37] text-[#D4AF37] overflow-hidden transition-colors hover:text-[#1A1A1A]">
+                    <Link href="/productos" className="inline-block group relative px-8 py-4 bg-transparent border border-[#D4AF37] text-[#D4AF37] overflow-hidden transition-colors hover:text-[#1A1A1A]">
                         <span className="relative z-10 font-medium tracking-widest uppercase text-xs">Explorar Colección</span>
                         <div className="absolute inset-0 z-0 translate-y-full bg-[#D4AF37] transition-transform duration-300 group-hover:translate-y-0" />
                     </Link>
