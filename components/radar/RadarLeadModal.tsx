@@ -50,6 +50,30 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         if (!modalTab) setModalTab('diagnostico');
     }, [modalTab, setModalTab]);
 
+    // NEW: Silent Refresh on Open to ensure Deep Analysis / Updates are visible
+    useEffect(() => {
+        if (selectedLead?.id && selectedLead.id !== 'preview') {
+            const refreshLead = async () => {
+                const { data } = await supabase.from('leads').select('*').eq('id', selectedLead.id).single();
+                if (data) {
+                    // Only update if we have new data (deep compare source_data length/keys roughly)
+                    const currentKeys = Object.keys(selectedLead.source_data || {}).length;
+                    const newKeys = Object.keys(data.source_data || {}).length;
+
+                    // Or specifically check for missing critical data
+                    if (!selectedLead.source_data?.deep_analysis && data.source_data?.deep_analysis) {
+                        console.log('🔄 Refreshing Lead Data (Syncing missing analysis)...');
+                        setSelectedLead((prev: any) => ({ ...prev, ...data }));
+                    } else if (newKeys > currentKeys) {
+                        console.log('🔄 Refreshing Lead Data (Newer version found)...');
+                        setSelectedLead((prev: any) => ({ ...prev, ...data }));
+                    }
+                }
+            };
+            refreshLead();
+        }
+    }, [selectedLead?.id]);
+
     if (!selectedLead) return null;
 
     const analysis = getAnalysis(selectedLead);
@@ -163,7 +187,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     isSaving={isSaving}
                                     setIsSaving={setIsSaving}
                                     // Handlers for "Estrategia Ganadora" which is part of Diagnostico UI in original
-                                    setIsSaving={setIsSaving}
+                                    // REMOVED DUPLICATE setIsSaving
                                     copiedField={copiedField}
                                     // Notes & Activity
                                     newNote={newNote}
