@@ -3,22 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Clock, Upload, Link as LinkIcon, Save, Loader2, Repeat, CheckCircle2, Trash2, Image as ImageIcon } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
-
-interface GrowthTask {
-    id: string;
-    client_id: string;
-    plan_id: string | null;
-    title: string;
-    category: string;
-    status: string;
-    priority: string;
-    due_datetime: string | null;
-    recurrence: { type: string; day?: number; hour?: number } | null;
-    evidence_url: string | null;
-    evidence_notes: string | null;
-    is_enabled: boolean;
-    completed_at: string | null;
-}
+import { GrowthTask } from './types';
 
 interface TaskDetailModalProps {
     task: GrowthTask;

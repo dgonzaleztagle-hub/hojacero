@@ -9,30 +9,7 @@ import {
 import { createClient } from '@/utils/supabase/client';
 import { TaskDetailModal } from './TaskDetailModal';
 import { AddCustomTaskModal } from './AddCustomTaskModal';
-
-// --- Types ---
-interface GrowthClient {
-    id: string;
-    client_name: string;
-    plan_tier: string;
-    health_score: number;
-    next_audit_date: string;
-    active_modules: Record<string, boolean>; // e.g. { ads: true, seo: false }
-}
-
-interface GrowthTask {
-    id: string;
-    title: string;
-    category: string;
-    status: string;
-    priority: string;
-    due_datetime: string | null;
-    recurrence: { type: string; day?: number; hour?: number } | null;
-    evidence_url: string | null;
-    evidence_notes: string | null;
-    is_enabled: boolean;
-    completed_at: string | null;
-}
+import { GrowthClient, GrowthTask } from './types';
 
 // --- Icons Map ---
 const MODULE_ICONS: Record<string, React.ReactNode> = {
