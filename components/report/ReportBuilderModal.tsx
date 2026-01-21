@@ -51,6 +51,7 @@ export const ReportBuilderModal = ({ isOpen, onClose, lead, isDark, onSaveSucces
                 quality: 0.95,
                 pixelRatio: pixelRatio,
                 backgroundColor: '#ffffff',
+                cacheBust: true,
             });
 
             // 2. Generate PDF
@@ -80,9 +81,16 @@ export const ReportBuilderModal = ({ isOpen, onClose, lead, isDark, onSaveSucces
                 .getPublicUrl(fileName);
 
             // 5. Update Lead Record
+            // 5. Update Lead Record (Save to source_data since pdf_url column might not exist)
+            const updatedSourceData = {
+                ...(lead.source_data || {}),
+                pdf_url: publicUrl,
+                last_generated_pdf: new Date().toISOString()
+            };
+
             const { error: dbError } = await supabase
                 .from('leads')
-                .update({ pdf_url: publicUrl })
+                .update({ source_data: updatedSourceData })
                 .eq('id', lead.id);
 
             if (dbError) throw dbError;
@@ -92,7 +100,7 @@ export const ReportBuilderModal = ({ isOpen, onClose, lead, isDark, onSaveSucces
             onClose();
 
         } catch (error: any) {
-            console.error('Error saving PDF:', error);
+            console.error('Error saving PDF:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
             toast.error('Error al guardar: ' + error.message, { id: toastId });
         } finally {
             setIsUploading(false);

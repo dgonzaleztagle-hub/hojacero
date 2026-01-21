@@ -21,10 +21,6 @@ interface ModalTabDiagnosticoProps {
     isSaving: boolean;
     setIsSaving: (v: boolean) => void; // Added based on usage
     onUpdateContact: () => void;
-    generateTemplate: (lead: any, type: 'whatsapp' | 'email') => void;
-    aiTemplate: any;
-    setAiTemplate: (t: any) => void;
-    isGeneratingTemplate: boolean;
     copiedField: string | null;
     newNote: string;
     setNewNote: (s: string) => void;
@@ -51,10 +47,6 @@ export const ModalTabDiagnostico = ({
     setEditData,
     isSaving,
     onUpdateContact,
-    generateTemplate,
-    aiTemplate,
-    setAiTemplate,
-    isGeneratingTemplate,
     copiedField,
     newNote,
     setNewNote,

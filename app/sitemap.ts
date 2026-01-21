@@ -8,6 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
         '',
         '/pricing',
         '/login',
+        '/vision',
+        '/design-lab',
     ].map((route) => ({
         url: `${baseUrl}${route}`,
         lastModified: new Date(),

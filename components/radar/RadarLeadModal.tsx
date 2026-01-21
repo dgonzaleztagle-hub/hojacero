@@ -8,9 +8,8 @@ import { createClient } from '@/utils/supabase/client';
 import { useRadar } from '@/hooks/useRadar';
 import { getAnalysis, getLeadData } from '@/utils/radar-helpers';
 import { ScoreIndicator, TargetIcon } from './shared';
+
 // Import Modal Tabs
-// Import Modal Tabs
-import { ContactStrategyPanel } from '@/components/lead-modal/ContactStrategyPanel';
 import { ModalTabDiagnostico } from '@/components/lead-modal/ModalTabDiagnostico';
 import { ModalTabAuditoria } from '@/components/lead-modal/ModalTabAuditoria';
 import { ModalTabEstrategia } from '@/components/lead-modal/ModalTabEstrategia';
@@ -34,11 +33,11 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         isEditingContact, setIsEditingContact,
         editData, setEditData,
         isSaving, setIsSaving,
-        generateTemplate, aiTemplate, setAiTemplate, isGeneratingTemplate,
         notes, newNote, setNewNote, saveNote, deleteNote, isSavingNote,
         leadActivities,
         chatMessages, newChatMessage, setNewChatMessage, sendChatMessage, chatAuthor, setChatAuthor,
         fetchLeadActivities, fetchNotes, fetchChatMessages, fetchPipeline,
+        performDeepAnalysis, isDeepAnalyzing, performReanalysis, isReanalyzing, // NEW PROPS
         theme // assuming theme is available
     } = radar;
 
@@ -46,6 +45,10 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     const isDark = true; // Forcing dark mode based on previous UI or use theme logic
     const currentUser = 'Daniel'; // Hardcoded for now as per original
     const [reviewNote, setReviewNote] = useState(selectedLead?.nota_revision || '');
+
+    useEffect(() => {
+        if (!modalTab) setModalTab('diagnostico');
+    }, [modalTab, setModalTab]);
 
     if (!selectedLead) return null;
 
@@ -111,8 +114,8 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                 {/* MODAL CONTENT: TABS + SCROLLVIEW */}
                 <div className="flex-1 flex min-h-0 overflow-hidden">
 
-                    {/* SIDEBAR TABS (Desktop) */}
-                    <div className={`w-64 border-r hidden md:flex flex-col p-2 space-y-1 overflow-y-auto ${isDark ? 'border-white/10 bg-zinc-900/30' : 'border-gray-100 bg-gray-50/50'}`}>
+                    {/* SIDEBAR TABS (Desktop) - Explicitly Flex */}
+                    <div className={`w-64 border-r hidden md:flex flex-col p-2 space-y-1 overflow-y-auto shrink-0 ${isDark ? 'border-white/10 bg-zinc-900/30' : 'border-gray-100 bg-gray-50/50'}`}>
                         <button onClick={() => setModalTab('diagnostico')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${modalTab === 'diagnostico' ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'}`}>
                             <Activity className="w-4 h-4" /> Diagnóstico
                         </button>
@@ -129,7 +132,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
 
                     {/* MAIN SCROLLABLE CONTENT */}
                     <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20">
-                        {/* Mobile Tabs */}
+                        {/* Mobile Tabs - Explicitly Hidden on Desktop */}
                         <div className="md:hidden flex overflow-x-auto p-2 border-b border-white/10 gap-2 shrink-0">
                             {['diagnostico', 'auditoria', 'estrategia', 'trabajo'].map((t) => (
                                 <button key={t} onClick={() => setModalTab(t as any)}
@@ -147,10 +150,10 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     analysis={analysis}
                                     ld={ld} // Added missing prop
                                     isDark={isDark}
-                                    isDeepAnalyzing={false} // Mocked as false per original
-                                    onDeepAnalyze={() => { }} // Mocked
-                                    isReanalyzing={radar.isReanalyzing}
-                                    onReanalyze={() => radar.setIsReanalyzing(true)} // Mocked/Hooked
+                                    isDeepAnalyzing={isDeepAnalyzing}
+                                    onDeepAnalyze={performDeepAnalysis}
+                                    isReanalyzing={isReanalyzing}
+                                    onReanalyze={performReanalysis}
                                     // Passing handlers from radar
                                     copyToClipboard={copyToClipboard}
                                     isEditingContact={isEditingContact}
@@ -160,10 +163,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     isSaving={isSaving}
                                     setIsSaving={setIsSaving}
                                     // Handlers for "Estrategia Ganadora" which is part of Diagnostico UI in original
-                                    generateTemplate={generateTemplate}
-                                    aiTemplate={aiTemplate}
-                                    setAiTemplate={setAiTemplate}
-                                    isGeneratingTemplate={isGeneratingTemplate}
+                                    setIsSaving={setIsSaving}
                                     copiedField={copiedField}
                                     // Notes & Activity
                                     newNote={newNote}
@@ -212,6 +212,8 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     isDark={isDark}
                                     isReanalyzing={radar.isReanalyzing}
                                     setIsReanalyzing={radar.setIsReanalyzing}
+                                    isDeepAnalyzing={isDeepAnalyzing}
+                                    onDeepAnalyze={performDeepAnalysis}
                                 />
                             )}
 
@@ -273,19 +275,15 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
 
                                     // AI & Activity
                                     leadActivities={leadActivities}
-                                    onGenerateTemplate={generateTemplate}
-                                    isGeneratingTemplate={isGeneratingTemplate}
-                                    aiTemplate={aiTemplate}
-                                    setAiTemplate={setAiTemplate}
                                     copyToClipboard={copyToClipboard}
                                     copiedField={copiedField}
-                                    getLeadData={getLeadData}
                                     onLeadUpdate={setSelectedLead}
                                 />
                             )}
                         </div>
                     </div>
                 </div>
+
 
                 {/* MODAL FOOTER */}
                 <div className="p-6 border-t border-white/10 bg-zinc-900/50 sticky bottom-0 space-y-4">
@@ -318,7 +316,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                         </div>
                     )}
 
-                    {/* DETECTED */}
+                    {/* DETECTED (Initial Review) */}
                     {(!selectedLead.estado || selectedLead.estado === 'detected') && selectedLead.id !== 'preview' && (
                         <div className="flex flex-col gap-4">
                             <div className="bg-black/30 p-2 rounded-xl">
@@ -355,11 +353,21 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                         </div>
                     )}
 
-                    {/* PIPELINE ACTIONS (Simplified) */}
-                    {['ready_to_contact', 'in_contact', 'proposal_sent'].includes(selectedLead.estado) && (
-                        <div className="flex justify-between items-center">
-                            <div className="text-xs text-zinc-500">Estado: <span className="text-white font-bold">{selectedLead.estado}</span></div>
+                    {/* PIPELINE ACTIONS (Advanced Flows) */}
+                    {['ready_to_contact', 'in_contact', 'meeting_scheduled', 'proposal_sent', 'negotiation'].includes(selectedLead.estado) && (
+                        <div className="flex justify-between items-center animate-in slide-in-from-bottom-2">
+                            <div className="flex flex-col">
+                                <span className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Estado Actual</span>
+                                <span className={`text-sm font-bold ${selectedLead.estado === 'won' ? 'text-green-500' :
+                                    selectedLead.estado === 'lost' ? 'text-red-500' :
+                                        'text-white'
+                                    }`}>
+                                    {selectedLead.estado.replace(/_/g, ' ').toUpperCase()}
+                                </span>
+                            </div>
+
                             <div className="flex gap-2">
+                                {/* Ready to Contact -> Contacted */}
                                 {selectedLead.estado === 'ready_to_contact' && (
                                     <button onClick={async () => {
                                         setIsSaving(true);
@@ -369,11 +377,108 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                         fetchPipeline();
                                         setSelectedLead(null);
                                         setIsSaving(false);
-                                    }} className="px-4 py-2 bg-cyan-500 text-black font-bold rounded-xl text-sm hover:bg-cyan-400 flex gap-2">
+                                    }} className="px-5 py-2.5 bg-cyan-500 text-black font-bold rounded-xl text-xs uppercase tracking-wide hover:bg-cyan-400 flex gap-2 shadow-lg shadow-cyan-500/20 transition-all hover:scale-105">
                                         <MessageCircle className="w-4 h-4" /> Marcar Contactado
                                     </button>
                                 )}
+
+                                {/* In Contact -> Meeting Scheduled */}
+                                {selectedLead.estado === 'in_contact' && (
+                                    <button onClick={async () => {
+                                        setIsSaving(true);
+                                        const id = selectedLead.id || selectedLead.db_id;
+                                        await supabase.from('leads').update({ estado: 'meeting_scheduled' }).eq('id', id);
+                                        await logActivity(id, 'meeting_booked', 'in_contact', 'meeting_scheduled');
+                                        fetchPipeline();
+                                        setSelectedLead(null);
+                                        setIsSaving(false);
+                                    }} className="px-5 py-2.5 bg-indigo-500 text-white font-bold rounded-xl text-xs uppercase tracking-wide hover:bg-indigo-400 flex gap-2 shadow-lg shadow-indigo-500/20 transition-all hover:scale-105">
+                                        <Activity className="w-4 h-4" /> Agendar Reunión
+                                    </button>
+                                )}
+
+                                {/* Meeting Scheduled -> Proposal Sent */}
+                                {selectedLead.estado === 'meeting_scheduled' && (
+                                    <button onClick={async () => {
+                                        setIsSaving(true);
+                                        const id = selectedLead.id || selectedLead.db_id;
+                                        await supabase.from('leads').update({ estado: 'proposal_sent' }).eq('id', id);
+                                        await logActivity(id, 'proposal_sent', 'meeting_scheduled', 'proposal_sent');
+                                        fetchPipeline();
+                                        setSelectedLead(null);
+                                        setIsSaving(false);
+                                    }} className="px-5 py-2.5 bg-purple-500 text-white font-bold rounded-xl text-xs uppercase tracking-wide hover:bg-purple-400 flex gap-2 shadow-lg shadow-purple-500/20 transition-all hover:scale-105">
+                                        <FileText className="w-4 h-4" /> Enviar Propuesta
+                                    </button>
+                                )}
+
+                                {/* Proposal Sent -> Negotiation */}
+                                {selectedLead.estado === 'proposal_sent' && (
+                                    <button onClick={async () => {
+                                        setIsSaving(true);
+                                        const id = selectedLead.id || selectedLead.db_id;
+                                        await supabase.from('leads').update({ estado: 'negotiation' }).eq('id', id);
+                                        await logActivity(id, 'negotiation_started', 'proposal_sent', 'negotiation');
+                                        fetchPipeline();
+                                        setSelectedLead(null);
+                                        setIsSaving(false);
+                                    }} className="px-5 py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs uppercase tracking-wide hover:bg-orange-400 flex gap-2 shadow-lg shadow-orange-500/20 transition-all hover:scale-105">
+                                        <Activity className="w-4 h-4" /> Iniciar Negociación
+                                    </button>
+                                )}
+
+                                {/* Negotiation -> WON/LOST */}
+                                {(selectedLead.estado === 'negotiation' || selectedLead.estado === 'proposal_sent') && (
+                                    <>
+                                        <button onClick={async () => {
+                                            if (!confirm('¿Estás seguro de marcar esta oportunidad como PERDIDA?')) return;
+                                            setIsSaving(true);
+                                            const id = selectedLead.id || selectedLead.db_id;
+                                            await supabase.from('leads').update({ estado: 'closed_lost' }).eq('id', id);
+                                            await logActivity(id, 'closed_lost', selectedLead.estado, 'closed_lost');
+                                            fetchPipeline();
+                                            setSelectedLead(null);
+                                            setIsSaving(false);
+                                        }} className="px-4 py-2 bg-red-500/10 text-red-500 font-bold rounded-xl text-xs uppercase tracking-wide hover:bg-red-500/20 flex gap-2 border border-red-500/20 transition-colors">
+                                            <Trash2 className="w-4 h-4" /> Descartar
+                                        </button>
+
+                                        <button onClick={async () => {
+                                            if (!confirm('¡Felicidades! ¿Confirmar cierre ganado? Esto moverá el cliente al Vault.')) return;
+                                            setIsSaving(true);
+                                            const id = selectedLead.id || selectedLead.db_id;
+                                            await supabase.from('leads').update({ estado: 'won' }).eq('id', id);
+                                            await logActivity(id, 'closed_won', selectedLead.estado, 'won', 'Ganado - Movido a Vault');
+                                            // Optional: Create Project in another table if needed
+
+                                            fetchPipeline();
+                                            setSelectedLead(null);
+                                            setIsSaving(false);
+                                            // Could trigger confetti here in parent
+                                        }} className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl text-xs uppercase tracking-wide hover:shadow-lg hover:shadow-green-500/20 flex gap-2 transition-all hover:scale-105">
+                                            <CheckCircle2 className="w-4 h-4" /> ¡Cerrar Venta!
+                                        </button>
+                                    </>
+                                )}
                             </div>
+                        </div>
+                    )}
+
+                    {/* WON STATE - Already Closed */}
+                    {selectedLead.estado === 'won' && (
+                        <div className="w-full bg-green-500/10 border border-green-500/20 rounded-2xl p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-green-500 rounded-full text-black">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-bold text-green-400 uppercase tracking-wider">Cliente Cerrado</h4>
+                                    <p className="text-xs text-green-500/60">Este proyecto está en producción en el Vault.</p>
+                                </div>
+                            </div>
+                            <button className="px-4 py-2 bg-black/40 text-green-400 text-xs font-bold uppercase rounded-lg hover:bg-black/60 transition-colors border border-green-500/10">
+                                Ver Proyecto
+                            </button>
                         </div>
                     )}
                 </div>

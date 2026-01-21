@@ -6,8 +6,8 @@ import { useRadar } from '@/hooks/useRadar';
 import { RadarScanner } from '@/components/radar/RadarScanner';
 import { RadarResultsList } from '@/components/radar/RadarResultsList';
 import { TargetIcon } from '@/components/radar/shared';
-import { PipelineBoard } from '@/components/pipeline/Board';
 import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
+import { ManualEntryModal } from '@/components/radar/ManualEntryModal';
 import { getAnalysis } from '@/utils/radar-helpers';
 
 function RadarContent() {
@@ -15,12 +15,12 @@ function RadarContent() {
     const radar = useRadar();
     const {
         activeTab, setActiveTab,
-        leads, historyLeads, pipelineLeads,
+        leads, historyLeads,
         query, setQuery, location, setLocation,
         isScanning, error,
         selectedLead, setSelectedLead,
         handleScan,
-        fetchLeadActivities, fetchNotes, fetchChatMessages, fetchPipeline,
+        fetchLeadActivities, fetchNotes, fetchChatMessages,
         userRole, setIsManualModalOpen
     } = radar;
 
@@ -53,7 +53,7 @@ function RadarContent() {
                     </p>
                 </div>
 
-                {displayLeads.length > 0 && activeTab !== 'pipeline' && (
+                {displayLeads.length > 0 && (
                     <div className="flex gap-3 text-xs font-mono">
                         <div className="bg-zinc-900 border border-green-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -74,16 +74,7 @@ function RadarContent() {
 
             {/* Tabs */}
             <div className="flex gap-4 border-b border-white/10">
-                <button
-                    onClick={() => setActiveTab('pipeline')}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors relative flex items-center gap-2 ${activeTab === 'pipeline' ? 'text-green-400' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                    📋 Pipeline
-                    {pipelineLeads.length > 0 && (
-                        <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full">{pipelineLeads.length}</span>
-                    )}
-                    {activeTab === 'pipeline' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400"></div>}
-                </button>
+
                 <button
                     onClick={() => setActiveTab('scanner')}
                     className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'scanner' ? 'text-cyan-400' : 'text-zinc-500 hover:text-zinc-300'}`}
@@ -136,28 +127,20 @@ function RadarContent() {
             )}
 
             {/* Pipeline Board */}
-            {activeTab === 'pipeline' && (
-                <div className="flex-1 min-h-0 animate-in fade-in duration-500 mt-2">
-                    <PipelineBoard
-                        leads={pipelineLeads}
-                        onLeadMove={fetchPipeline}
-                        onTicketClick={async (id) => {
-                            let found = pipelineLeads.find(l => l.id === id) || leads.find(l => l.id === id);
-                            if (found) {
-                                setSelectedLead(found);
-                                fetchLeadActivities(found.id || found.db_id);
-                                fetchNotes(found.id || found.db_id);
-                                fetchChatMessages(found.id || found.db_id);
-                            }
-                        }}
-                    />
-                </div>
-            )}
-
             {/* Lead Detail Modal */}
             {selectedLead && (
                 <RadarLeadModal radar={radar} />
             )}
+
+            <ManualEntryModal
+                isOpen={radar.isManualModalOpen}
+                onClose={() => setIsManualModalOpen(false)}
+                onSuccess={() => {
+                    // Optional: Notify user or just close. 
+                    // Since it goes to Pipeline, we don't need to refresh Radar list immediately 
+                    // unless we want to, but fetchPipeline is not available here anymore.
+                }}
+            />
         </div>
     );
 }

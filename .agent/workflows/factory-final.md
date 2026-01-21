@@ -17,11 +17,17 @@ Antes de crear NADA, verifica si existe un demo previo:
 SI existe /prospectos/[cliente]/page.tsx:
   → Este archivo es SAGRADO. NO SE MODIFICA.
   → El cliente ya aprobó este diseño.
-  → Lee el archivo completo para extraer el estilo.
-```
 
-### 0.2 Crear/Actualizar style_lock.md
-Crea el archivo `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md`:
+### 0.2 Leer Manifest (Memory Persistence)
+Busca el archivo `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md`.
+
+*   **SI EXISTE:** Úsalo como biblia. No cambies colores ni componentes declarados ahí.
+*   **SI NO EXISTE (Legacy):** Créalo manualmente extrayendo la información del `page.tsx` existente (Ingeniería Inversa).
+
+```markdown
+# Style Lock: [Nombre Cliente] (RECUPERADO)
+...
+```
 
 ```markdown
 # Style Lock: [Nombre Cliente] (APROBADO)

@@ -16,13 +16,10 @@ import { AgendaPanel } from './trabajo/AgendaPanel';
 import { ChatSystem } from './trabajo/ChatSystem';
 import { ActivityList } from './trabajo/ActivityList';
 
-interface ChatMessage {
-    id: string;
-    author: 'Yo' | 'Gaston' | 'Sistema';
-    message: string;
-    created_at: string;
-}
+import { getLeadData } from '@/utils/radar-helpers';
+import { ChatMessage } from '@/hooks/useRadar';
 
+// ... interface updates ...
 interface ModalTabTrabajoProps {
     selectedLead: any;
     ld: any;
@@ -43,24 +40,11 @@ interface ModalTabTrabajoProps {
     chatAuthor: 'Yo' | 'Gaston';
     setChatAuthor: (val: 'Yo' | 'Gaston') => void;
     onSendChatMessage: (e?: React.FormEvent) => Promise<void> | void;
-    // Notes (Deprecated/Legacy)
-    notes?: any[];
-    newNote?: string;
-    setNewNote?: (val: string) => void;
-    onSaveNote?: () => void;
-    onDeleteNote?: (id: string) => void;
-    isSavingNote?: boolean;
     // Activity
     leadActivities: any[];
-    // AI Templates
-    onGenerateTemplate: (lead: any, type: 'whatsapp' | 'email') => void;
-    isGeneratingTemplate: boolean;
-    aiTemplate: { content: string; type: 'whatsapp' | 'email' | null };
-    setAiTemplate: (val: any) => void;
     // Utils
     copyToClipboard: (text: string, field: string) => void;
     copiedField: string | null;
-    getLeadData: (lead: any) => any;
 }
 
 export const ModalTabTrabajo = ({
@@ -74,12 +58,6 @@ export const ModalTabTrabajo = ({
     setIsEditingContact,
     onSaveContact,
     isSaving,
-    // notes, // legacy
-    // newNote, // legacy
-    // setNewNote, // legacy
-    // onSaveNote, // legacy
-    // onDeleteNote, // legacy
-    // isSavingNote, // legacy
     chatMessages,
     newChatMessage,
     setNewChatMessage,
@@ -87,16 +65,38 @@ export const ModalTabTrabajo = ({
     setChatAuthor,
     onSendChatMessage,
     leadActivities,
-    onGenerateTemplate,
-    isGeneratingTemplate,
-    aiTemplate,
-    setAiTemplate,
     copyToClipboard,
     copiedField,
-    // getLeadData,
     onLeadUpdate
 }: ModalTabTrabajoProps) => {
     const [isReportBuilderOpen, setIsReportBuilderOpen] = useState(false);
+
+    // Local Email/Template State (Resets on mount)
+    const [aiTemplate, setAiTemplate] = useState<{ content: string; type: 'whatsapp' | 'email' | null }>({ content: '', type: null });
+    const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
+
+    const generateTemplate = async (lead: any, type: 'whatsapp' | 'email') => {
+        setIsGeneratingTemplate(true);
+        setAiTemplate({ content: '', type });
+        try {
+            // Use local getLeadData or imported helper
+            const leadData = getLeadData(lead);
+            const res = await fetch('/api/radar/template', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ leadData: { ...leadData, analysis: lead.source_data?.analysis || lead.analysis }, type })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAiTemplate({ content: data.message, type });
+            }
+        } catch (err) {
+            console.error('Error generating template:', err);
+            toast.error('Error generando plantilla');
+        } finally {
+            setIsGeneratingTemplate(false);
+        }
+    };
 
     // Communication Hub State
     const [activeChannel, setActiveChannel] = useState<'whatsapp' | 'email'>('whatsapp');
@@ -203,8 +203,12 @@ export const ModalTabTrabajo = ({
                 if (user?.email) {
                     if (user.email.includes('gaston')) {
                         defaultSig = data.find((s: any) => s.label.toLowerCase().includes('gastón'));
-                    } else if (user.email.includes('gonzalez') || user.email.includes('dgonz')) {
-                        defaultSig = data.find((s: any) => s.label.toLowerCase().includes('daniel'));
+                    } else if (user.email.includes('gonzalez') || user.email.includes('dgonz') || user.email.includes('daniel')) {
+                        defaultSig = data.find((s: any) => s.label.toLowerCase().includes('daniel')) || {
+                            id: 'temp-daniel',
+                            label: 'Daniel Default',
+                            content: 'Daniel Gonzales<br>Founder & Lead Architect<br>Hojacero.cl'
+                        };
                     }
                 }
 
@@ -323,7 +327,7 @@ export const ModalTabTrabajo = ({
                         <WhatsappPanel
                             aiTemplate={aiTemplate}
                             setAiTemplate={setAiTemplate}
-                            onGenerateTemplate={onGenerateTemplate}
+                            onGenerateTemplate={generateTemplate}
                             isGeneratingTemplate={isGeneratingTemplate}
                             selectedLead={selectedLead}
                             isDark={isDark}
@@ -345,7 +349,7 @@ export const ModalTabTrabajo = ({
                             aiTemplate={aiTemplate}
                             setAiTemplate={setAiTemplate}
                             isGeneratingTemplate={isGeneratingTemplate}
-                            onGenerateTemplate={onGenerateTemplate}
+                            onGenerateTemplate={generateTemplate}
                             attachments={attachments}
                             setAttachments={setAttachments}
                             handleSendEmail={handleSendEmail}

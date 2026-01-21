@@ -71,6 +71,9 @@ export const metadata: Metadata = {
   verification: {
     google: "A-pwZp8YmW0MKHHO3kwLM44-36DD7D_3Z_GN7_LZ0Vk",
   },
+  alternates: {
+    canonical: './',
+  },
 };
 
 import Script from "next/script";

@@ -217,6 +217,21 @@ export default function InboxPage() {
         }
     };
 
+    const markAsRead = async (id: string) => {
+        // Optimistic update
+        setEmails(prev => prev.map(e => e.id === id ? { ...e, is_read: true } : e));
+
+        const { error } = await supabase
+            .from('email_inbox')
+            .update({ is_read: true })
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error marking as read:', error);
+            // Revert on error if needed, but for 'read' status it's usually fine
+        }
+    };
+
     return (
         <div className="flex h-[calc(100vh-6rem)] bg-zinc-950 text-white rounded-2xl overflow-hidden border border-zinc-800 relative">
             {/* Sidebar List */}
@@ -251,7 +266,10 @@ export default function InboxPage() {
                     {emails.map(email => (
                         <div
                             key={email.id}
-                            onClick={() => setSelectedEmail(email)}
+                            onClick={() => {
+                                setSelectedEmail(email);
+                                if (!email.is_read) markAsRead(email.id);
+                            }}
                             className={`p-4 border-b border-zinc-800/50 cursor-pointer transition-all hover:bg-zinc-800/50 ${selectedEmail?.id === email.id ? 'bg-zinc-800 border-l-4 border-l-indigo-500' : 'border-l-4 border-l-transparent'}`}
                         >
                             <div className="flex justify-between items-start mb-1">

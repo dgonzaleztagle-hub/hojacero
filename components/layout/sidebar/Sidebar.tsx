@@ -35,6 +35,7 @@ export default function Sidebar() {
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
+        { label: 'PIPELINE', href: '/dashboard/pipeline', icon: KanbanSquare },
         { label: 'AYUDA', href: '/dashboard/ayuda', icon: HelpCircle },
     ];
 

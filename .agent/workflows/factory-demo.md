@@ -854,6 +854,40 @@ Antes de entregar, responde:
 
 ---
 
+## Fase 10: Bloquear Estilo (Memory Persistence) - OBLIGATORIO
+
+Para evitar la amnesia del proyecto, **DEBES** crear el archivo de memoria al finalizar.
+
+Crea `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md`:
+
+```markdown
+# Style Lock: [Nombre Cliente]
+
+## Estado
+- [x] Demo aprobado por cliente (Visualmente listo)
+- [ ] Factory Final completado
+- [ ] SEO inyectado
+- [ ] Exportado para entrega
+
+## ADN del Diseño
+- Estilo Seleccionado: [Nombre del Estilo]
+- Paleta de Colores: [Primary, Secondary, Background]
+- Tipografía: [Fuentes usadas]
+
+## Stack Técnico (Manifest)
+- [x] BentoGrid
+- [ ] 3DCard
+- [ ] VelocityScroll
+- [ ] (Marca con X lo que hayas instalado/usado)
+
+## Contexto
+- Discovery Notes: [Link relativo a discovery_notes.md]
+```
+
+**SIN ESTE ARCHIVO, EL PROYECTO NO EXISTE PARA EL SISTEMA.**
+
+---
+
 ## Ejemplo de Uso
 
 ```

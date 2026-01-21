@@ -177,7 +177,11 @@ export const EmailComposer = ({
                                             )}
                                             {(selectedLead.demo_url || selectedLead.source_data?.demo_url) && (
                                                 <button
-                                                    onClick={() => setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n🔗 Ver Demo Propuesto: ${selectedLead.demo_url || selectedLead.source_data?.demo_url}` })}
+                                                    onClick={() => {
+                                                        const rawUrl = selectedLead.demo_url || selectedLead.source_data?.demo_url || '';
+                                                        const url = rawUrl.startsWith('http') ? rawUrl : `https://hojacero.cl${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+                                                        setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n🔗 Ver Demo Propuesto: ${url}` });
+                                                    }}
                                                     className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 hover:opacity-80 transition-opacity ${isDark ? 'bg-pink-500/10 border-pink-500/20 text-pink-400' : 'bg-pink-50 text-pink-600 border-pink-200'}`}
                                                 >
                                                     <LinkIcon className="w-3 h-3" /> Insertar Link Demo

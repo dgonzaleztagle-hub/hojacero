@@ -16,7 +16,7 @@ export function useRadar() {
     const searchParams = useSearchParams();
 
     // Tabs & Navigation
-    const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'history'>('pipeline');
+    const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'history'>('scanner');
     const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo'>('diagnostico');
 
     // Data Lists
@@ -38,8 +38,6 @@ export function useRadar() {
     // Actions State
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [aiTemplate, setAiTemplate] = useState<{ content: string; type: 'whatsapp' | 'email' | null }>({ content: '', type: null });
-    const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
     const [isEditingContact, setIsEditingContact] = useState(false);
     const [editData, setEditData] = useState({ email: '', whatsapp: '', telefono: '', demo_url: '' });
 
@@ -54,6 +52,7 @@ export function useRadar() {
 
     // Deep Analysis State
     const [isReanalyzing, setIsReanalyzing] = useState(false);
+    const [isDeepAnalyzing, setIsDeepAnalyzing] = useState(false);
 
     // Manual Entry State
     const [isManualModalOpen, setIsManualModalOpen] = useState(false);
@@ -207,26 +206,7 @@ export function useRadar() {
         }
     };
 
-    const generateTemplate = async (lead: any, type: 'whatsapp' | 'email') => {
-        setIsGeneratingTemplate(true);
-        setAiTemplate({ content: '', type });
-        try {
-            const leadData = getLeadData(lead);
-            const res = await fetch('/api/radar/template', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ leadData: { ...leadData, analysis: lead.source_data?.analysis || lead.analysis }, type })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setAiTemplate({ content: data.message, type });
-            }
-        } catch (err) {
-            console.error('Error generating template:', err);
-        } finally {
-            setIsGeneratingTemplate(false);
-        }
-    };
+
 
     const logActivity = async (leadId: string, accion: string, estadoAnterior: string | null, estadoNuevo: string, nota?: string) => {
         try {
@@ -242,6 +222,108 @@ export function useRadar() {
             console.error('Error logging activity:', err);
         }
     };
+
+    const performReanalysis = async () => {
+        if (!selectedLead) return;
+        const leadId = selectedLead.id || selectedLead.db_id;
+
+        setIsReanalyzing(true);
+        try {
+            const res = await fetch('/api/radar/reanalyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ leadId })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Merge data into selectedLead
+                const updatedSourceData = {
+                    ...(selectedLead.source_data || {}),
+                    analysis: data.analysis
+                };
+
+                const updatedLead = {
+                    ...selectedLead,
+                    puntaje_oportunidad: data.analysis.score,
+                    razon_ia: data.analysis.analysisReport,
+                    source_data: updatedSourceData
+                };
+
+                // Update Local State
+                setSelectedLead(updatedLead);
+                // Also update lists
+                setLeads(prev => prev.map(l => (l.id === leadId || l.db_id === leadId) ? updatedLead : l));
+                setPipelineLeads(prev => prev.map(l => (l.id === leadId || l.db_id === leadId) ? updatedLead : l));
+            } else {
+                alert('Re-analysis failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Re-analysis error. Check console.');
+        } finally {
+            setIsReanalyzing(false);
+        }
+    };
+
+    const performDeepAnalysis = async () => {
+        if (!selectedLead) return;
+        const leadId = selectedLead.id || selectedLead.db_id;
+        const url = selectedLead.website || selectedLead.sitio_web || selectedLead.source_data?.sitio_web;
+
+        // Validation needs to be robust as restored leads might have partial data
+        if (!url) {
+            alert('No web URL found for this lead');
+            return;
+        }
+
+        setIsDeepAnalyzing(true);
+        try {
+            const res = await fetch('/api/radar/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    leadId,
+                    url,
+                    businessName: selectedLead.nombre || selectedLead.title,
+                    businessType: selectedLead.categoria || 'General'
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Merge data into selectedLead
+                const updatedSourceData = {
+                    ...(selectedLead.source_data || {}),
+                    scraped: data.scraped,
+                    deep_analysis: { ...data.analysis, techSpecs: data.analysis.techSpecs }, // ensure structure matches
+                    last_audit_date: new Date().toISOString()
+                };
+
+                const updatedLead = {
+                    ...selectedLead,
+                    source_data: updatedSourceData
+                };
+
+                // Update Local State
+                setSelectedLead(updatedLead);
+                // Also update lists
+                setLeads(prev => prev.map(l => (l.id === leadId || l.db_id === leadId) ? updatedLead : l));
+                setPipelineLeads(prev => prev.map(l => (l.id === leadId || l.db_id === leadId) ? updatedLead : l));
+
+                // Switch to Auditoria Tab to show results
+                setModalTab('auditoria');
+            } else {
+                alert('Analysis failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Analysis error. Check console.');
+        } finally {
+            setIsDeepAnalyzing(false);
+        }
+    };
+
 
     // --- Effects ---
 
@@ -304,22 +386,22 @@ export function useRadar() {
         notes,
         copiedField,
         isSaving, setIsSaving,
-        aiTemplate, setAiTemplate,
-        isGeneratingTemplate,
         isEditingContact, setIsEditingContact,
         editData, setEditData,
         chatMessages, newChatMessage, setNewChatMessage, chatAuthor, setChatAuthor,
         newNote, setNewNote, isSavingNote,
         isReanalyzing, setIsReanalyzing,
+        isDeepAnalyzing,
         isManualModalOpen, setIsManualModalOpen,
         userRole, theme,
 
         // Actions
         handleScan,
+        performDeepAnalysis,
+        performReanalysis,
         sendChatMessage,
         saveNote,
         deleteNote,
-        generateTemplate,
         logActivity,
         copyToClipboard,
         getAnalysis,
