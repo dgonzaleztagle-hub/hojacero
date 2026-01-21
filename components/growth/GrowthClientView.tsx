@@ -10,6 +10,7 @@ import { createClient } from '@/utils/supabase/client';
 import { TaskDetailModal } from './TaskDetailModal';
 import { AddCustomTaskModal } from './AddCustomTaskModal';
 import { GrowthClient, GrowthTask } from './types';
+import { generatePlanTasks } from '@/utils/growth-automation';
 
 // --- Icons Map ---
 const MODULE_ICONS: Record<string, React.ReactNode> = {
@@ -31,6 +32,8 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
 
     // Module Configurator State
     const [activeModules, setActiveModules] = useState<Record<string, boolean>>({});
+    const [showPlanSelector, setShowPlanSelector] = useState(false);
+    const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
 
     const supabase = createClient();
 
@@ -75,8 +78,20 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
 
         // Persist to DB
         await supabase.from('growth_clients').update({ active_modules: newModules }).eq('id', clientId);
+    };
 
-        // TODO: Logic to auto-generate tasks if turning ON
+    const handleGeneratePlan = async (tier: 'foundation' | 'velocity' | 'dominance') => {
+        setIsGeneratingPlan(true);
+        try {
+            await generatePlanTasks(clientId, tier);
+            await fetchData();
+            setShowPlanSelector(false);
+        } catch (err) {
+            console.error('Error generating plan:', err);
+            alert('Error al generar el plan.');
+        } finally {
+            setIsGeneratingPlan(false);
+        }
     };
 
     const handleTaskToggle = async (taskId: string, currentStatus: string) => {
@@ -101,6 +116,13 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
                         <button onClick={onBack} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ArrowLeft className="w-4 h-4 text-zinc-400" /></button>
                         <h1 className="text-xl font-bold text-white tracking-tight">{client.client_name}</h1>
                         <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-white/5 text-zinc-400 border border-white/5">{client.plan_tier}</span>
+                        <button
+                            onClick={() => setShowPlanSelector(true)}
+                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-zinc-500 hover:text-purple-400"
+                            title="Configurar Plan Growth"
+                        >
+                            <Settings className="w-4 h-4" />
+                        </button>
                     </div>
                     {/* Control Panel / Module Switcher */}
                     <div className="flex gap-2 mt-4">
@@ -203,6 +225,49 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
                     onClose={() => setShowAddTask(false)}
                     onAdded={fetchData}
                 />
+            )}
+
+            {/* Plan Selector Modal */}
+            {showPlanSelector && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl">
+                        <div className="p-6 border-b border-white/5 flex justify-between items-center">
+                            <div>
+                                <h2 className="text-xl font-bold text-white">Configurar Plan Growth</h2>
+                                <p className="text-sm text-zinc-500 mt-1">Selecciona un protocolo para cargar las tareas automáticas.</p>
+                            </div>
+                            <button onClick={() => setShowPlanSelector(false)} className="p-2 hover:bg-white/5 rounded-lg text-zinc-400">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 grid grid-cols-1 gap-4">
+                            {[
+                                { id: 'foundation', name: 'Foundation Protocol', desc: 'Setup inicial de analíticas, SEO básico y píxeles.', color: 'border-blue-500/30' },
+                                { id: 'velocity', name: 'Velocity Engine', desc: 'Enfocado en optimización de Ads, CRO y email marketing.', color: 'border-purple-500/30' },
+                                { id: 'dominance', name: 'Dominance Matrix', desc: 'Estrategia avanzada, contenido premium y optimización CRM.', color: 'border-amber-500/30' }
+                            ].map(p => (
+                                <button
+                                    key={p.id}
+                                    onClick={() => handleGeneratePlan(p.id as any)}
+                                    disabled={isGeneratingPlan}
+                                    className={`text-left p-4 rounded-xl border bg-white/5 hover:bg-white/10 transition-all group ${p.color}`}
+                                >
+                                    <div className="flex justify-between items-center mb-1">
+                                        <h3 className="font-bold text-white group-hover:text-purple-400 transition-colors uppercase text-sm tracking-wider">{p.name}</h3>
+                                        <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-white transition-colors" />
+                                    </div>
+                                    <p className="text-xs text-zinc-400 leading-relaxed">{p.desc}</p>
+                                </button>
+                            ))}
+                        </div>
+                        {isGeneratingPlan && (
+                            <div className="px-6 pb-6 flex items-center justify-center gap-3 text-sm text-purple-400">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Generando tareas del protocolo...
+                            </div>
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );
