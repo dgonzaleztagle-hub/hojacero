@@ -56,7 +56,8 @@ REGLAS DE ORO:
 - NO suenes como vendedor desesperado. Suena como un consultor ocupado que regala valor.
 - Cero jerga técnica (nada de "SEO", "Responsive", "Backend").
 - Usa 1 emoji máximo si es necesario para suavizar el tono.
-- Firma: "Daniel - HojaCero"
+- Usa 1 emoji máximo si es necesario para suavizar el tono.
+- Firma: "Daniel Gonzalez - Hojacero.cl"
 
 Responde SOLO el mensaje final.
 `;
@@ -93,7 +94,8 @@ REGLAS DE ESTILO:
 - Formato: Párrafos cortos. Mucho espacio en blanco. FÁCIL de leer en móvil.
 - NO vendas el servicio. Vende el SIGUIENTE PASO (ver el demo / leer el reporte).
 - NADA de palabras de relleno ("espero que estés bien", "somos una empresa líder").
-- Firma: "Daniel - HojaCero"
+- NADA de palabras de relleno ("espero que estés bien", "somos una empresa líder").
+- Firma: "Daniel Gonzalez\nFounder & Lead Architect\nHojacero.cl"
 
 Responde SOLO el cuerpo del email.
 `;
