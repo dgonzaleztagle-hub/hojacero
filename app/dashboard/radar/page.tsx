@@ -21,8 +21,7 @@ function RadarContent() {
         selectedLead, setSelectedLead,
         handleScan,
         fetchLeadActivities, fetchNotes, fetchChatMessages,
-        userRole, setIsManualModalOpen,
-        currentUser, setCurrentUser
+        userRole, setIsManualModalOpen
     } = radar;
 
     // 2. Access Control
