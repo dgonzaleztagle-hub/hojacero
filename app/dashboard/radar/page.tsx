@@ -17,7 +17,8 @@ function RadarContent() {
         activeTab, setActiveTab,
         leads, historyLeads,
         query, setQuery, location, setLocation,
-        isScanning, error,
+        isScanning, isFlashMode, setIsFlashMode,
+        error,
         selectedLead, setSelectedLead,
         handleScan,
         fetchLeadActivities, fetchNotes, fetchChatMessages,
@@ -113,6 +114,8 @@ function RadarContent() {
                     // Wait, I need to make sure useRadar returns it OR I import context here. 
                     // Let's modify useRadar to return it in next step if not already.
                     isScanning={isScanning}
+                    isFlashMode={isFlashMode}
+                    setIsFlashMode={setIsFlashMode}
                     handleScan={handleScan}
                     error={error}
                 />

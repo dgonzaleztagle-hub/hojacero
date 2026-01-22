@@ -34,6 +34,7 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
     const [activeModules, setActiveModules] = useState<Record<string, boolean>>({});
     const [showPlanSelector, setShowPlanSelector] = useState(false);
     const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+    const [activities, setActivities] = useState<any[]>([]); // New state
 
     const supabase = createClient();
 
@@ -57,6 +58,16 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
 
             if (tasksError) throw tasksError;
             setTasks(tasksData || []);
+
+            // 3. Fetch Activities
+            const { data: actsData } = await supabase
+                .from('growth_activity_log')
+                .select('*')
+                .eq('client_id', clientId)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            setActivities(actsData || []);
 
         } catch (err) {
             console.error('Error fetching growth data:', err);
@@ -97,8 +108,24 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
     const handleTaskToggle = async (taskId: string, currentStatus: string) => {
         const newStatus = currentStatus === 'done' ? 'pending' : 'done';
         const now = new Date().toISOString();
+        const task = tasks.find(t => t.id === taskId);
+
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
-        await supabase.from('growth_tasks').update({ status: newStatus, completed_at: newStatus === 'done' ? now : null }).eq('id', taskId);
+
+        await supabase.from('growth_tasks').update({
+            status: newStatus,
+            completed_at: newStatus === 'done' ? now : null
+        }).eq('id', taskId);
+
+        // Track Activity
+        await supabase.from('growth_activity_log').insert({
+            client_id: clientId,
+            activity_type: newStatus === 'done' ? 'task_completed' : 'note_added',
+            description: `${newStatus === 'done' ? 'completó' : 'reabrió'} la tarea: ${task?.title}`,
+            metadata: { task_id: taskId, status: newStatus }
+        });
+
+        fetchData(); // Refresh list and activities
     };
 
     if (loading) return <div className="flex items-center justify-center h-full"><Loader2 className="w-6 h-6 animate-spin text-purple-500" /></div>;
@@ -111,38 +138,70 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
         <div className="flex flex-col h-full bg-zinc-950/50">
             {/* --- Top Bar: Command Center --- */}
             <header className="px-6 py-4 border-b border-white/5 bg-black/40 flex justify-between items-start">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <button onClick={onBack} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ArrowLeft className="w-4 h-4 text-zinc-400" /></button>
-                        <h1 className="text-xl font-bold text-white tracking-tight">{client.client_name}</h1>
-                        <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-white/5 text-zinc-400 border border-white/5">{client.plan_tier}</span>
-                        <button
-                            onClick={() => setShowPlanSelector(true)}
-                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-zinc-500 hover:text-purple-400"
-                            title="Configurar Plan Growth"
-                        >
-                            <Settings className="w-4 h-4" />
-                        </button>
+                <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
+                        <img
+                            src={`https://www.google.com/s2/favicons?domain=${client.website}&sz=64`}
+                            alt=""
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(client.client_name)}&background=8b5cf6&color=fff&bold=true`;
+                            }}
+                        />
                     </div>
-                    {/* Control Panel / Module Switcher */}
-                    <div className="flex gap-2 mt-4">
-                        {['strategy', 'ads', 'seo', 'social', 'email'].map(mod => (
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <button onClick={onBack} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><ArrowLeft className="w-4 h-4 text-zinc-400" /></button>
+                            <h1 className="text-xl font-bold text-white tracking-tight">{client.client_name}</h1>
+                            <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-white/5 text-zinc-400 border border-white/5">{client.plan_tier}</span>
                             <button
-                                key={mod}
-                                onClick={() => toggleModule(mod)}
-                                className={`
+                                onClick={() => setShowPlanSelector(true)}
+                                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-zinc-500 hover:text-purple-400"
+                                title="Configurar Plan Growth"
+                            >
+                                <Settings className="w-4 h-4" />
+                            </button>
+
+                            {/* Health Trend */}
+                            <div className="flex items-center gap-2 ml-2 px-3 py-1 bg-zinc-900/50 rounded-full border border-white/5">
+                                <div className={`w-2 h-2 rounded-full ${client.health_score >= 80 ? 'bg-green-500' : 'bg-amber-500'}`} />
+                                <span className="text-xs font-bold text-white">{client.health_score}</span>
+                                {client.previous_health_score !== undefined && (
+                                    <span className={`text-[10px] font-bold ${client.health_score > client.previous_health_score ? 'text-green-500' : client.health_score < client.previous_health_score ? 'text-red-500' : 'text-zinc-500'}`}>
+                                        {client.health_score > client.previous_health_score ? '↑' : client.health_score < client.previous_health_score ? '↓' : '—'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Upsell Trigger */}
+                        {client.health_score >= 100 && client.plan_tier !== 'dominance' && (
+                            <div className="flex items-center gap-2 mt-2 px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg animate-in slide-in-from-top duration-500">
+                                <Rocket className="w-3 h-3 text-purple-400" />
+                                <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider">Oportunidad: Sugerir Upgrade a {client.plan_tier === 'foundation' ? 'Velocity' : 'Dominance'}</span>
+                            </div>
+                        )}
+
+                        {/* Control Panel / Module Switcher */}
+                        <div className="flex gap-2 mt-4">
+                            {['strategy', 'ads', 'seo', 'social', 'email'].map(mod => (
+                                <button
+                                    key={mod}
+                                    onClick={() => toggleModule(mod)}
+                                    className={`
                                     flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-medium transition-all
                                     ${activeModules[mod]
-                                        ? 'bg-zinc-800 border-zinc-600 text-white shadow-[0_0_10px_rgba(0,0,0,0.5)]'
-                                        : 'bg-transparent border-dashed border-zinc-800 text-zinc-600 hover:border-zinc-700 hover:text-zinc-500'
-                                    }
+                                            ? 'bg-zinc-800 border-zinc-600 text-white shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+                                            : 'bg-transparent border-dashed border-zinc-800 text-zinc-600 hover:border-zinc-700 hover:text-zinc-500'
+                                        }
                                 `}
-                            >
-                                <span className={activeModules[mod] ? 'opacity-100' : 'opacity-50 grayscale'}>{MODULE_ICONS[mod]}</span>
-                                {mod.toUpperCase()}
-                                <div className={`w-1.5 h-1.5 rounded-full ml-1 ${activeModules[mod] ? 'bg-green-500 shadow-[0_0_5px_#22c55e]' : 'bg-transparent border border-zinc-700'}`} />
-                            </button>
-                        ))}
+                                >
+                                    <span className={activeModules[mod] ? 'opacity-100' : 'opacity-50 grayscale'}>{MODULE_ICONS[mod]}</span>
+                                    {mod.toUpperCase()}
+                                    <div className={`w-1.5 h-1.5 rounded-full ml-1 ${activeModules[mod] ? 'bg-green-500 shadow-[0_0_5px_#22c55e]' : 'bg-transparent border border-zinc-700'}`} />
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -196,17 +255,8 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
                     )}
                 </div>
 
-                {/* Right: Context / Notes (Placeholder for next iteration) */}
-                <div className="w-80 border-l border-white/5 bg-zinc-900/30 p-4 hidden xl:block">
-                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">Notas & Contexto</h3>
-                    <textarea
-                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg p-3 text-sm text-zinc-300 h-32 resize-none focus:outline-none focus:border-purple-500/50"
-                        placeholder="Escribe notas rápidas para Gastón aquí..."
-                    />
-                    <div className="mt-4 p-4 rounded-lg border border-dashed border-white/10 text-center">
-                        <p className="text-xs text-zinc-600">Arrastra archivos o evidencia aquí</p>
-                    </div>
-                </div>
+                {/* Right: Activity Feed */}
+                <ActivityFeed activities={activities} />
             </main>
 
             {/* Task Detail Modal */}
@@ -274,6 +324,63 @@ export function GrowthClientView({ clientId, onBack }: { clientId: string, onBac
 }
 
 // --- Sub-Components ---
+
+function ActivityFeed({ activities }: { activities: any[] }) {
+    return (
+        <div className="w-85 border-l border-white/5 bg-zinc-900/30 flex flex-col hidden xl:flex">
+            <div className="p-4 border-b border-white/5 bg-zinc-900/40">
+                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Centro de Comando</h3>
+                <p className="text-[10px] text-zinc-600 mt-0.5">Historial de Actividad Reciente</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {activities.length > 0 ? (
+                    activities.map((act) => (
+                        <ActivityItem key={act.id} activity={act} />
+                    ))
+                ) : (
+                    <div className="text-center py-12">
+                        <Clock className="w-8 h-8 text-zinc-800 mx-auto mb-3" />
+                        <p className="text-xs text-zinc-600">No hay actividad reciente</p>
+                    </div>
+                )}
+            </div>
+
+            <div className="p-4 bg-zinc-900/50 border-t border-white/5">
+                <textarea
+                    className="w-full bg-black/30 border border-white/10 rounded-xl p-3 text-xs text-zinc-300 h-24 resize-none focus:outline-none focus:border-purple-500/50 transition-all"
+                    placeholder="Escribe una nota rápida aquí..."
+                />
+            </div>
+        </div>
+    );
+}
+
+function ActivityItem({ activity }: { activity: any }) {
+    return (
+        <div className="flex gap-3 relative group">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zinc-800 border border-white/5 flex items-center justify-center">
+                {activity.activity_type === 'task_completed' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                {activity.activity_type === 'plan_changed' && <Rocket className="w-4 h-4 text-purple-500" />}
+                {activity.activity_type === 'evidence_uploaded' && <Share2 className="w-4 h-4 text-cyan-500" />}
+                {activity.activity_type === 'note_added' && <BarChart3 className="w-4 h-4 text-zinc-400" />}
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-zinc-300 leading-relaxed">
+                    <span className="font-bold text-white">Gastón</span> {activity.description}
+                </p>
+                {activity.metadata?.impact_notes && (
+                    <div className="mt-1 px-2 py-1 bg-purple-500/5 border border-purple-500/10 rounded text-[10px] text-purple-300 italic">
+                        "{activity.metadata.impact_notes}"
+                    </div>
+                )}
+                <span className="text-[9px] text-zinc-600 mt-1 block">
+                    {new Date(activity.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+            </div>
+        </div>
+    );
+}
 
 function ListView({ tasks, onToggle, onSelectTask, activeModules }: { tasks: GrowthTask[], onToggle: any, onSelectTask: (task: GrowthTask) => void, activeModules: Record<string, boolean> }) {
     // Filter tasks by active modules

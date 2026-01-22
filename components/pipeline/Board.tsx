@@ -18,6 +18,8 @@ import { Column } from './Column';
 import { Ticket, TicketProps } from './Ticket';
 import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import confetti from 'canvas-confetti';
+import { toast } from 'sonner';
 
 // Mock Data Type
 type BoardData = {
@@ -69,6 +71,8 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
                     vibe: l.service_type === 'dev' ? 'Dev' :
                         (l.service_type === 'marketing' ? 'Mkt' :
                             (l.service_type === 'full' ? 'Full' : undefined)),
+                    industry: l.categoria || l.rubro || 'Nicho',
+                    assignedTo: l.revisado_por || l.scanned_by || 'Sistema',
                     onClick: () => onTicketClick?.(l.id),
                     onAction: (action, id) => {
                         console.log(`Action: ${action} on ticket ${id}`);
@@ -181,6 +185,16 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ updates })
             });
+
+            if (stage === 'produccion') {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#00f0ff', '#10b981', '#ffffff']
+                });
+                toast.success('¡VENTA CERRADA! 🎉 El cliente ha sido movido a Producción.');
+            }
 
             // Trigger refresh in parent if needed (though local state is optimistic)
             if (onLeadMove) onLeadMove(updates[0].id, stage); // Just to trigger refetch

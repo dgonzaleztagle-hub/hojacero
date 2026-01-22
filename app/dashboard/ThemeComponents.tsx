@@ -29,6 +29,7 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
 }
 
 import MobileHeader from '@/components/layout/sidebar/MobileHeader';
+import Breadcrumbs from '@/components/layout/Breadcrumbs';
 
 export function MainContent({ children }: { children: React.ReactNode }) {
     const { theme } = useDashboard();
@@ -37,7 +38,8 @@ export function MainContent({ children }: { children: React.ReactNode }) {
         <main className={`flex-1 md:ml-64 transition-colors duration-300 flex flex-col ${theme === 'dark' ? 'bg-neutral-950' : 'bg-gray-100'
             }`}>
             <MobileHeader />
-            <div className="w-full h-full p-4">
+            <div className="w-full h-full p-4 md:p-8">
+                <Breadcrumbs />
                 {children}
             </div>
         </main>

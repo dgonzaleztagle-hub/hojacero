@@ -35,6 +35,7 @@ export function useRadar() {
     const [location, setLocation] = useState('Santiago, Chile');
     // const [currentUser, setCurrentUser] = useState... REMOVED
     const [isScanning, setIsScanning] = useState(false);
+    const [isFlashMode, setIsFlashMode] = useState(false);
     const [error, setError] = useState('');
 
     // ...
@@ -132,11 +133,11 @@ export function useRadar() {
     };
 
     const fetchHistory = async () => {
-        // Fetch detected/discarded normally, OR archived leads
+        // Fetch detected/discarded normally
         const { data } = await supabase
             .from('leads')
             .select('*')
-            .or('estado.eq.detected,estado.eq.discarded,pipeline_stage.eq.archived')
+            .or('estado.eq.detected,estado.eq.discarded')
             .order('created_at', { ascending: false });
 
         if (data) setHistoryLeads(data);
@@ -171,7 +172,12 @@ export function useRadar() {
             const res = await fetch('/api/radar/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, location, scannedBy: profileName })
+                body: JSON.stringify({
+                    query,
+                    location,
+                    scannedBy: profileName,
+                    flash: isFlashMode
+                })
             });
             const data = await res.json();
             if (data.success) {
@@ -422,6 +428,7 @@ export function useRadar() {
         isSaving, setIsSaving,
         isEditingContact, setIsEditingContact,
         editData, setEditData,
+        isFlashMode, setIsFlashMode,
         chatMessages, newChatMessage, setNewChatMessage, chatAuthor, setChatAuthor,
         newNote, setNewNote, isSavingNote,
         isReanalyzing, setIsReanalyzing,

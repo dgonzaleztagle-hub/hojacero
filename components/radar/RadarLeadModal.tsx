@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 import { createClient } from '@/utils/supabase/client';
 import { useRadar } from '@/hooks/useRadar';
 import { getAnalysis, getLeadData } from '@/utils/radar-helpers';
@@ -38,7 +39,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         notes, newNote, setNewNote, saveNote, deleteNote, isSavingNote,
         leadActivities,
         chatMessages, newChatMessage, setNewChatMessage, sendChatMessage, chatAuthor, setChatAuthor,
-        fetchLeadActivities, fetchNotes, fetchChatMessages, fetchPipeline,
+        fetchLeadActivities, fetchNotes, fetchChatMessages, fetchPipeline, fetchClosed,
         performDeepAnalysis, isDeepAnalyzing, performReanalysis, isReanalyzing, // NEW PROPS
         theme // assuming theme is available
     } = radar;
@@ -132,6 +133,13 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
             }).eq('id', selectedLead.id || selectedLead.db_id);
 
             toast.success('Cliente configurado y migrado al Vault');
+
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#00f0ff', '#10b981', '#ffffff']
+            });
             setInVault(true);
             setShowVaultSetup(false);
 
@@ -712,17 +720,24 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={async () => {
-                                            if (!confirm('¿Archivar este lead? Desaparecerá del pipeline pero quedará en historial.')) return;
+                                            if (!confirm('¿Archivar este lead? Desaparecerá del pipeline pero quedará en la sección de Cerrados.')) return;
                                             setIsSaving(true);
+                                            const leadId = selectedLead.id || selectedLead.db_id;
+                                            if (!leadId) {
+                                                toast.error('Error: ID de lead no encontrado');
+                                                return;
+                                            }
+
                                             // Archive logic: change pipeline_stage to 'archived'
-                                            // This removes it from the board view
-                                            const { error } = await supabase.from('leads').update({ pipeline_stage: 'archived' }).eq('id', selectedLead.id || selectedLead.db_id);
+                                            const { error } = await supabase.from('leads').update({ pipeline_stage: 'archived' }).eq('id', leadId);
 
                                             if (error) {
-                                                toast.error('Error al archivar');
+                                                console.error("ARCHIVE ERROR:", error);
+                                                toast.error('Error al archivar: ' + error.message);
                                             } else {
-                                                toast.success('Lead archivado');
+                                                toast.success('Lead archivado correctamente');
                                                 fetchPipeline();
+                                                fetchClosed?.();
                                                 setSelectedLead(null);
                                             }
                                             setIsSaving(false);
@@ -754,6 +769,6 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 }

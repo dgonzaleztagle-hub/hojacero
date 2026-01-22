@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Calendar, Clock, Upload, Link as LinkIcon, Save, Loader2, Repeat, CheckCircle2, Trash2, Image as ImageIcon } from 'lucide-react';
+import { X, Calendar, Clock, Upload, Link as LinkIcon, Save, Loader2, Repeat, CheckCircle2, Trash2, Image as ImageIcon, Rocket } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { GrowthTask } from './types';
 
@@ -40,6 +40,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
     const [evidenceUrl, setEvidenceUrl] = useState('');
     const [evidenceNotes, setEvidenceNotes] = useState('');
     const [isEnabled, setIsEnabled] = useState(true);
+    const [impactNotes, setImpactNotes] = useState('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +59,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
         }
         setEvidenceUrl(task.evidence_url || '');
         setEvidenceNotes(task.evidence_notes || '');
+        setImpactNotes(task.impact_notes || '');
         setIsEnabled(task.is_enabled);
     }, [task]);
 
@@ -85,6 +87,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                     recurrence,
                     evidence_url: evidenceUrl || null,
                     evidence_notes: evidenceNotes || null,
+                    impact_notes: impactNotes || null,
                     is_enabled: isEnabled,
                 })
                 .eq('id', task.id);
@@ -111,19 +114,43 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                     completed_at: newStatus === 'done' ? new Date().toISOString() : null,
                     evidence_url: evidenceUrl || null,
                     evidence_notes: evidenceNotes || null,
+                    impact_notes: impactNotes || null,
                 })
                 .eq('id', task.id);
 
             if (error) throw error;
 
-            // Engine Logic: If recurring and completed, generate next task
-            if (newStatus === 'done' && task.recurrence && task.recurrence.type !== 'once') {
-                const nextDue = new Date(task.due_datetime || new Date());
-                if (task.recurrence.type === 'weekly') {
-                    nextDue.setDate(nextDue.getDate() + 7);
-                } else if (task.recurrence.type === 'monthly') {
-                    nextDue.setMonth(nextDue.getMonth() + 1);
+            // Track Activity in Command Center
+            await supabase.from('growth_activity_log').insert({
+                client_id: task.client_id,
+                activity_type: newStatus === 'done' ? 'task_completed' : 'note_added',
+                description: `${newStatus === 'done' ? 'completó' : 'reabrió'} la tarea: ${task.title}`,
+                metadata: {
+                    task_id: task.id,
+                    status: newStatus,
+                    impact_notes: newStatus === 'done' ? impactNotes : null
                 }
+            });
+
+            // Engine Logic: If recurring and completed, generate next task
+            // --- Auto-Recurrence Engine (Fixed Day Logic) ---
+            if (newStatus === 'done' && task.recurrence && task.recurrence.type !== 'once') {
+                const recurrence = task.recurrence;
+                let nextDue = new Date(); // Use today as base to snap to the NEXT occurrence
+
+                if (recurrence.type === 'weekly') {
+                    const targetDay = recurrence.day || 1; // 1 = Lunes
+                    const currentDay = nextDue.getDay();
+                    const diff = (targetDay - currentDay + 7) % 7 || 7;
+                    nextDue.setDate(nextDue.getDate() + diff);
+                } else if (recurrence.type === 'monthly') {
+                    const targetDay = recurrence.day || 1;
+                    nextDue.setMonth(nextDue.getMonth() + 1);
+                    nextDue.setDate(targetDay);
+                }
+
+                // Set fixed hour to avoid random times
+                nextDue.setHours(recurrence.hour || 10, 0, 0, 0);
 
                 await supabase.from('growth_tasks').insert({
                     client_id: task.client_id,
@@ -294,6 +321,22 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* Value Evaluation / ROI Section */}
+                    <div className="bg-purple-600/5 border border-purple-500/20 p-5 rounded-2xl space-y-3">
+                        <label className="flex items-center gap-2 text-xs font-bold text-purple-400 uppercase tracking-wider">
+                            <Rocket className="w-4 h-4" /> Impacto y Evaluación de Valor
+                        </label>
+                        <textarea
+                            className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-white h-28 resize-none focus:outline-none focus:border-purple-500/50 transition-all placeholder:text-zinc-600"
+                            placeholder="Ej: Bajamos el CPL en 20% o corregimos un error que bloqueaba ventas..."
+                            value={impactNotes}
+                            onChange={(e) => setImpactNotes(e.target.value)}
+                        />
+                        <p className="text-[10px] text-zinc-500 leading-tight">
+                            Este reporte es la base de la demostración de valor mensual para el cliente. Sé específico y tangible.
+                        </p>
                     </div>
 
                     {/* Evidence */}

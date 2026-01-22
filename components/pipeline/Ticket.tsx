@@ -14,12 +14,14 @@ export type TicketProps = {
     tags?: string[];
     vibe?: 'Dev' | 'Mkt' | 'Full';
     lastContact?: string;
-    isStale?: boolean; // New prop
+    isStale?: boolean;
+    industry?: string;
+    assignedTo?: string;
     onClick?: () => void;
     onAction?: (action: string, id: string) => void;
 };
 
-export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, isStale, onClick, onAction }: TicketProps) => {
+export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, isStale, industry, assignedTo, onClick, onAction }: TicketProps) => {
     const {
         attributes,
         listeners,
@@ -83,6 +85,18 @@ export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, isSta
                 {tags.includes('factory') && (
                     <span className="px-1.5 py-0.5 text-[10px] font-bold text-purple-400 bg-purple-900/20 border border-purple-500/20 rounded">
                         ✨ Factory
+                    </span>
+                )}
+
+                {industry && (
+                    <span className="px-1.5 py-0.5 text-[10px] text-zinc-400 bg-zinc-800 border border-white/5 rounded">
+                        🏭 {industry}
+                    </span>
+                )}
+
+                {assignedTo && (
+                    <span className="px-1.5 py-0.5 text-[10px] font-bold text-cyan-400 bg-cyan-900/20 border border-cyan-500/20 rounded">
+                        👤 {assignedTo}
                     </span>
                 )}
             </div>

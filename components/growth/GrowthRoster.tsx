@@ -151,25 +151,37 @@ export function GrowthRoster({ onSelectClient }: GrowthRosterProps) {
                         onClick={() => onSelectClient(client.id)}
                         className="group grid grid-cols-12 gap-4 items-center bg-zinc-900/30 hover:bg-zinc-800/40 border border-white/5 hover:border-purple-500/30 p-4 rounded-2xl cursor-pointer transition-all"
                     >
-                        <div className="col-span-4 min-w-0">
-                            <h3 className="font-bold text-white truncate group-hover:text-purple-300 transition-colors">{client.client_name}</h3>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.open(`https://${client.website}`, '_blank');
-                                }}
-                                className="text-xs text-zinc-500 hover:text-cyan-400 flex items-center gap-1 transition-colors hover:underline"
-                            >
-                                {client.website}
-                                <ArrowRight className="w-3 h-3 -rotate-45" />
-                            </button>
+                        <div className="col-span-4 min-w-0 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-purple-500/50 transition-colors">
+                                <img
+                                    src={`https://www.google.com/s2/favicons?domain=${client.website}&sz=64`}
+                                    alt=""
+                                    className="w-6 h-6 object-contain"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(client.client_name)}&background=8b5cf6&color=fff&bold=true`;
+                                    }}
+                                />
+                            </div>
+                            <div className="min-w-0">
+                                <h3 className="font-bold text-white truncate group-hover:text-purple-300 transition-colors">{client.client_name}</h3>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(`https://${client.website}`, '_blank');
+                                    }}
+                                    className="text-xs text-zinc-500 hover:text-cyan-400 flex items-center gap-1 transition-colors hover:underline"
+                                >
+                                    {client.website}
+                                    <ArrowRight className="w-3 h-3 -rotate-45" />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="col-span-2 text-center">
-                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${client.plan_tier === 'custom' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
-                                    client.plan_tier === 'enterprise' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
-                                        client.plan_tier === 'medio' ? 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' :
-                                            'bg-zinc-800 text-zinc-400 border-zinc-700'
+                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${client.plan_tier === 'dominance' || client.plan_tier === 'enterprise' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
+                                client.plan_tier === 'velocity' || client.plan_tier === 'custom' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                    client.plan_tier === 'foundation' || client.plan_tier === 'medio' ? 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20' :
+                                        'bg-zinc-800 text-zinc-400 border-zinc-700'
                                 }`}>
                                 {client.plan_tier}
                             </span>
@@ -182,10 +194,14 @@ export function GrowthRoster({ onSelectClient }: GrowthRosterProps) {
                                     style={{ width: `${client.health_score}%` }}
                                 />
                             </div>
-                            <span className={`text-xs font-bold ${client.health_score >= 80 ? 'text-green-500' : 'text-zinc-500'}`}>{client.health_score}</span>
+                            <span className={`text-xs font-bold ${client.health_score >= 80 ? 'text-green-500' :
+                                client.health_score >= 50 ? 'text-amber-500' :
+                                    'text-red-500'
+                                }`}>{client.health_score}</span>
                         </div>
 
-                        <div className="col-span-2 text-center text-xs text-zinc-400 font-mono">
+                        <div className={`col-span-2 text-center text-xs font-mono ${new Date(client.next_audit_date) < new Date() ? 'text-red-400' : 'text-zinc-400'
+                            }`}>
                             {new Date(client.next_audit_date).toLocaleDateString()}
                         </div>
 

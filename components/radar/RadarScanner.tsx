@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Loader2, AlertCircle, Zap } from 'lucide-react';
 
 interface RadarScannerProps {
     query: string;
@@ -8,11 +8,13 @@ interface RadarScannerProps {
     setLocation: (l: string) => void;
     profileName: string;
     isScanning: boolean;
+    isFlashMode: boolean;
+    setIsFlashMode: (f: boolean) => void;
     handleScan: () => void;
     error: string;
 }
 
-export function RadarScanner({ query, setQuery, location, setLocation, profileName, isScanning, handleScan, error }: RadarScannerProps) {
+export function RadarScanner({ query, setQuery, location, setLocation, profileName, isScanning, isFlashMode, setIsFlashMode, handleScan, error }: RadarScannerProps) {
     return (
         <>
             <div className="bg-black border border-white/10 p-1 rounded-2xl flex flex-col md:flex-row shadow-xl">
@@ -45,6 +47,18 @@ export function RadarScanner({ query, setQuery, location, setLocation, profileNa
                         <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
                         {profileName}
                     </span>
+                </div>
+
+                {/* Flash Mode Toggle */}
+                <div className="flex items-center px-4 border-l border-white/10">
+                    <button
+                        onClick={() => setIsFlashMode(!isFlashMode)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${isFlashMode ? 'bg-amber-500 text-black font-bold' : 'bg-zinc-900 text-zinc-500 italic text-[11px]'}`}
+                        title="Modo Flash: Escaneo rápido de 10 resultados"
+                    >
+                        <Zap className={`w-3 h-3 ${isFlashMode ? 'fill-black' : ''}`} />
+                        {isFlashMode ? 'FLASH PRO' : 'Flash?'}
+                    </button>
                 </div>
 
                 <button

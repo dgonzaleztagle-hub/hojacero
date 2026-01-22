@@ -2,7 +2,8 @@ import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import {
     LayoutDashboard, Users, CheckCircle2, AlertTriangle, Clock,
-    Calendar, ArrowRight, Target, Zap, Activity, Mail, AlertCircle
+    Calendar, ArrowRight, Target, Zap, Activity, Mail, AlertCircle,
+    Shield, Heart, Rocket, ShieldAlert, BarChart3, Globe
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -42,6 +43,19 @@ export default async function DashboardPage() {
         console.error('HQ FATAL ERROR:', e);
         fetchError = e;
     }
+
+    // C. Vault Stats (Security)
+    const { data: sites } = await supabase.from('monitored_sites').select('id, status, site_status(is_active)');
+    const totalSites = sites?.length || 0;
+    const sitesDown = sites?.filter(s => s.site_status?.[0]?.is_active === false).length || 0;
+
+    // D. Growth Stats (Retention)
+    const { data: growthClients } = await supabase.from('growth_clients').select('id, health_score');
+    const totalGrowth = growthClients?.length || 0;
+    const avgHealth = (growthClients && totalGrowth > 0)
+        ? Math.round(growthClients.reduce((acc, c) => acc + (c.health_score || 0), 0) / totalGrowth)
+        : 100;
+    const clientsAtRisk = growthClients?.filter(c => (c.health_score || 0) < 70).length || 0;
 
     if (fetchError) {
         return (
@@ -227,6 +241,41 @@ export default async function DashboardPage() {
                             </div>
                         )}
                     </div>
+
+                    {/* Operational Health Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        {/* Vault Status Card */}
+                        <Link href="/dashboard/vault" className="bg-zinc-900/30 border border-white/5 p-4 rounded-2xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${sitesDown > 0 ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-400'}`}>
+                                    {sitesDown > 0 ? <ShieldAlert className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Seguridad & Bóveda</p>
+                                    <h4 className="text-sm font-bold text-white">{sitesDown > 0 ? `${sitesDown} Sitios con Alerta` : 'Todos los sitios estables'}</h4>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xs font-mono font-bold text-zinc-400">{totalSites} Sitios</p>
+                            </div>
+                        </Link>
+
+                        {/* Growth Status Card */}
+                        <Link href="/dashboard/growth" className="bg-zinc-900/30 border border-white/5 p-4 rounded-2xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${clientsAtRisk > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-purple-500/10 text-purple-400'}`}>
+                                    {clientsAtRisk > 0 ? <Heart className="w-5 h-5" /> : <BarChart3 className="w-5 h-5" />}
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Salud de Cartera</p>
+                                    <h4 className="text-sm font-bold text-white">{avgHealth}% Health Score</h4>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xs font-mono font-bold text-zinc-400">{clientsAtRisk} En Riesgo</p>
+                            </div>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* RIGHT: QUICK LINKS & VIGILANTE (1/3) */}
@@ -282,22 +331,3 @@ export default async function DashboardPage() {
     );
 }
 
-// Helper Icon for Vigilante (Action Items)
-function Shield(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-        </svg>
-    )
-}

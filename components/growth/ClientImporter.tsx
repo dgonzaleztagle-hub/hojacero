@@ -9,6 +9,8 @@ interface Lead {
     nombre: string;
     sitio_web: string;
     pipeline_stage: string;
+    razon_ia?: string;
+    servicios_sugeridos?: string[];
 }
 
 interface Plan {
@@ -63,7 +65,7 @@ export function ClientImporter({ onImported, onClose }: ClientImporterProps) {
         try {
             const { data, error } = await supabase
                 .from('leads')
-                .select('id, nombre, sitio_web, pipeline_stage')
+                .select('id, nombre, sitio_web, pipeline_stage, razon_ia, servicios_sugeridos')
                 .or(`nombre.ilike.%${query}%,sitio_web.ilike.%${query}%`)
                 .limit(10);
 
@@ -142,6 +144,24 @@ export function ClientImporter({ onImported, onClose }: ClientImporterProps) {
 
             if (clientError) throw clientError;
             console.log('✅ Client created:', newClient);
+
+            // Record Initial Context from Sales
+            if (selectedLead.razon_ia || (selectedLead as any).servicios_sugeridos?.length > 0) {
+                const initialContext = `
+📌 CONTEXTO DE VENTA (RADAR AL):
+${selectedLead.razon_ia || 'Sin análisis previo'}
+
+🎯 SERVICIOS SUGERIDOS:
+${(selectedLead as any).servicios_sugeridos?.join(', ') || 'Pendiente'}
+                `.trim();
+
+                await supabase.from('growth_activity_log').insert({
+                    client_id: newClient.id,
+                    activity_type: 'note_added',
+                    description: 'Heredó contexto estratégico desde el Pipeline.',
+                    metadata: { note: initialContext }
+                });
+            }
 
             // Create task instances from plan
             console.log('🔍 Checking tasks - included_tasks:', planData?.included_tasks, 'length:', planData?.included_tasks?.length);

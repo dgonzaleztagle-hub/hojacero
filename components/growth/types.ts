@@ -1,8 +1,10 @@
 export interface GrowthClient {
     id: string;
     client_name: string;
+    website: string;
     plan_tier: string;
     health_score: number;
+    previous_health_score?: number;
     next_audit_date: string;
     active_modules: Record<string, boolean>; // e.g. { ads: true, seo: false }
 }
@@ -21,4 +23,14 @@ export interface GrowthTask {
     evidence_notes: string | null;
     is_enabled: boolean;
     completed_at: string | null;
+    impact_notes?: string;
+}
+
+export interface GrowthActivity {
+    id: string;
+    client_id: string;
+    activity_type: 'task_completed' | 'plan_changed' | 'evidence_uploaded' | 'note_added';
+    description: string;
+    metadata: any;
+    created_at: string;
 }

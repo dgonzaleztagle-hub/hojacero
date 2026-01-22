@@ -32,15 +32,15 @@ export default function Sidebar() {
     }, []);
 
     const menuItems: { label: string; href: string; icon: any; isBeta?: boolean; badge?: number }[] = [
-        { label: 'DASHBOARD', href: '/dashboard', icon: LayoutDashboard }, // Main Overview
-        { label: 'MÉTRICAS', href: '/dashboard/metrics', icon: Activity }, // Replaces Pulse
-        { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
-        { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
+        { label: 'DASHBOARD', href: '/dashboard', icon: LayoutDashboard },
+        { label: 'MÉTRICAS', href: '/dashboard/metrics', icon: Activity },
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
         { label: 'PIPELINE', href: '/dashboard/pipeline', icon: KanbanSquare },
         { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
-        { label: 'ACADEMY', href: '/dashboard/academy', icon: BookOpen },
+        { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
+        { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
         { label: 'AYUDA', href: '/dashboard/ayuda', icon: HelpCircle },
+        { label: 'ACADEMY', href: '/dashboard/academy', icon: BookOpen },
     ];
 
     // Theme-aware colors
