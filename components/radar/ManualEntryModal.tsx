@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
-import { X, Save, Loader2, Building, Globe, Phone, MapPin } from 'lucide-react';
+import { X, Save, Loader2, Building, Globe, Phone, User } from 'lucide-react';
 import { useRadar } from '@/hooks/useRadar';
 
 interface ManualEntryModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess?: () => void;
+    onSuccess?: (lead: any) => void;
 }
 
 export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModalProps) {
@@ -15,7 +15,7 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
         nombre: '',
         sitio_web: '',
         telefono: '',
-        direccion: ''
+        nombre_contacto: ''
     });
 
     if (!isOpen) return null;
@@ -34,10 +34,10 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
             const data = await res.json();
 
             if (data.success) {
-                if (onSuccess) onSuccess();
+                if (onSuccess) onSuccess(data.lead);
                 onClose();
                 // Reset form
-                setFormData({ nombre: '', sitio_web: '', telefono: '', direccion: '' });
+                setFormData({ nombre: '', sitio_web: '', telefono: '', nombre_contacto: '' });
             } else {
                 alert('Error al crear lead: ' + data.error);
             }
@@ -108,14 +108,14 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-zinc-500 uppercase">Dirección</label>
+                            <label className="text-xs font-bold text-zinc-500 uppercase">Nombre de Contacto</label>
                             <div className="relative">
-                                <MapPin className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
+                                <User className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
                                 <input
                                     type="text"
-                                    value={formData.direccion}
-                                    onChange={e => setFormData({ ...formData, direccion: e.target.value })}
-                                    placeholder="Calle 123..."
+                                    value={formData.nombre_contacto}
+                                    onChange={e => setFormData({ ...formData, nombre_contacto: e.target.value })}
+                                    placeholder="Ej. Pedro González"
                                     className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
                                 />
                             </div>

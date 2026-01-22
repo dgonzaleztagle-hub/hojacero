@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard, Rocket, BookOpen } from 'lucide-react';
+import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard, Rocket, BookOpen, Calendar } from 'lucide-react';
 
 // ... (lines 5-34)
 
@@ -36,6 +36,7 @@ export default function Sidebar() {
         { label: 'MÉTRICAS', href: '/dashboard/metrics', icon: Activity },
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
         { label: 'PIPELINE', href: '/dashboard/pipeline', icon: KanbanSquare },
+        { label: 'AGENDA', href: '/dashboard/agenda', icon: Calendar },
         { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },

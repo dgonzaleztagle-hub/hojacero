@@ -5,7 +5,7 @@ import { scrapeContactInfo, analyzeLeadWithGroq } from '@/utils/radar';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { nombre, sitio_web, direccion, telefono, analisis_inmediato } = body;
+        const { nombre, sitio_web, nombre_contacto, telefono, analisis_inmediato } = body;
         const supabase = await createClient();
 
         if (!nombre) {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         const newLead = {
             nombre,
             sitio_web: sitio_web || null,
-            direccion: direccion || 'Dirección no especificada',
+            nombre_contacto: nombre_contacto || null,
             telefono: telefono || null,
             email: null, // Can be added via editing later or deep scan scraping
             estado: 'ready_to_contact',

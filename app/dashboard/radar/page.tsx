@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { Target, Loader2, ClipboardList } from 'lucide-react';
 import { useRadar } from '@/hooks/useRadar';
 import { RadarScanner } from '@/components/radar/RadarScanner';
@@ -13,9 +14,10 @@ import { getAnalysis } from '@/utils/radar-helpers';
 function RadarContent() {
     // 1. Initialize Hook
     const radar = useRadar();
+    const router = useRouter();
     const {
         activeTab, setActiveTab,
-        leads, historyLeads,
+        leads, historyLeads, closedLeads,
         query, setQuery, location, setLocation,
         isScanning, isFlashMode, setIsFlashMode,
         error,
@@ -38,7 +40,7 @@ function RadarContent() {
     // 3. Determine Display Data
     const displayLeads = activeTab === 'scanner' ? leads
         : activeTab === 'history' ? historyLeads
-            : activeTab === 'closed' ? radar.closedLeads // Access from hook
+            : activeTab === 'closed' ? closedLeads
                 : [];
 
     // 4. Render
@@ -79,7 +81,6 @@ function RadarContent() {
 
             {/* Tabs */}
             <div className="flex gap-4 border-b border-white/10">
-
                 <button
                     onClick={() => setActiveTab('scanner')}
                     className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'scanner' ? 'text-cyan-400' : 'text-zinc-500 hover:text-zinc-300'}`}
@@ -88,18 +89,18 @@ function RadarContent() {
                     {activeTab === 'scanner' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400"></div>}
                 </button>
                 <button
-                    onClick={() => setActiveTab('closed')}
-                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'closed' ? 'text-green-400' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                    ✅ Cerrados
-                    {activeTab === 'closed' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400"></div>}
-                </button>
-                <button
                     onClick={() => setActiveTab('history')}
                     className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'history' ? 'text-cyan-400' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                     📚 Historial
                     {activeTab === 'history' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-400"></div>}
+                </button>
+                <button
+                    onClick={() => setActiveTab('closed')}
+                    className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'closed' ? 'text-green-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                    ✅ Cerrados
+                    {activeTab === 'closed' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400"></div>}
                 </button>
             </div>
 
@@ -110,9 +111,7 @@ function RadarContent() {
                     setQuery={setQuery}
                     location={location}
                     setLocation={setLocation}
-                    profileName={radar.profileName || 'Desconocido'} // Use from hook return if possible, OR context. 
-                    // Wait, I need to make sure useRadar returns it OR I import context here. 
-                    // Let's modify useRadar to return it in next step if not already.
+                    profileName={radar.profileName || 'Daniel'}
                     isScanning={isScanning}
                     isFlashMode={isFlashMode}
                     setIsFlashMode={setIsFlashMode}
@@ -122,9 +121,11 @@ function RadarContent() {
             )}
 
             {/* Results List */}
-            {(activeTab === 'scanner' || activeTab === 'history') && (
+            {['scanner', 'history', 'closed'].includes(activeTab) && (
                 <RadarResultsList
                     leads={displayLeads}
+                    isLoading={isScanning && activeTab === 'scanner'}
+                    activeTab={activeTab}
                     onSelectLead={(lead) => {
                         setSelectedLead(lead);
                         fetchLeadActivities(lead.id || lead.db_id);
@@ -152,10 +153,8 @@ function RadarContent() {
             <ManualEntryModal
                 isOpen={radar.isManualModalOpen}
                 onClose={() => setIsManualModalOpen(false)}
-                onSuccess={() => {
-                    // Optional: Notify user or just close. 
-                    // Since it goes to Pipeline, we don't need to refresh Radar list immediately 
-                    // unless we want to, but fetchPipeline is not available here anymore.
+                onSuccess={(lead) => {
+                    router.push(`/dashboard/pipeline?leadId=${lead.id}`);
                 }}
             />
         </div>

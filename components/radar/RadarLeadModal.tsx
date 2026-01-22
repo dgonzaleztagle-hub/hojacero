@@ -40,7 +40,8 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         leadActivities,
         chatMessages, newChatMessage, setNewChatMessage, sendChatMessage, chatAuthor, setChatAuthor,
         fetchLeadActivities, fetchNotes, fetchChatMessages, fetchPipeline, fetchClosed,
-        performDeepAnalysis, isDeepAnalyzing, performReanalysis, isReanalyzing, // NEW PROPS
+        performDeepAnalysis, isDeepAnalyzing, performReanalysis, isReanalyzing,
+        deleteLead,
         theme // assuming theme is available
     } = radar;
 
@@ -148,9 +149,6 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
             // Update Local State to reflect Archive
             removeFromLists(selectedLead.id || selectedLead.db_id);
             fetchPipeline(); // Ensure pipeline is refreshed
-
-            // Seamless Navigation
-            router.push('/dashboard/vault');
 
             // Seamless Navigation
             router.push('/dashboard/vault');
@@ -338,6 +336,14 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                             }`}>
                             {selectedLead.estado || 'DETECTED'}
                         </div>
+
+                        <button
+                            onClick={() => deleteLead(selectedLead.id || selectedLead.db_id)}
+                            className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-red-500/20 text-zinc-500 hover:text-red-500' : 'hover:bg-red-50'}`}
+                            title="Eliminar permanentemente de la BD"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
 
                         <button
                             onClick={() => setSelectedLead(null)}
@@ -703,67 +709,77 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
 
                     {/* WON STATE - Already Closed */}
                     {selectedLead.estado === 'won' && (
-                        <div className="w-full bg-green-500/10 border border-green-500/20 rounded-2xl p-4 flex items-center justify-between">
+                        <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-green-500 rounded-full text-black">
                                     <CheckCircle2 className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-green-400 uppercase tracking-wider">Cliente Cerrado</h4>
+                                    <h4 className="text-sm font-bold text-green-400 uppercase tracking-wider">Cierre Realizado</h4>
                                     <p className="text-xs text-green-500/60">
-                                        {inVault ? 'Este proyecto está en producción en el Vault.' : 'Venta cerrada. Falta migrar al Vault.'}
+                                        {inVault ? 'Este proyecto está en producción en el Vault.' : 'Negocio cerrado. Listo para archivar o migrar.'}
                                     </p>
                                 </div>
                             </div>
 
-                            {inVault ? (
-                                <div className="flex gap-2">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={async () => {
+                                        if (!confirm('¿Archivar este lead? Desaparecerá del pipeline activo y quedará en la sección de Cerrados.')) return;
+                                        setIsSaving(true);
+                                        const leadId = selectedLead.id || selectedLead.db_id;
+
+                                        // Archive logic: change pipeline_stage to 'archived'
+                                        // Handle both UUID and search by name as safety
+                                        let finalId = leadId;
+                                        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(leadId);
+
+                                        // Use simple match based on ID OR Name if ID is not a UUID
+                                        const query = supabase.from('leads').update({ pipeline_stage: 'archived' });
+                                        if (isUUID) {
+                                            query.eq('id', finalId);
+                                        } else {
+                                            query.eq('nombre', selectedLead.title || selectedLead.nombre);
+                                        }
+
+                                        const { error } = await query;
+
+                                        if (error) {
+                                            console.error("ARCHIVE ERROR:", error);
+                                            toast.error('Error al archivar: ' + error.message);
+                                        } else {
+                                            toast.success('Lead archivado correctamente');
+                                            // Instant local refresh
+                                            fetchPipeline();
+                                            fetchClosed?.();
+                                            // Slight delay before closing for smooth UI transition
+                                            setTimeout(() => setSelectedLead(null), 200);
+                                        }
+                                        setIsSaving(false);
+                                    }}
+                                    className="px-4 py-2 bg-zinc-800 text-zinc-400 text-xs font-bold uppercase rounded-lg hover:bg-zinc-700 transition-colors border border-white/5 flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                    Limpiar
+                                </button>
+
+                                {!inVault && (
                                     <button
-                                        onClick={async () => {
-                                            if (!confirm('¿Archivar este lead? Desaparecerá del pipeline pero quedará en la sección de Cerrados.')) return;
-                                            setIsSaving(true);
-                                            const leadId = selectedLead.id || selectedLead.db_id;
-                                            if (!leadId) {
-                                                toast.error('Error: ID de lead no encontrado');
-                                                return;
-                                            }
-
-                                            // Archive logic: change pipeline_stage to 'archived'
-                                            const { error } = await supabase.from('leads').update({ pipeline_stage: 'archived' }).eq('id', leadId);
-
-                                            if (error) {
-                                                console.error("ARCHIVE ERROR:", error);
-                                                toast.error('Error al archivar: ' + error.message);
-                                            } else {
-                                                toast.success('Lead archivado correctamente');
-                                                fetchPipeline();
-                                                fetchClosed?.();
-                                                setSelectedLead(null);
-                                            }
-                                            setIsSaving(false);
-                                        }}
-                                        className="px-4 py-2 bg-zinc-800 text-zinc-400 text-xs font-bold uppercase rounded-lg hover:bg-zinc-700 transition-colors border border-white/5 flex items-center gap-2"
+                                        onClick={() => setShowVaultSetup(true)}
+                                        className="px-4 py-2 bg-green-500 text-black text-xs font-bold uppercase rounded-lg hover:bg-green-400 transition-colors shadow-lg flex items-center gap-2"
                                     >
-                                        <Trash2 className="w-3 h-3" />
-                                        Limpiar
+                                        <CreditCard className="w-3 h-3" /> Pasar a Vault
                                     </button>
+                                )}
+                                {inVault && (
                                     <button
                                         onClick={() => window.open('/dashboard/vault', '_blank')}
                                         className="px-4 py-2 bg-black/40 text-green-400 text-xs font-bold uppercase rounded-lg hover:bg-black/60 transition-colors border border-green-500/10 flex items-center gap-2"
                                     >
                                         Ver en Vault <ExternalLink className="w-3 h-3" />
                                     </button>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => setShowVaultSetup(true)}
-                                    disabled={isSaving}
-                                    className="px-4 py-2 bg-green-500 text-black text-xs font-bold uppercase rounded-lg hover:bg-green-400 transition-colors shadow-lg shadow-green-900/20 flex items-center gap-2"
-                                >
-                                    <CreditCard className="w-3 h-3" />
-                                    Pasar a Vault
-                                </button>
-                            )}
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

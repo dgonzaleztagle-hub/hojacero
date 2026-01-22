@@ -138,16 +138,18 @@ export function useRadar() {
             .from('leads')
             .select('*')
             .or('estado.eq.detected,estado.eq.discarded')
+            .or('pipeline_stage.is.null,pipeline_stage.neq.archived')
             .order('created_at', { ascending: false });
 
         if (data) setHistoryLeads(data);
     };
 
     const fetchClosed = async () => {
+        // Inclusive view: show archived OR completed business
         const { data } = await supabase
             .from('leads')
             .select('*')
-            .or('pipeline_stage.eq.archived')
+            .or('pipeline_stage.eq.archived,estado.eq.won,estado.eq.lost,estado.eq.closed_lost,estado.eq.discarded')
             .order('updated_at', { ascending: false });
         if (data) setClosedLeads(data);
     };
@@ -156,6 +158,7 @@ export function useRadar() {
         const { data } = await supabase.from('leads')
             .select('*')
             .in('estado', ['ready_to_contact', 'in_contact', 'proposal_sent', 'won', 'lost'])
+            .or('pipeline_stage.is.null,pipeline_stage.neq.archived')
             .order('pipeline_order', { ascending: true })
             .order('created_at', { ascending: false });
         if (data) setPipelineLeads(data);
@@ -292,11 +295,37 @@ export function useRadar() {
             } else {
                 alert('Re-analysis failed: ' + (data.error || 'Unknown error'));
             }
-        } catch (err) {
-            console.error(err);
-            alert('Re-analysis error. Check console.');
         } finally {
             setIsReanalyzing(false);
+        }
+    };
+
+    const deleteLead = async (leadId: string) => {
+        if (!window.confirm('¿Estás seguro de eliminar este lead permanentemente? Esta acción borrará todos los registros, notas y bitácora asociados.')) return;
+
+        setIsSaving(true);
+        try {
+            // First delete associated data (Supabase should handle with CASCADE if configured, but manual for safety)
+            await supabase.from('lead_notas').delete().eq('lead_id', leadId);
+            await supabase.from('lead_activity_log').delete().eq('lead_id', leadId);
+            await supabase.from('bitacora_clientes').delete().eq('lead_id', leadId);
+
+            const { error } = await supabase.from('leads').delete().eq('id', leadId);
+            if (error) throw error;
+
+            // Update local state by filtering out the deleted lead from all lists
+            setLeads(prev => prev.filter(l => (l.id || l.db_id) !== leadId));
+            setPipelineLeads(prev => prev.filter(l => (l.id || l.db_id) !== leadId));
+            setHistoryLeads(prev => prev.filter(l => (l.id || l.db_id) !== leadId));
+            setClosedLeads(prev => prev.filter(l => (l.id || l.db_id) !== leadId));
+
+            // Close modal
+            setSelectedLead(null);
+        } catch (err: any) {
+            console.error('Error deleting lead:', err);
+            alert('Error al eliminar lead: ' + err.message);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -367,6 +396,13 @@ export function useRadar() {
         if (activeTab === 'closed') fetchClosed();
     }, [activeTab]);
 
+    // Initial background fetch for all lists to avoid "disappearing" leads
+    useEffect(() => {
+        fetchHistory();
+        fetchClosed();
+        fetchPipeline();
+    }, []);
+
     // ... (Deep Linking effect remains) ...
 
 
@@ -386,7 +422,7 @@ export function useRadar() {
                     fetchLeadActivities(target.id || target.db_id);
                     fetchNotes(target.id || target.db_id);
                     fetchChatMessages(target.id || target.db_id);
-                    window.history.replaceState(null, '', '/dashboard/radar');
+                    window.history.replaceState(null, '', window.location.pathname);
                 }
             };
             checkAndOpen();
@@ -450,6 +486,7 @@ export function useRadar() {
         fetchLeadActivities,
         fetchNotes,
         fetchChatMessages,
+        deleteLead,
 
         fetchHistory,
         fetchClosed,

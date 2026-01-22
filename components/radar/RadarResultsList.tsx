@@ -6,10 +6,28 @@ import { getAnalysis } from '@/utils/radar-helpers';
 interface RadarResultsListProps {
     leads: any[];
     onSelectLead: (lead: any) => void;
+    isLoading?: boolean;
+    activeTab?: string;
 }
 
-export function RadarResultsList({ leads, onSelectLead }: RadarResultsListProps) {
-    if (!leads.length) return null;
+export function RadarResultsList({ leads, onSelectLead, isLoading, activeTab }: RadarResultsListProps) {
+    if (isLoading) return null;
+
+    if (!leads.length) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 border border-dashed border-white/5 rounded-2xl bg-black/20 text-center animate-in fade-in duration-500">
+                <div className="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center mb-4 border border-white/5">
+                    <span className="text-xl">📭</span>
+                </div>
+                <h3 className="text-zinc-400 font-medium">No hay registros aquí</h3>
+                <p className="text-zinc-600 text-xs mt-1">
+                    {activeTab === 'closed' ? 'Tus leads archivados aparecerán aquí.' :
+                        activeTab === 'history' ? 'Aquí verás los leads que descartes.' :
+                            'Inicia un escaneo para encontrar oportunidades.'}
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-500">
