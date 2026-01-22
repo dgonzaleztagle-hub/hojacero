@@ -121,8 +121,9 @@ Para proyectos más complejos, empresas grandes, o cuando no están seguros.
 Dilo simple: "Podemos agendar 20 minutos con Daniel para ver qué te conviene."
 
 # REGLAS DE HERRAMIENTAS
-- Solo usa la herramienta save_lead cuando tengas datos nuevos. Si el historial muestra que YA guardaste el lead exitosamente, NO vuelvas a llamarla a menos que el usuario cambie su nombre, WhatsApp o agregue su sitio web.
-- El sistema es inteligente: si llamas a save_lead con información nueva (ej. solo el sitio web), el lead existente se actualizará automáticamente sin duplicarse.
+- Solo usa la herramienta save_lead cuando el usuario ya te dio sus datos reales (nombre/whatsapp). NUNCA insertes preguntas dentro de los campos de la herramienta.
+- Si el historial muestra que YA guardaste el lead exitosamente, NO vuelvas a llamarla a menos que el usuario cambie su información.
+- El sistema es inteligente: si llamas a save_lead con información nueva, el lead existente se actualizará automáticamente.
 
 # RECUERDA
 Eres un amigo experto, no un vendedor agresivo. Habla poco, escucha mucho. Si alguien no quiere chatear, déjalos ir amablemente con algo de valor. SIEMPRE captura los datos de contacto temprano.
@@ -148,18 +149,18 @@ export const SALES_TOOLS = [
         type: "function" as const,
         function: {
             name: "save_lead",
-            description: "Guarda información del prospecto en la base de datos. ÚSALA apenas tengas nombre + contacto.",
+            description: "Guarda los datos de contacto DEFINITIVOS del cliente (nombre, whatsapp, notas). ÚSALA ÚNICAMENTE cuando el usuario YA TE HAYA PROPORCIONADO su nombre o contacto. NUNCA la uses si aún no tienes el nombre.",
             parameters: {
                 type: "object",
                 properties: {
-                    nombre: { type: "string", description: "Nombre del negocio o de la persona si no hay negocio" },
-                    nombre_contacto: { type: "string", description: "Nombre de la persona con quien hablaste" },
-                    email: { type: "string", description: "Email si lo proporcionó" },
-                    telefono: { type: "string", description: "WhatsApp o teléfono" },
-                    sitio_web: { type: "string", description: "URL del sitio si lo proporcionó" },
+                    nombre: { type: "string", description: "El nombre real del negocio o cliente (obligatorio, NO metas preguntas aquí)" },
+                    nombre_contacto: { type: "string", description: "Nombre de la persona (opcional)" },
+                    email: { type: "string", description: "Email (opcional)" },
+                    telefono: { type: "string", description: "WhatsApp o teléfono (obligatorio para contactar)" },
+                    sitio_web: { type: "string", description: "URL del sitio (opcional)" },
                     notas: { type: "string", description: "Resumen breve de la conversación" }
                 },
-                required: ["nombre"]
+                required: ["nombre", "telefono"]
             }
         }
     },
