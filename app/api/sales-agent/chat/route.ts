@@ -4,183 +4,222 @@ import { SALES_AGENT_SYSTEM_PROMPT, SALES_TOOLS } from '@/utils/sales-agent/syst
 import { createClient } from '@supabase/supabase-js';
 import { scrapeContactInfo, analyzeLeadWithGroq } from '@/utils/radar';
 
-// Groq with Llama 3.1 8B (Massive limit: 14,400 requests/day)
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+// Cliente admin para operaciones del bot (sin cookies de usuario)
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface ChatMessage {
     role: 'system' | 'user' | 'assistant' | 'tool';
     content: string;
     tool_call_id?: string;
     tool_calls?: any[];
-    tool_name?: string;
 }
 
-// Create a Supabase client for public chat operations
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 // Helper: Track conversion event
-async function trackEvent(supabase: any, sessionId: string, eventType: string, eventData?: any) {
+async function trackEvent(sessionId: string, eventType: string, eventData?: any) {
     if (!sessionId) return;
     try {
-        await supabase.from('sales_agent_conversions').insert({
+        await supabaseAdmin.from('sales_agent_conversions').insert({
             session_id: sessionId,
             event_type: eventType,
             event_data: eventData
         });
-    } catch (e) { console.error('Error tracking event:', e); }
+    } catch (e) {
+        console.error('Track event error:', e);
+    }
 }
 
 // Tool execution handlers
 async function executeTool(name: string, args: any, sessionId: string | null): Promise<string> {
-    const supabase = supabaseAdmin;
-
     switch (name) {
         case 'diagnose_website': {
             try {
-                // Validación estricta de URL para evitar cuellos de botella por alucinación
-                const url = args.url?.trim();
-                if (!url || !url.includes('.') || url.length < 4) {
-                    return JSON.stringify({ error: 'URL inválida o no proporcionada. Por favor, pide la URL al usuario.' });
-                }
+                if (sessionId) await trackEvent(sessionId, 'url_submitted', { url: args.url });
 
-                const contactInfo = await scrapeContactInfo(url, true); // true = fastMode para el bot
-
-                // Si el scraper falla (no encuentra nada de nada), avisar para no procesar con IA
-                if (!contactInfo.scrapedPages.length) {
-                    return JSON.stringify({ error: 'No pude acceder a ese sitio. Verifica que la URL sea correcta y accesible.' });
-                }
-
-                const mockPlace = {
-                    title: url.replace(/^https?:\/\//, '').split('/')[0],
-                    website: url
-                };
-
-                const analysis = await analyzeLeadWithGroq(mockPlace, contactInfo);
+                const scraped = await scrapeContactInfo(args.url);
+                const mockPlace = { title: 'Sitio Analizado', website: args.url, category: 'General' };
+                const analysis = await analyzeLeadWithGroq(mockPlace, scraped);
 
                 if (sessionId) {
-                    await supabase.from('sales_agent_sessions').update({
-                        detected_url: args.url,
-                        detected_tech: contactInfo.techStack
+                    await supabaseAdmin.from('sales_agent_sessions').update({
+                        diagnosed_url: args.url,
+                        diagnosis_score: analysis.score
                     }).eq('id', sessionId);
+
+                    await trackEvent(sessionId, 'diagnosis_complete', { score: analysis.score });
                 }
 
-                // Retornamos el objeto completo de la IA + tech stack
+                const painPoints = analysis.salesStrategy?.painPoints || analysis.painPoints || [];
+                const hook = analysis.salesStrategy?.hook || '';
+
                 return JSON.stringify({
-                    ...analysis,
-                    techStack: contactInfo.techStack,
-                    hasSSL: contactInfo.hasSSL,
-                    url: args.url
+                    success: true,
+                    url: args.url,
+                    score: analysis.score,
+                    hasSSL: scraped.hasSSL,
+                    techStack: scraped.techStack,
+                    painPoints: painPoints.slice(0, 3),
+                    hook: hook,
+                    recommendation: analysis.salesStrategy?.proposedSolution || analysis.suggestedSolution
                 });
-            } catch (error: any) {
-                return JSON.stringify({ error: `Error analizando sitio: ${error.message}` });
+            } catch (err: any) {
+                return JSON.stringify({ success: false, error: err.message });
             }
         }
 
         case 'save_lead': {
             try {
-                if (!sessionId) return JSON.stringify({ error: 'No session id' });
+                const telefono = args.telefono || null;
+                const email = args.email || null;
 
-                // Mapeo flexible de parámetros para evitar errores de alucinación del modelo
-                const nombre = args.nombre || args.client_name || args.nombre_contacto || 'Cliente Interesado';
-                const telefono = args.telefono || args.whatsapp || args.client_phone || '';
+                const { data: lead, error } = await supabaseAdmin.from('leads').insert({
+                    nombre: args.nombre,
+                    nombre_contacto: args.nombre_contacto || null,
+                    email: email,
+                    telefono: telefono,
+                    sitio_web: args.sitio_web || null,
+                    estado: 'ready_to_contact',
+                    fuente: 'chat_bot',
+                    zona_busqueda: 'Chat H0',
+                    source_data: { notas: args.notas, chat_origin: true, session_id: sessionId }
+                }).select().single();
 
-                const { error } = await supabase.from('sales_agent_sessions').update({
-                    customer_name: nombre,
-                    customer_whatsapp: telefono,
-                    customer_email: args.email || args.client_email,
-                    customer_notes: args.notas || args.summary,
-                    last_active_at: new Date().toISOString()
-                }).eq('id', sessionId);
+                if (error) throw error;
 
-                if (error) {
-                    console.error("Save Lead DB Error:", error);
-                    return JSON.stringify({ error: "Error de base de datos" });
+                if (sessionId) {
+                    await supabaseAdmin.from('sales_agent_sessions').update({
+                        lead_id: lead.id,
+                        status: 'converted',
+                        conversion_type: 'lead_captured'
+                    }).eq('id', sessionId);
+
+                    await trackEvent(sessionId, 'lead_saved', { lead_id: lead.id });
                 }
 
-                await trackEvent(supabase, sessionId, 'lead_captured', { name: nombre });
-                return JSON.stringify({ success: true, message: 'Lead guardado con éxito' });
-            } catch (error: any) {
-                console.error("Save Lead Exception:", error);
-                return JSON.stringify({ error: 'Error procesando solicitud' });
+                return JSON.stringify({ success: true, message: 'Lead guardado', leadId: lead.id });
+            } catch (err: any) {
+                return JSON.stringify({ success: false, error: err.message });
             }
         }
 
         case 'check_availability': {
             try {
-                const queryParams = new URLSearchParams();
-                if (args.date) queryParams.append('date', args.date);
-                if (args.requested_hour) queryParams.append('hour', args.requested_hour);
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+                const url = new URL('/api/agenda/availability', baseUrl);
+                url.searchParams.set('date', args.date);
+                if (args.requested_hour) {
+                    url.searchParams.set('hour', args.requested_hour);
+                }
 
-                const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/agenda/availability?${queryParams.toString()}`);
+                const res = await fetch(url.toString());
                 const data = await res.json();
-                return JSON.stringify(data);
-            } catch (error: any) {
-                return JSON.stringify({ error: 'Error consultando disponibilidad' });
+
+                if (!data.success) {
+                    return JSON.stringify({ success: false, error: data.error });
+                }
+
+                return JSON.stringify({
+                    success: true,
+                    date: args.date,
+                    availableSlots: data.slots?.slice(0, 6).map((s: any) =>
+                        new Date(s.start).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+                    ) || [],
+                    totalAvailable: data.totalAvailable || 0
+                });
+            } catch (err: any) {
+                return JSON.stringify({ success: false, error: err.message });
             }
         }
 
         case 'book_meeting': {
             try {
-                if (!sessionId) return JSON.stringify({ error: 'No session id' });
+                const duration = args.duration_minutes || 30;
+                const startDateTime = new Date(`${args.date}T${args.start_time}:00`);
+                const endDateTime = new Date(startDateTime.getTime() + duration * 60 * 1000);
 
-                // Construir las fechas de inicio y fin
-                const startTime = `${args.date}T${args.start_time}:00`;
-                const startTimeDate = new Date(startTime);
-                const endTimeDate = new Date(startTimeDate.getTime() + (args.duration_minutes || 30) * 60000);
-
-                const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/agenda/events`, {
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+                const res = await fetch(`${baseUrl}/api/agenda/events`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         title: args.title || `Reunión con ${args.attendee_name}`,
-                        start_time: startTimeDate.toISOString(),
-                        end_time: endTimeDate.toISOString(),
-                        description: args.notes || 'Agendado por el bot H0',
+                        start_time: startDateTime.toISOString(),
+                        end_time: endDateTime.toISOString(),
                         attendee_name: args.attendee_name,
-                        attendee_email: args.attendee_email,
                         attendee_phone: args.attendee_phone,
+                        attendee_email: args.attendee_email,
+                        notes: args.notes,
                         source: 'chat_bot',
-                        status: 'confirmed'
+                        event_type: 'meeting'
                     })
                 });
+
                 const data = await res.json();
-                if (data.success) {
-                    await trackEvent(supabase, sessionId, 'meeting_booked', { date: args.date, time: args.start_time });
+
+                if (!data.success) {
+                    return JSON.stringify({ success: false, error: data.error });
                 }
-                return JSON.stringify(data);
-            } catch (error: any) {
-                console.error("Book Meeting Error:", error);
-                return JSON.stringify({ error: 'Error agendando reunión' });
+
+                if (sessionId) {
+                    await supabaseAdmin.from('sales_agent_sessions').update({
+                        status: 'converted',
+                        conversion_type: 'meeting'
+                    }).eq('id', sessionId);
+
+                    await trackEvent(sessionId, 'meeting_booked', { date: args.date, time: args.start_time });
+                }
+
+                return JSON.stringify({
+                    success: true,
+                    message: `¡Reunión agendada! ${args.date} a las ${args.start_time}`,
+                    eventId: data.event?.id
+                });
+            } catch (err: any) {
+                return JSON.stringify({ success: false, error: err.message });
             }
         }
 
         case 'escalate_to_human': {
             try {
-                if (!sessionId) return JSON.stringify({ error: 'No session id' });
+                // Enviar notificación por email
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+                await fetch(`${baseUrl}/api/sales-agent/notify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'hot_lead',
+                        sessionId,
+                        message: `🔥 Escalamiento: ${args.client_name} (${args.client_phone || 'sin tel'}). Razón: ${args.reason}`,
+                        context: { summary: args.summary, reason: args.reason, urgency: args.urgency }
+                    })
+                });
 
-                // Filtro de Calidad: Notificar si es medium/high O si el cliente pidió explícitamente hablar con humano
-                const isUrgent = args.urgency === 'medium' || args.urgency === 'high' || args.urgency === 'low';
+                // Log escalation
+                await supabaseAdmin.from('sales_notifications').insert({
+                    type: 'escalation',
+                    session_id: sessionId,
+                    message: `Escalado: ${args.client_name}`,
+                    context: args,
+                    status: 'pending'
+                });
 
-                if (isUrgent) {
-                    await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sales-agent/notify`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'hot_lead',
-                            sessionId,
-                            message: `🔥 Cliente solicita hablar con humano: ${args.reason || 'No especificado'}`,
-                            context: args
-                        })
-                    });
+                if (sessionId) {
+                    await supabaseAdmin.from('sales_agent_sessions').update({
+                        status: 'escalated',
+                        escalation_reason: args.reason
+                    }).eq('id', sessionId);
                 }
 
-                await trackEvent(supabase, sessionId, 'human_escalation', { reason: args.reason, urgency: args.urgency, notified: isUrgent });
-                return JSON.stringify({ success: true, message: 'Daniel ha sido notificado y revisará tu caso pronto.' });
-            } catch (error: any) {
-                return JSON.stringify({ error: 'Error notificando al equipo' });
+                return JSON.stringify({
+                    success: true,
+                    message: 'Daniel ha sido notificado y te contactará pronto.'
+                });
+            } catch (err: any) {
+                return JSON.stringify({ success: false, error: err.message });
             }
         }
 
@@ -190,68 +229,53 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 }
 
 export async function POST(req: NextRequest) {
-    const supabase = supabaseAdmin;
-
     try {
         const { messages, sessionId: clientSessionId } = await req.json();
 
         // Get or create session
-        let sessionId: string | null = clientSessionId;
-        if (!sessionId) {
-            const { data: newSession, error: sErr } = await supabase.from('sales_agent_sessions').insert({
-                session_key: `session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                status: 'active'
-            }).select().single();
-            if (sErr) console.error("Session Create Error:", sErr);
-            sessionId = newSession?.id || null;
+        let sessionId: string | null = null;
+        try {
+            if (!clientSessionId) {
+                const { data: newSession } = await supabaseAdmin.from('sales_agent_sessions').insert({
+                    session_key: `session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                    first_message_at: new Date().toISOString(),
+                    last_message_at: new Date().toISOString(),
+                    messages_count: messages.length
+                }).select().single();
+
+                sessionId = newSession?.id;
+            } else {
+                sessionId = clientSessionId;
+            }
+        } catch {
+            // Continue without persistence
         }
 
-        // --- INICIO: Guardián de Bienvenida ---
-        // Si no hay mensajes o el primer mensaje es vacío, devolvemos saludo directo
-        // Esto evita que la IA intente llamar a herramientas "altiro" al cargar/refrescar
-        if (!messages || messages.length === 0 || (messages.length === 1 && !messages[0].content)) {
-            const greeting = "¡Hola! 👋 Bienvenido a HojaCero. Soy tu asistente virtual. ¿En qué te puedo ayudar hoy? Si quieres, puedo analizar tu sitio web o agendar una cita con Daniel.";
-
-            if (sessionId) {
-                await supabase.from('sales_agent_messages').insert({
+        // Save incoming user message
+        if (sessionId && messages.length > 0) {
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg.role === 'user') {
+                await supabaseAdmin.from('sales_agent_messages').insert({
                     session_id: sessionId,
-                    role: 'assistant',
-                    content: greeting
+                    role: 'user',
+                    content: lastMsg.content
                 });
             }
-
-            return NextResponse.json({
-                success: true,
-                message: greeting,
-                sessionId,
-                toolsUsed: [],
-                newMessages: []
-            });
-        }
-        // --- FIN: Guardián de Bienvenida ---
-
-        // Save user message
-        const lastMsg = messages[messages.length - 1];
-        if (sessionId && lastMsg && lastMsg.role === 'user') {
-            await supabase.from('sales_agent_messages').insert({
-                session_id: sessionId,
-                role: 'user',
-                content: lastMsg.content
-            });
         }
 
         // Build conversation with system prompt
-        const conversation = [
+        const conversation: ChatMessage[] = [
             { role: 'system', content: SALES_AGENT_SYSTEM_PROMPT },
             ...messages
         ];
 
-        // Call Groq with high-limit model
+        // Call Groq with 70B model (more intelligent, follows instructions better)
         const response = await groq.chat.completions.create({
-            model: 'llama-3.1-8b-instant', // High request limit: 14,400/day
+            model: 'llama-3.3-70b-versatile',
             messages: conversation as any[],
             tools: SALES_TOOLS,
             tool_choice: 'auto',
+            max_tokens: 1024,
             temperature: 0.7
         });
 
@@ -262,24 +286,22 @@ export async function POST(req: NextRequest) {
 
         // Check if tools were called
         if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-            const toolPromises = assistantMessage.tool_calls.map(async (toolCall) => {
+            for (const toolCall of assistantMessage.tool_calls) {
                 toolsUsed.push(toolCall.function.name);
                 const result = await executeTool(
                     toolCall.function.name,
                     JSON.parse(toolCall.function.arguments),
                     sessionId
                 );
-
-                const toolMsg: ChatMessage = {
+                toolResults.push({
                     role: 'tool',
                     tool_call_id: toolCall.id,
-                    content: result,
-                    tool_name: toolCall.function.name
-                };
+                    content: result
+                });
 
-                // Save tool result to DB
+                // Save tool call
                 if (sessionId) {
-                    await supabase.from('sales_agent_messages').insert({
+                    await supabaseAdmin.from('sales_agent_messages').insert({
                         session_id: sessionId,
                         role: 'tool',
                         content: result,
@@ -287,78 +309,52 @@ export async function POST(req: NextRequest) {
                         tool_result: JSON.parse(result)
                     });
                 }
+            }
 
-                return toolMsg;
-            });
+            // Get final response with tool results
+            const finalConversation: ChatMessage[] = [
+                ...conversation,
+                { role: 'assistant', content: assistantMessage.content || '', tool_calls: assistantMessage.tool_calls },
+                ...toolResults
+            ];
 
-            toolResults = await Promise.all(toolPromises);
-
-            // Get final response - filter out custom properties like tool_name for Groq API
             const finalResponse = await groq.chat.completions.create({
-                model: 'llama-3.3-70b-versatile', // Upgrade model for better reasoning after tools
-                messages: [
-                    ...conversation,
-                    assistantMessage,
-                    ...toolResults.map(tr => ({
-                        role: 'tool',
-                        tool_call_id: tr.tool_call_id,
-                        content: tr.content
-                    }))
-                ] as any[],
+                model: 'llama-3.3-70b-versatile',
+                messages: finalConversation as any[],
+                max_tokens: 1024,
                 temperature: 0.7
             });
+
             finalContent = finalResponse.choices[0].message.content || '';
         }
 
         // Save assistant response
-        if (sessionId && finalContent) {
-            await supabase.from('sales_agent_messages').insert({
+        if (sessionId) {
+            await supabaseAdmin.from('sales_agent_messages').insert({
                 session_id: sessionId,
                 role: 'assistant',
                 content: finalContent
             });
 
-            await supabase.from('sales_agent_sessions').update({
-                last_message_at: new Date().toISOString()
+            await supabaseAdmin.from('sales_agent_sessions').update({
+                last_message_at: new Date().toISOString(),
+                messages_count: messages.length + 1
             }).eq('id', sessionId);
-        }
-
-        // Limpieza de respuesta final - REGEX NUCLEAR para eliminar toda basura técnica
-        let cleanedMessage = finalContent
-            .replace(/<function=[^>]*>/gi, '')                    // <function=xxx> sin cierre
-            .replace(/<function=.*?\/function>/gi, '')            // <function=xxx/function> con cierre
-            .replace(/<\/function>/gi, '')                        // </function> suelto
-            .replace(/\{[^{}]*"[^"]+"\s*:\s*"[^"]*"[^{}]*\}/gi, '') // CUALQUIER JSON simple {"key": "value"...}
-            .replace(/\([^)]*escalado[^)]*\)/gi, '')              // (Fue escalado a Daniel) y variantes
-            .replace(/```json[\s\S]*?```/gi, '')                   // Bloques de código JSON
-            .replace(/tool_name>\{.*?\}/gi, '')                    // Fugas de tool_name
-            .replace(/\s{2,}/g, ' ')                               // Múltiples espacios a uno solo
-            .trim();
-
-        // Fallback de seguridad: Si la limpieza borró todo, devolver un mensaje genérico en lugar de nada
-        if (!cleanedMessage && toolsUsed.length > 0) {
-            cleanedMessage = "He analizado tu sitio. ¿Te gustaría ver los detalles o agendar una llamada?";
-        } else if (!cleanedMessage) {
-            cleanedMessage = "Disculpa, tuve un lapsus. ¿Me podrías repetir eso?";
         }
 
         return NextResponse.json({
             success: true,
-            message: cleanedMessage,
+            message: finalContent,
             sessionId,
             toolsUsed,
-            newMessages: toolResults.length > 0 ? [
-                ...toolResults.map(tr => ({ role: 'tool', content: tr.content, tool_name: tr.tool_name })),
-                { role: 'assistant', content: cleanedMessage }
+            newMessages: assistantMessage.tool_calls ? [
+                { role: 'assistant', content: assistantMessage.content || '', tool_calls: assistantMessage.tool_calls },
+                ...toolResults
             ] : []
         });
 
     } catch (error: any) {
         console.error('Sales Agent Error:', error);
-        return NextResponse.json({
-            success: false,
-            error: error.message,
-            message: 'Tuvimos un problema técnico, pero Daniel ya fue avisado. ¿Podemos intentar de nuevo?'
-        }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
