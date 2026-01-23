@@ -1,19 +1,22 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { analyzeTechSpecs } from '@/utils/tech-analysis'; // NEW IMPORT
+import { analyzeTechSpecs } from '@/utils/tech-analysis';
 
+// ===========================================
+// AUDITORÍA PROFUNDA - HOJACERO RADAR
+// Modelo: gpt-4o-mini (OpenAI)
+// ===========================================
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
 
-// Helper: Basic SEO Scraping (Mocking a real crawler)
+// Helper: Basic SEO Scraping
 async function performSeoAudit(url: string) {
     if (!url) return null;
 
-    // Normalize URL - remove protocol and www
     let baseUrl = url.trim().replace(/^https?:\/\//, '').replace(/^www\./, '');
 
-    // Try all combinations (https first, then http; without www first, then with www)
     const urlsToTry = [
         `https://${baseUrl}`,
         `https://www.${baseUrl}`,
@@ -33,56 +36,41 @@ async function performSeoAudit(url: string) {
             if (!res.ok) continue;
 
             const html = await res.text();
-            const textContent = html.replace(/<[^>]+>/g, ' ').slice(0, 3000);
+            const textContent = html.replace(/<[^>]+>/g, ' ').slice(0, 500); // Reducido de 3000 a 500
 
-            // Extract contact information with improved regex
-            // Phone: Chilean format (+569 XXXX XXXX, 9 XXXX XXXX, +56 2 XXXX XXXX, etc.)
+            // Extract contact information
             const phoneRegex = /\+?56\s*9\s*\d{4}\s*\d{4}|\+?56\s*2\s*\d{4}\s*\d{4}|(?<!\d)9\s*\d{4}\s*\d{4}(?!\d)/g;
             const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-            // Address: Look for "Dirección:" pattern or common street prefixes
-            const addressRegex = /(?:Dirección[:\s]*|Av\.?|Avenida|Calle|Pasaje|Los|Las|El|La)\s*[A-ZÁÉÍÓÚÑa-záéíóúñ0-9\s,]+\d+[^<\n]*/gi;
 
             const phones = [...new Set((html.match(phoneRegex) || []).map(p => p.replace(/\s+/g, ' ').trim()))];
-            const emails = [...new Set(html.match(emailRegex) || [])].filter(e => !e.includes('example') && !e.includes('wixpress') && !e.includes('wordpress'));
-            const rawAddresses = html.match(addressRegex) || [];
-            const addresses = [...new Set(rawAddresses.map(a => a.replace(/<[^>]+>/g, '').trim().slice(0, 100)))]
-                .filter(a => a.length > 10 && /\d/.test(a));
+            const emails = [...new Set(html.match(emailRegex) || [])].filter(e => !e.includes('example') && !e.includes('wixpress'));
 
-            // Extract social media links
+            // Social media
             const facebookMatch = html.match(/(?:href=["'])(https?:\/\/(?:www\.)?facebook\.com\/[^"'\s]+)/i);
             const instagramMatch = html.match(/(?:href=["'])(https?:\/\/(?:www\.)?instagram\.com\/[^"'\s]+)/i);
-            const linkedinMatch = html.match(/(?:href=["'])(https?:\/\/(?:www\.)?linkedin\.com\/[^"'\s]+)/i);
             const whatsappMatch = html.match(/(?:href=["'])(https?:\/\/(?:wa\.me|api\.whatsapp\.com)\/[^"'\s]+)/i);
 
-            // Detect CMS
+            // CMS Detection
             const isWordpress = /wp-content|wordpress/i.test(html);
             const isWix = /wix\.com|wixsite/i.test(html);
             const isShopify = /cdn\.shopify\.com/i.test(html);
-            const cms = isWordpress ? 'WordPress' : isWix ? 'Wix' : isShopify ? 'Shopify' : null;
-
-            // Check mobile-friendly
-            const hasViewport = /\<meta[^>]*name=["']viewport["']/i.test(html);
+            const isNextJs = /_next|__NEXT/i.test(html);
+            const cms = isNextJs ? 'Next.js' : isWordpress ? 'WordPress' : isWix ? 'Wix' : isShopify ? 'Shopify' : null;
 
             return {
                 hasTitle: /<title>/.test(html),
                 hasMetaDesc: /<meta[^>]*name=["']description["'][^>]*content=["']/.test(html),
                 hasH1: /<h1/.test(html),
                 hasOGTags: /<meta[^>]*property=["']og:/.test(html),
-                isWordpress,
+                hasViewport: /<meta[^>]*name=["']viewport["']/i.test(html),
                 cms,
-                hasViewport,
-                loadTimeMs: 0,
                 contentLength: html.length,
                 htmlPreview: textContent,
                 hasSSL: urlToTry.startsWith('https://'),
-                // NEW: Contact info
                 phones,
                 emails,
-                addresses,
-                // NEW: Social media
                 facebook: facebookMatch?.[1] || null,
                 instagram: instagramMatch?.[1] || null,
-                linkedin: linkedinMatch?.[1] || null,
                 whatsapp: whatsappMatch?.[1] || null
             };
         } catch (e) {
@@ -90,10 +78,10 @@ async function performSeoAudit(url: string) {
         }
     }
 
-    return { error: 'Could not reach site via any protocol/www combination' };
+    return { error: 'Could not reach site' };
 }
 
-// Helper: Google Search Context (The "Deep Research" Layer)
+// Helper: Google Search Context
 async function performDeepResearch(query: string) {
     if (!SERPER_API_KEY || !query) return "";
     try {
@@ -106,10 +94,8 @@ async function performDeepResearch(query: string) {
             body: JSON.stringify({ q: query, gl: 'cl', hl: 'es' })
         });
         const data = await res.json();
-        // Return snippets from top results
-        return data.organic?.slice(0, 3).map((r: any) => `${r.title}: ${r.snippet}`).join('\n') || "";
+        return data.organic?.slice(0, 2).map((r: any) => `${r.title}: ${r.snippet}`).join('\n') || "";
     } catch (e) {
-        console.error("Deep Research Failed", e);
         return "";
     }
 }
@@ -119,7 +105,7 @@ export async function POST(req: Request) {
         const { leadId, url, businessName, businessType } = await req.json();
         const supabase = await createClient();
 
-        // Validate leadId is a proper UUID (not "preview")
+        // Validate leadId
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (!leadId || !uuidRegex.test(leadId)) {
             return NextResponse.json({
@@ -130,140 +116,152 @@ export async function POST(req: Request) {
 
         console.log(`🕵️ DEEP ANALYZE: Processing ${businessName} (${url})...`);
 
-        // 1. Technical Audit (Scrape + DNS/Headers)
+        // 1. Technical Audit
         const [audit, techSpecs] = await Promise.all([
             performSeoAudit(url),
             analyzeTechSpecs(url)
         ]);
 
-        // 2. Google Search Context (For redundancy if site is sparse)
+        // 2. Google Search Context
         const searchContext = await performDeepResearch(`${businessName} Chile`);
 
-        console.log(`🕵️ CONTEXT: ScrapeLen=${audit?.contentLength || 0}, TechSpecs=${!!techSpecs}, SearchCtx=${searchContext.length} chars`);
-
-        // 2. AI Intelligence (The "Ubersuggest" Simulation)
-        // 2. AI Intelligence (The "Ubersuggest" Simulation)
-        let deepAnalysis = {
+        // 3. AI Analysis con OpenAI
+        let deepAnalysis: any = {
             seoScore: 0,
-            missingKeywords: [] as string[],
-            competitorGap: "",
-            technicalIssues: [] as string[],
-            contentStrategy: "",
-            backlinkOpportunities: [] as string[],
-            topCompetitors: [] as string[],
-            actionable_tasks: [] as any[],
-            sales_angles: [] as string[],
-            analysisReport: "Análisis pendiente",
+            verdict: 'REVISAR',
+            executiveSummary: 'Análisis pendiente',
+            technicalIssues: [],
+            designAnalysis: { isOutdated: false, worstProblems: [] },
+            buyerPersona: 'Por definir',
             salesStrategy: {
-                hook: "Pendiente",
-                painPoints: [] as string[],
-                proposedSolution: "Pendiente",
-                estimatedValue: "Por Definir"
-            }
+                hook: 'Pendiente',
+                painPoints: [],
+                proposedSolution: 'Pendiente',
+                estimatedValue: 'Por Definir',
+                closingAngle: ''
+            },
+            actionPlan: {
+                priority: 'Por definir',
+                recommendedChannel: 'Email',
+                nextStep: 'Analizar'
+            },
+            competitors: [],
+            missingKeywords: []
         };
 
-        if (!GROQ_API_KEY) {
-            console.error("❌ GROQ_API_KEY missing in Deep Analysis");
-            deepAnalysis = {
-                ...deepAnalysis,
-                seoScore: 0,
-                technicalIssues: ["Error de Configuración: Falta GROQ_API_KEY"],
-                analysisReport: "Error: La API de Inteligencia (Groq) no está configurada en el servidor. Por favor, asegúrate de que GROQ_API_KEY esté en las variables de entorno.",
-                salesStrategy: {
-                    hook: "Configuración Requerida",
-                    painPoints: ["Falta GROQ_API_KEY"],
-                    proposedSolution: "Configurar variable de entorno GROQ_API_KEY",
-                    estimatedValue: "N/A"
-                },
-                actionable_tasks: [
-                    { title: "Configurar GROQ_API_KEY", difficulty: "Alta", impact: "Crítico", category: "Sistema" }
-                ]
-            } as any;
+        if (!OPENAI_API_KEY && !GROQ_API_KEY) {
+            deepAnalysis.executiveSummary = 'Error: No hay API de IA configurada (OPENAI_API_KEY o GROQ_API_KEY)';
         } else {
-            const prompt = `
-            Act as an ELITE SEO Strategist & Competitor Analyst (Ubersuggest/Semrush/Ahrefs level).
+            const prompt = `Analiza este negocio para HojaCero (agencia de diseño web Chile). Tu análisis debe ser ACCIONABLE: que yo pueda leerlo y saber exactamente qué hacer.
 
-            CONTEXT (WHO YOU ARE):
-            You are "HojaCero", a Premium Web Design & Strategic Marketing Agency.
-            You are analyzing a prospect (TARGET BUSINESS) to find opportunities to SELL THEM your services (Web Design, SEO, Ads).
+NEGOCIO: "${businessName}"
+TIPO: ${businessType || 'General'}
+WEB: ${url || 'NO TIENE'}
 
-            TARGET BUSINESS:
-            - Name: "${businessName}"
-            - Reported Type: ${businessType || 'General'}
-            - Website URL: ${url || 'No Website'}
-            
-            EVIDENCE 1 (WEBSITE CONTENT):
-            ${JSON.stringify({ ...audit, htmlPreview: audit?.htmlPreview?.slice(0, 1000) })}
+DATOS TÉCNICOS:
+${JSON.stringify({
+                ssl: audit?.hasSSL,
+                cms: audit?.cms,
+                hasTitle: audit?.hasTitle,
+                hasMetaDesc: audit?.hasMetaDesc,
+                hasViewport: audit?.hasViewport,
+                contentPreview: audit?.htmlPreview?.slice(0, 300)
+            }, null, 2)}
 
-            EVIDENCE 2 (TECHNICAL HEALTH):
-            ${JSON.stringify(techSpecs)}
+TECH SPECS:
+${JSON.stringify(techSpecs, null, 2)}
 
-            EVIDENCE 3 (EXTERNAL GOOGLE CONTEXT):
-            ${searchContext}
+CONTEXTO GOOGLE:
+${searchContext}
 
-            TASK:
-            1. First, understand what the business DOES.
-            2. Find gaps in their digital presence (Slow site? Ugly design? No SEO?).
-            3. Generate a Report for HojaCero's sales team to use.
+RESPONDE SOLO JSON:
+{
+  "seoScore": 0-100,
+  "verdict": "CONTACTAR URGENTE" | "CONTACTAR" | "REVISAR" | "DESCARTAR",
+  "executiveSummary": "2 oraciones: qué pasa con este negocio y qué oportunidad hay",
+  
+  "technicalIssues": [
+    {"issue": "Problema", "severity": "Alta|Media|Baja", "impact": "Por qué importa"}
+  ],
+  
+  "designAnalysis": {
+    "isOutdated": true/false,
+    "estimatedAge": "Parece de 2015" o similar,
+    "worstProblems": ["Problema visual 1", "Problema 2"]
+  },
+  
+  "buyerPersona": "Cliente ideal del negocio en 1 oración simple",
+  
+  "salesStrategy": {
+    "hook": "Frase de apertura ESPECÍFICA para este negocio (no genérica)",
+    "painPoints": ["Dolor real 1", "Dolor real 2", "Dolor real 3"],
+    "proposedSolution": "Servicio concreto: Landing $150 USD / Rediseño / SEO / etc",
+    "estimatedValue": "Bajo|Medio|Alto|Premium",
+    "closingAngle": "Ángulo de cierre: urgencia, competencia, pérdida de clientes, etc"
+  },
+  
+  "actionPlan": {
+    "priority": "Urgente|Esta semana|Puede esperar",
+    "recommendedChannel": "WhatsApp|Email|Llamada",
+    "bestTimeToContact": "Horario sugerido basado en tipo de negocio",
+    "nextStep": "Acción específica: enviar Demo, agendar llamada, etc"
+  },
+  
+  "competitors": ["Competidor 1", "Competidor 2"],
+  "missingKeywords": ["keyword SEO 1", "keyword 2"]
+}
 
-            output strictly JSON matching this structure:
-            {
-                "seoScore": [0-100 score],
-                "buyerPersona": "Brief description of the Target's Ideal Customer (e.g. 'Novios buscando centro de eventos')",
-                "painPoints": ["Pain 1 (e.g. Sitio lento)", "Pain 2 (No aparece en Google)", "Pain 3 (Diseño antiguo)"],
-                "missingKeywords": ["keyword 1", "keyword 2", "keyword 3", "keyword 4", "keyword 5"],
-                "competitorGap": "Analysis of what competitors are doing better.",
-                "technicalIssues": ["Issue 1", "Issue 2", "Issue 3"],
-                "contentStrategy": "Strategy for the CLIENT to grow (e.g. 'Blog about wedding tips').",
-                "backlinkOpportunities": ["Site A", "Site B"],
-                "topCompetitors": ["Comp 1", "Comp 2"],
-                "actionable_tasks": [
-                    { "title": "Direct Action 1", "difficulty": "Easy", "impact": "High", "category": "Technical" }
-                ],
-                "sales_angles": [
-                    "Angle 1 (e.g. 'Focus on Lost Revenue due to slow site')",
-                    "Angle 2 (e.g. 'Focus on Competitor Advantage')",
-                    "Angle 3 (e.g. 'Focus on Premium Brand perception')"
-                ]
-            }
+REGLAS:
+- Si tiene Next.js/React = Moderno, score bajo
+- Sin web = Score 90+, verdict CONTACTAR URGENTE
+- WordPress viejo/Wix = Score 60-80
+- Sé ESPECÍFICO, no genérico`;
 
-            Rules:
-            - "sales_angles": 3 Distinct psychological angles HOJACERO can use to close the deal. NOT email subject lines, but ANGLES.
-            - "buyerPersona": The CLIENT's customer.
-            - Be critical on Technical Issues.
-            - Provide STRICTLY JSON.
-            `;
+            try {
+                // Usar OpenAI primero, Groq como fallback
+                const apiUrl = OPENAI_API_KEY
+                    ? 'https://api.openai.com/v1/chat/completions'
+                    : 'https://api.groq.com/openai/v1/chat/completions';
 
-            const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_API_KEY} `
-                },
-                body: JSON.stringify({
-                    model: 'llama-3.3-70b-versatile',
-                    messages: [{ role: 'user', content: prompt }],
-                    temperature: 0.5,
-                    response_format: { type: "json_object" }
-                })
-            });
+                const apiKey = OPENAI_API_KEY || GROQ_API_KEY;
+                const model = OPENAI_API_KEY ? 'gpt-4o-mini' : 'llama-3.3-70b-versatile';
 
-            const aiData = await aiResponse.json();
-            const content = aiData.choices?.[0]?.message?.content;
-            if (content) {
-                try {
-                    deepAnalysis = JSON.parse(content);
-                } catch (e) {
-                    console.error("Failed to parse AI JSON", e);
+                const aiResponse = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'Eres un consultor de ventas B2B experto en análisis de presencia digital. Respondes SOLO en JSON válido.'
+                            },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.5,
+                        max_tokens: 800,
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                if (aiResponse.ok) {
+                    const aiData = await aiResponse.json();
+                    const content = aiData.choices?.[0]?.message?.content;
+                    if (content) {
+                        deepAnalysis = JSON.parse(content);
+                    }
                 }
+            } catch (e) {
+                console.error("AI Analysis failed", e);
             }
         }
 
-        // 3. Save to DB
-        // Fetch current lead to merge source_data
+        // 4. Save to DB
         const { data: currentLead } = await supabase.from('leads').select('source_data').eq('id', leadId).single();
 
-        // Build scraped data from audit (includes phones, emails, addresses, social)
         const scrapedData = {
             hasSSL: audit?.hasSSL || false,
             hasTitle: audit?.hasTitle || false,
@@ -274,15 +272,12 @@ export async function POST(req: Request) {
             cms: audit?.cms || null,
             emails: audit?.emails || [],
             phones: audit?.phones || [],
-            addresses: audit?.addresses || [],
             facebook: audit?.facebook || null,
             instagram: audit?.instagram || null,
-            linkedin: audit?.linkedin || null,
             whatsapp: audit?.whatsapp || null,
             techStack: [audit?.cms].filter(Boolean)
         };
 
-        // Also fix techSpecs.security.https to match scraped SSL status
         if (techSpecs?.security) {
             techSpecs.security.https = audit?.hasSSL || false;
         }

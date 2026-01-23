@@ -324,3 +324,99 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
         };
     }
 }
+
+// ========================
+// AI ANALYZER: OpenAI Version (gpt-4o-mini)
+// Nuevo analizador optimizado para HojaCero
+// ========================
+export async function analyzeLeadWithOpenAI(place: any, scraped: any) {
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+    if (!OPENAI_API_KEY) {
+        // Fallback a Groq si no hay OpenAI
+        console.warn('⚠️ OPENAI_API_KEY no configurada, usando Groq como fallback');
+        return analyzeLeadWithGroq(place, scraped);
+    }
+
+    const techStackStr = scraped.techStack?.length > 0 ? scraped.techStack.join(', ') : 'No detectada';
+    const contactsStr = [
+        scraped.emails?.length ? `Emails: ${scraped.emails.join(', ')}` : null,
+        scraped.whatsapp ? `WhatsApp: +${scraped.whatsapp}` : null,
+        scraped.instagram ? `Instagram: @${scraped.instagram}` : null
+    ].filter(Boolean).join(', ') || 'No encontrados';
+
+    const prompt = `Analiza este lead para la agencia HojaCero (diseño web Chile).
+
+DATOS:
+- Negocio: ${place.title}
+- Web: ${place.website || 'NO TIENE'}
+- Contactos: ${contactsStr}
+- Tech: ${techStackStr}
+- SSL: ${scraped.hasSSL ? 'Sí ✓' : 'NO ⚠'}
+
+REGLAS:
+- Next.js/React = Moderno (score bajo 10-30)
+- "HOJACERO" en web = Score 0
+- Sin web = Score 90-100
+- WordPress viejo/Wix feo = Score 60-80
+- Sé HONESTO y ESPECÍFICO
+
+RESPONDE SOLO JSON:
+{
+  "score": 0-100,
+  "verdict": "CONTACTAR" | "REVISAR" | "DESCARTAR",
+  "vibe": "Premium|Moderno|Profesional|Local|Desactualizado|Inexistente",
+  "buyerPersona": "Cliente ideal del negocio en 1 oración",
+  "analysisReport": "Análisis honesto en 2 oraciones",
+  "salesStrategy": {
+    "hook": "Frase de apertura específica para este negocio",
+    "painPoints": ["dolor1", "dolor2"],
+    "proposedSolution": "Servicio concreto que necesitan",
+    "estimatedValue": "Bajo|Medio|Alto|Premium"
+  },
+  "recommendedChannel": "WhatsApp|Email|Llamada",
+  "opportunity": "Tipo de proyecto potencial"
+}`;
+
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'Eres un consultor de ventas B2B experto. Respondes SOLO en JSON válido, sin markdown.'
+                    },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.6,
+                max_tokens: 500,
+                response_format: { type: "json_object" }
+            })
+        });
+
+        if (!response.ok) {
+            console.error('OpenAI API error:', response.status);
+            return analyzeLeadWithGroq(place, scraped);
+        }
+
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        const parsed = JSON.parse(content || '{}');
+
+        // Agregar campos de compatibilidad
+        return {
+            ...parsed,
+            scoreBreakdown: parsed.scoreBreakdown || {},
+            competitiveAnalysis: parsed.competitiveAnalysis || 'N/A'
+        };
+    } catch (e) {
+        console.error("OpenAI Analysis failed, falling back to Groq", e);
+        return analyzeLeadWithGroq(place, scraped);
+    }
+}
