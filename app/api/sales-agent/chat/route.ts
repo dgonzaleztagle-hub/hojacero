@@ -40,13 +40,22 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
     switch (name) {
         case 'diagnose_website': {
             try {
-                if (!args.url) return JSON.stringify({ error: 'URL requerida' });
-                const contactInfo = await scrapeContactInfo(args.url);
+                // Validación estricta de URL para evitar cuellos de botella por alucinación
+                const url = args.url?.trim();
+                if (!url || !url.includes('.') || url.length < 4) {
+                    return JSON.stringify({ error: 'URL inválida o no proporcionada. Por favor, pide la URL al usuario.' });
+                }
 
-                // Objeto mock para analyzeLeadWithGroq
+                const contactInfo = await scrapeContactInfo(url);
+
+                // Si el scraper falla (no encuentra nada de nada), avisar para no procesar con IA
+                if (!contactInfo.scrapedPages.length) {
+                    return JSON.stringify({ error: 'No pude acceder a ese sitio. Verifica que la URL sea correcta y accesible.' });
+                }
+
                 const mockPlace = {
-                    title: args.url.replace(/^https?:\/\//, '').split('/')[0],
-                    website: args.url
+                    title: url.replace(/^https?:\/\//, '').split('/')[0],
+                    website: url
                 };
 
                 const analysis = await analyzeLeadWithGroq(mockPlace, contactInfo);
@@ -253,7 +262,7 @@ export async function POST(req: NextRequest) {
 
         // Check if tools were called
         if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-            for (const toolCall of assistantMessage.tool_calls) {
+            const toolPromises = assistantMessage.tool_calls.map(async (toolCall) => {
                 toolsUsed.push(toolCall.function.name);
                 const result = await executeTool(
                     toolCall.function.name,
@@ -267,9 +276,8 @@ export async function POST(req: NextRequest) {
                     content: result,
                     tool_name: toolCall.function.name
                 };
-                toolResults.push(toolMsg);
 
-                // Save tool result
+                // Save tool result to DB
                 if (sessionId) {
                     await supabase.from('sales_agent_messages').insert({
                         session_id: sessionId,
@@ -279,11 +287,15 @@ export async function POST(req: NextRequest) {
                         tool_result: JSON.parse(result)
                     });
                 }
-            }
+
+                return toolMsg;
+            });
+
+            toolResults = await Promise.all(toolPromises);
 
             // Get final response - filter out custom properties like tool_name for Groq API
             const finalResponse = await groq.chat.completions.create({
-                model: 'llama-3.1-8b-instant',
+                model: 'llama-3.3-70b-versatile', // Upgrade model for better reasoning after tools
                 messages: [
                     ...conversation,
                     assistantMessage,

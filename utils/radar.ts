@@ -139,32 +139,38 @@ export async function scrapeContactInfo(websiteUrl: string): Promise<{
     let successfulBaseUrl = '';
     let mainHtml = '';
 
-    // Step 1: Try to fetch main page
-    for (const urlToTry of urlsToTry) {
-        try {
+    // Step 1: Intentar todas las variaciones de protocolo en PARALELO para ganar velocidad
+    try {
+        const fetchWithTimeout = async (url: string) => {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 5000);
+            const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout (agresivo para evitar Vercel timeout)
+            try {
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+                });
+                clearTimeout(timeout);
+                if (!response.ok) throw new Error('Not ok');
+                const html = await response.text();
+                return { url, html };
+            } catch (e) {
+                clearTimeout(timeout);
+                throw e;
+            }
+        };
 
-            const response = await fetch(urlToTry, {
-                signal: controller.signal,
-                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-            });
-            clearTimeout(timeout);
+        // Ejecutamos todos en paralelo y nos quedamos con el primero que funcione
+        const firstSuccess = await Promise.any(urlsToTry.map(url => fetchWithTimeout(url)));
 
-            if (!response.ok) continue;
+        successfulBaseUrl = firstSuccess.url;
+        mainHtml = firstSuccess.html;
+        result.hasSSL = successfulBaseUrl.startsWith('https');
+        result.scrapedPages.push(successfulBaseUrl);
+        extractDataFromHtml(mainHtml, result);
 
-            result.hasSSL = urlToTry.startsWith('https');
-            mainHtml = await response.text();
-            successfulBaseUrl = urlToTry;
-            result.scrapedPages.push(urlToTry);
-
-            // Extract data from main page
-            extractDataFromHtml(mainHtml, result);
-            break;
-
-        } catch {
-            continue;
-        }
+    } catch (e) {
+        console.warn(`⚠️ Scraper failed for ${websiteUrl}: No protocol variation worked.`);
+        return result;
     }
 
     if (!successfulBaseUrl) {
@@ -295,7 +301,7 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
                 'Authorization': `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'llama-3.1-8b-instant', // Speed up discovery (previous 70B was too slow)
                 messages: [
                     {
                         role: 'system',
