@@ -105,7 +105,7 @@ function findContactPages(html: string, baseUrl: string): string[] {
     return Array.from(found).slice(0, 3); // Max 3 subpages to avoid too many requests
 }
 
-export async function scrapeContactInfo(websiteUrl: string): Promise<{
+export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = false): Promise<{
     emails: string[];
     whatsapp: string | null;
     instagram: string | null;
@@ -173,8 +173,8 @@ export async function scrapeContactInfo(websiteUrl: string): Promise<{
         return result;
     }
 
-    if (!successfulBaseUrl) {
-        console.warn(`⚠️ Scraper failed for ${websiteUrl}: Could not reach site`);
+    if (!successfulBaseUrl || fastMode) {
+        if (!successfulBaseUrl) console.warn(`⚠️ Scraper failed for ${websiteUrl}: Could not reach site`);
         return result;
     }
 

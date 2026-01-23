@@ -46,7 +46,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     return JSON.stringify({ error: 'URL inválida o no proporcionada. Por favor, pide la URL al usuario.' });
                 }
 
-                const contactInfo = await scrapeContactInfo(url);
+                const contactInfo = await scrapeContactInfo(url, true); // true = fastMode para el bot
 
                 // Si el scraper falla (no encuentra nada de nada), avisar para no procesar con IA
                 if (!contactInfo.scrapedPages.length) {
@@ -326,9 +326,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             message: finalContent
-                .replace(/<function=.*?\/function>/gi, '') // Eliminar tags de función
-                .replace(/tool_name>\{.*?\}/gi, '')       // Eliminar filtraciones de tool_name con JSON
-                .replace(/\{"success":true.*?\}/gi, '')   // Eliminar confirmaciones crudas de JSON
+                .replace(/<function=.*?\/function>/gi, '') // Eliminar tags de función style-old
+                .replace(/tool_name>\{.*?\}/gi, '')       // Eliminar filtraciones de tool_name
+                .replace(/\{"url":.*?\}/gi, '')           // Eliminar argumentos de URL filtrados (leak detectado)
+                .replace(/\{"nombre":.*?\}/gi, '')        // Eliminar otros JSON de herramientas
+                .replace(/\{"success":true.*?\}/gi, '')   // Eliminar confirmaciones de éxito
+                .replace(/```json[\s\S]*?```/gi, '')      // Eliminar bloques de código JSON
+                .replace(/^Dame un momento, déjame revisar tu sitio\.\.\./i, '') // Evitar repetición
+                .replace(/\.\.\.\s*\{.*?\}/gi, '...')      // Limpiar JSON pegado a puntos suspensivos
                 .trim(),
             sessionId,
             toolsUsed,
