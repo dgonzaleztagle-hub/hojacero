@@ -73,18 +73,29 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
         case 'save_lead': {
             try {
                 if (!sessionId) return JSON.stringify({ error: 'No session id' });
+
+                // Mapeo flexible de parámetros para evitar errores de alucinación del modelo
+                const nombre = args.nombre || args.client_name || args.nombre_contacto || 'Cliente Interesado';
+                const telefono = args.telefono || args.whatsapp || args.client_phone || '';
+
                 const { error } = await supabase.from('sales_agent_sessions').update({
-                    customer_name: args.nombre,
-                    customer_whatsapp: args.whatsapp,
-                    customer_notes: args.notas,
+                    customer_name: nombre,
+                    customer_whatsapp: telefono,
+                    customer_email: args.email || args.client_email,
+                    customer_notes: args.notas || args.summary,
                     last_active_at: new Date().toISOString()
                 }).eq('id', sessionId);
 
-                if (error) throw error;
-                await trackEvent(supabase, sessionId, 'lead_captured', { name: args.nombre });
-                return JSON.stringify({ success: true, message: 'Lead guardado correctamente' });
+                if (error) {
+                    console.error("Save Lead DB Error:", error);
+                    return JSON.stringify({ error: "Error de base de datos" });
+                }
+
+                await trackEvent(supabase, sessionId, 'lead_captured', { name: nombre });
+                return JSON.stringify({ success: true, message: 'Lead guardado con éxito' });
             } catch (error: any) {
-                return JSON.stringify({ error: `Error guardando lead: ${error.message}` });
+                console.error("Save Lead Exception:", error);
+                return JSON.stringify({ error: 'Error procesando solicitud' });
             }
         }
 
@@ -164,12 +175,37 @@ export async function POST(req: NextRequest) {
         // Get or create session
         let sessionId: string | null = clientSessionId;
         if (!sessionId) {
-            const { data: newSession } = await supabase.from('sales_agent_sessions').insert({
+            const { data: newSession, error: sErr } = await supabase.from('sales_agent_sessions').insert({
                 session_key: `session-${Date.now()}-${Math.random().toString(36).slice(2)}`,
                 status: 'active'
             }).select().single();
+            if (sErr) console.error("Session Create Error:", sErr);
             sessionId = newSession?.id || null;
         }
+
+        // --- INICIO: Guardián de Bienvenida ---
+        // Si no hay mensajes o el primer mensaje es vacío, devolvemos saludo directo
+        // Esto evita que la IA intente llamar a herramientas "altiro" al cargar/refrescar
+        if (!messages || messages.length === 0 || (messages.length === 1 && !messages[0].content)) {
+            const greeting = "¡Hola! 👋 Bienvenido a HojaCero. Soy tu asistente virtual. ¿En qué te puedo ayudar hoy? Si quieres, puedo analizar tu sitio web o agendar una cita con Daniel.";
+
+            if (sessionId) {
+                await supabase.from('sales_agent_messages').insert({
+                    session_id: sessionId,
+                    role: 'assistant',
+                    content: greeting
+                });
+            }
+
+            return NextResponse.json({
+                success: true,
+                message: greeting,
+                sessionId,
+                toolsUsed: [],
+                newMessages: []
+            });
+        }
+        // --- FIN: Guardián de Bienvenida ---
 
         // Save user message
         const lastMsg = messages[messages.length - 1];
