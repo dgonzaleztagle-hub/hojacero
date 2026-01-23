@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Loader2, Terminal, User, Bot } from 'lucide-react';
 import { SalesAgenda } from './SalesAgenda';
+import { RadarReport } from './RadarReport';
 
 interface ChatMessage {
     id: string;
@@ -11,6 +12,7 @@ interface ChatMessage {
     content: string;
     tool_calls?: any[];
     tool_call_id?: string;
+    tool_name?: string;
 }
 
 export function ChatInterface() {
@@ -75,7 +77,8 @@ export function ChatInterface() {
                     role: m.role,
                     content: m.content || '',
                     tool_calls: m.tool_calls,
-                    tool_call_id: m.tool_call_id
+                    tool_call_id: m.tool_call_id,
+                    tool_name: m.tool_name
                 }));
 
                 // Assistant final content message
@@ -119,33 +122,45 @@ export function ChatInterface() {
         <div className="flex-1 flex flex-col h-full bg-zinc-950/20">
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
                 <AnimatePresence>
-                    {messages.filter(m => m.role !== 'tool' && m.content).map((m) => (
-                        <motion.div
-                            key={m.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                            {m.role === 'assistant' && (
-                                <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center shrink-0">
-                                    <Bot className="w-4 h-4 text-white" />
+                    {messages.filter(m => (m.role !== 'tool' && m.content) || (m.role === 'tool' && m.tool_name === 'diagnose_website')).map((m) => {
+                        if (m.role === 'tool' && m.tool_name === 'diagnose_website') {
+                            try {
+                                const data = JSON.parse(m.content);
+                                if (data.error) return null;
+                                return <RadarReport key={m.id} data={data} />;
+                            } catch (e) {
+                                return null;
+                            }
+                        }
+
+                        return (
+                            <motion.div
+                                key={m.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                            >
+                                {m.role === 'assistant' && (
+                                    <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center shrink-0">
+                                        <Bot className="w-4 h-4 text-white" />
+                                    </div>
+                                )}
+                                <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
+                                    ? 'bg-cyan-600 text-white rounded-br-none'
+                                    : m.role === 'system'
+                                        ? 'bg-red-500/10 border border-red-500/20 text-red-400'
+                                        : 'bg-zinc-900 border border-white/10 text-zinc-100 rounded-bl-none'
+                                    }`}>
+                                    {m.content}
                                 </div>
-                            )}
-                            <div className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
-                                ? 'bg-cyan-600 text-white rounded-br-none'
-                                : m.role === 'system'
-                                    ? 'bg-red-500/10 border border-red-500/20 text-red-400'
-                                    : 'bg-zinc-900 border border-white/10 text-zinc-100 rounded-bl-none'
-                                }`}>
-                                {m.content}
-                            </div>
-                            {m.role === 'user' && (
-                                <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center shrink-0">
-                                    <User className="w-4 h-4 text-white" />
-                                </div>
-                            )}
-                        </motion.div>
-                    ))}
+                                {m.role === 'user' && (
+                                    <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center shrink-0">
+                                        <User className="w-4 h-4 text-white" />
+                                    </div>
+                                )}
+                            </motion.div>
+                        );
+                    })}
                     {isProcessing && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
                             <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center">

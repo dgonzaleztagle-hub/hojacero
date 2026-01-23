@@ -12,6 +12,7 @@ interface ChatMessage {
     content: string;
     tool_call_id?: string;
     tool_calls?: any[];
+    tool_name?: string;
 }
 
 // Create a Supabase client for public chat operations
@@ -41,20 +42,28 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
             try {
                 if (!args.url) return JSON.stringify({ error: 'URL requerida' });
                 const contactInfo = await scrapeContactInfo(args.url);
-                const analysis = await analyzeLeadWithGroq(args.url, contactInfo);
+
+                // Objeto mock para analyzeLeadWithGroq
+                const mockPlace = {
+                    title: args.url.replace(/^https?:\/\//, '').split('/')[0],
+                    website: args.url
+                };
+
+                const analysis = await analyzeLeadWithGroq(mockPlace, contactInfo);
 
                 if (sessionId) {
                     await supabase.from('sales_agent_sessions').update({
                         detected_url: args.url,
-                        detected_tech: analysis.techStack
+                        detected_tech: contactInfo.techStack
                     }).eq('id', sessionId);
                 }
 
+                // Retornamos el objeto completo de la IA + tech stack
                 return JSON.stringify({
-                    summary: analysis.summary,
-                    recommendations: analysis.recommendations,
-                    urgency: analysis.urgency,
-                    techStack: analysis.techStack
+                    ...analysis,
+                    techStack: contactInfo.techStack,
+                    hasSSL: contactInfo.hasSSL,
+                    url: args.url
                 });
             } catch (error: any) {
                 return JSON.stringify({ error: `Error analizando sitio: ${error.message}` });
@@ -117,18 +126,25 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
         case 'escalate_to_human': {
             try {
                 if (!sessionId) return JSON.stringify({ error: 'No session id' });
-                await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sales-agent/notify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'hot_lead',
-                        sessionId,
-                        message: `🔥 Cliente solicita hablar con humano: ${args.motivo || 'No especificado'}`,
-                        context: args
-                    })
-                });
-                await trackEvent(supabase, sessionId, 'human_escalation', { reason: args.motivo });
-                return JSON.stringify({ success: true, message: 'Daniel ha sido notificado y te contactará pronto.' });
+
+                // Filtro de Calidad: No notificar a Daniel si la urgencia es baja (evitar spam)
+                const isUrgent = args.urgency === 'medium' || args.urgency === 'high';
+
+                if (isUrgent) {
+                    await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sales-agent/notify`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'hot_lead',
+                            sessionId,
+                            message: `🔥 Cliente solicita hablar con humano: ${args.reason || 'No especificado'}`,
+                            context: args
+                        })
+                    });
+                }
+
+                await trackEvent(supabase, sessionId, 'human_escalation', { reason: args.reason, urgency: args.urgency, notified: isUrgent });
+                return JSON.stringify({ success: true, message: 'Daniel ha sido notificado y revisará tu caso pronto.' });
             } catch (error: any) {
                 return JSON.stringify({ error: 'Error notificando al equipo' });
             }
@@ -198,7 +214,8 @@ export async function POST(req: NextRequest) {
                 const toolMsg: ChatMessage = {
                     role: 'tool',
                     tool_call_id: toolCall.id,
-                    content: result
+                    content: result,
+                    tool_name: toolCall.function.name
                 };
                 toolResults.push(toolMsg);
 
@@ -214,13 +231,17 @@ export async function POST(req: NextRequest) {
                 }
             }
 
-            // Get final response
+            // Get final response - filter out custom properties like tool_name for Groq API
             const finalResponse = await groq.chat.completions.create({
                 model: 'llama-3.1-8b-instant',
                 messages: [
                     ...conversation,
                     assistantMessage,
-                    ...toolResults
+                    ...toolResults.map(tr => ({
+                        role: 'tool',
+                        tool_call_id: tr.tool_call_id,
+                        content: tr.content
+                    }))
                 ] as any[],
                 temperature: 0.7
             });
