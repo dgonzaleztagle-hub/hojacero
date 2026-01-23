@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+
+// Cliente admin para operaciones del bot (sin cookies de usuario)
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 /**
  * API para notificar a Daniel cuando se detecta un lead de alto valor
@@ -15,7 +21,6 @@ interface NotificationPayload {
 }
 
 export async function POST(req: NextRequest) {
-    const supabase = await createClient();
     const payload: NotificationPayload = await req.json();
 
     try {
