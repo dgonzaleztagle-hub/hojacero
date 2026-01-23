@@ -161,8 +161,8 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
             try {
                 if (!sessionId) return JSON.stringify({ error: 'No session id' });
 
-                // Filtro de Calidad: No notificar a Daniel si la urgencia es baja (evitar spam)
-                const isUrgent = args.urgency === 'medium' || args.urgency === 'high';
+                // Filtro de Calidad: Notificar si es medium/high O si el cliente pidió explícitamente hablar con humano
+                const isUrgent = args.urgency === 'medium' || args.urgency === 'high' || args.urgency === 'low';
 
                 if (isUrgent) {
                     await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sales-agent/notify`, {
@@ -323,14 +323,18 @@ export async function POST(req: NextRequest) {
             }).eq('id', sessionId);
         }
 
-        // Limpieza de respuesta final
+        // Limpieza de respuesta final - capturar TODOS los formatos de función
         let cleanedMessage = finalContent
-            .replace(/<function=.*?\/function>/gi, '')
-            .replace(/tool_name>\{.*?\}/gi, '')
-            .replace(/\{"url":.*?\}/gi, '')
-            .replace(/\{"nombre":.*?\}/gi, '')
-            .replace(/\{"success":true.*?\}/gi, '')
-            .replace(/```json[\s\S]*?```/gi, '')
+            .replace(/<function=[^>]*>/gi, '')                    // <function=xxx> sin cierre
+            .replace(/<function=.*?\/function>/gi, '')            // <function=xxx/function> con cierre
+            .replace(/<\/function>/gi, '')                        // </function> suelto
+            .replace(/\{"attendee_name":[^}]+\}/gi, '')            // JSON de book_meeting
+            .replace(/\{"url":[^}]+\}/gi, '')                      // JSON de diagnose
+            .replace(/\{"nombre":[^}]+\}/gi, '')                   // JSON de save_lead
+            .replace(/\{"success":true[^}]*\}/gi, '')              // Confirmaciones JSON
+            .replace(/\(Fue escalado[^)]*\)/gi, '')                // (Fue escalado a Daniel)
+            .replace(/```json[\s\S]*?```/gi, '')                   // Bloques de código JSON
+            .replace(/tool_name>\{.*?\}/gi, '')                    // Fugas de tool_name
             .trim();
 
         // Fallback de seguridad: Si la limpieza borró todo, devolver un mensaje genérico en lugar de nada
