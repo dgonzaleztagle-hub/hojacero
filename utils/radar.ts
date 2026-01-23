@@ -246,51 +246,44 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
     ].filter(Boolean).join(', ');
 
     const prompt = `
-    Eres un EXPERTO en Lead Qualification para la agencia "HojaCero" (Diseño Web, Apps y Marketing).
-    Analiza este negocio y genera un reporte ACCIONABLE para el equipo comercial.
+    Eres un CONSULTOR ESTRATÉGICO de la agencia "HojaCero". Tu misión es analizar la presencia digital de un negocio con CRITERIO TÉCNICO REAL y HONESTIDAD.
     
     DATOS DEL LEAD:
     - Negocio: ${place.title}
-    - Categoría: ${place.category || 'No especificada'}
-    - Rating Google: ${place.rating || 'Sin rating'} (${place.userRatingCount || 0} reseñas)
-    - Sitio Web: ${place.website || 'NO TIENE - OPORTUNIDAD ALTA'}
-    - Teléfono: ${place.phoneNumber || place.phone || 'No disponible'}
-    - Dirección: ${place.address || 'No disponible'}
-    - Contactos encontrados: ${contactsStr || 'Ninguno visible en web'}
-    ${techStackStr ? `- Tecnología actual: ${techStackStr}` : ''}
-    ${scraped.hasSSL ? '- Tiene SSL ✓' : '- SIN SSL - Problema de seguridad'}
+    - Sitio Web: ${place.website || 'NO TIENE'}
+    - Contactos: ${contactsStr || 'No visibles'}
+    - Tecnología detectada: ${techStackStr || 'No identificada de forma clara'}
+    - Seguridad: ${scraped.hasSSL ? 'HTTPS Activo ✓' : 'SIN SSL - Inseguro ⚠'}
     
-    GENERA UN JSON con esta estructura EXACTA:
+    REGLAS DE EVALUACIÓN (CRÍTICO):
+    1. SI la tecnología es "Next.js" o "React", el sitio es MODERNO. El score debe ser BAJO (10-30) a menos que falte el SSL o tenga un rating muy malo.
+    2. SI ves "Designed by HOJACERO" o similar, el sitio es PERFECTO. Score: 0. Vibe: "Premium / HojaCero Masterpiece".
+    3. NO inventes que el sitio es de la década de 2000 si tiene stack moderno.
+    4. SÉ HONESTO: Si el sitio es muy bueno, diles "Tu sitio es increíble, felicitaciones". Busca oportunidades en otros lados (ej: ¿Necesitan una App? ¿Mejorar su SEO local?).
+    5. Solo califica como "Desactualizado" si realmente ves tecnología vieja o falta de SSL/Responsive.
+
+    ESTRUCTURA JSON EXACTA:
     {
-      "score": [0-100, mayor = mejor oportunidad para HojaCero],
+      "score": [0-100, 0=Perfecto, 100=Urge Rediseño],
       "scoreBreakdown": {
-        "sinWeb_o_WebDeficiente": [0-40, ALTO si no tiene web o es terrible/vieja],
+        "sinWeb_o_WebDeficiente": [0-40],
         "ratingBajo_o_Nulo": [0-20],
         "sinContactoDigital": [0-15],
-        "techObsoleta_o_Lenta": [0-40, MUY ALTO si es HTML viejo, carga lento, no responsive],
+        "techObsoleta_o_Lenta": [0-40],
         "sinRedesSociales": [0-10]
       },
-      "vibe": "[Profesional|Moderno|Desactualizado|Local|Premium]",
-      "opportunity": "[Diseño Web|Rediseño|App Móvil|SEO|Reputación|Marketing Digital|Branding]",
-      "analysisReport": "Análisis en español de 2-3 oraciones explicando POR QUÉ este lead es valioso",
+      "vibe": "[Premium|Moderno|Profesional|Local|Desactualizado|Inexistente]",
+      "opportunity": "[Mantenimiento|SEO|App Móvil|Campaña Ads|Rediseño Crítico]",
+      "analysisReport": "Análisis honesto de 2 oraciones. Si es bueno, elógialo. Si es malo, explica por qué objetivamente.",
       "salesStrategy": {
-        "hook": "Gancho inicial para el primer contacto (1 oración persuasiva)",
-        "painPoints": ["problema 1", "problema 2"],
-        "proposedSolution": "Qué servicio específico ofrecer",
+        "hook": "Un comentario inteligente (NO genérico) sobre su situación actual.",
+        "painPoints": ["problema real 1", "problema real 2"],
+        "proposedSolution": "Servicio que realmente aporte valor",
         "estimatedValue": "[Bajo|Medio|Alto|Premium]"
       },
-      "competitiveAnalysis": "Breve análisis de qué está haciendo bien/mal vs su competencia",
-      "recommendedChannel": "[Email|WhatsApp|Llamada|Visita]"
+      "competitiveAnalysis": "Comparativa realista",
+      "recommendedChannel": "Canal sugerido"
     }
-    
-    IMPORTANTE: 
-    - CRITERIO DE SCORE: Un sitio web antiguo (HTML simple, diseño 2000s), NO responsive, lento o sin HTTPS es una OPORTUNIDAD CRÍTICA. El score DEBE ser > 90.
-    - Si el negocio no tiene web, score > 85.
-    - Si el negocio tiene una web moderna y rápida, el score bajará (ej: 20-40).
-    - Sé CRÍTICO. Queremos vender Rediseño y Modernización. Si la web es fea, DILO. 
-    - Score ALTO si NO tiene web, tiene rating bajo, o tech obsoleta
-    - Sé específico en painPoints y hook - esto lo usará un vendedor real
-    - El hook debe ser personalizado para ESE negocio específico
     `;
 
     try {
