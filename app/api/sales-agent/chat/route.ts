@@ -291,8 +291,9 @@ export async function POST(req: NextRequest) {
         let toolResults: ChatMessage[] = [];
 
         // Check if tools were called
-        if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-            for (const toolCall of assistantMessage.tool_calls) {
+        const toolCalls = assistantMessage.tool_calls as any[];
+        if (toolCalls && toolCalls.length > 0) {
+            for (const toolCall of toolCalls) {
                 toolsUsed.push(toolCall.function.name);
                 const result = await executeTool(
                     toolCall.function.name,
@@ -313,6 +314,7 @@ export async function POST(req: NextRequest) {
                         content: result,
                         tool_name: toolCall.function.name,
                         tool_result: JSON.parse(result)
+
                     });
                 }
             }
