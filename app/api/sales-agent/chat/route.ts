@@ -323,23 +323,31 @@ export async function POST(req: NextRequest) {
             }).eq('id', sessionId);
         }
 
+        // Limpieza de respuesta final
+        let cleanedMessage = finalContent
+            .replace(/<function=.*?\/function>/gi, '')
+            .replace(/tool_name>\{.*?\}/gi, '')
+            .replace(/\{"url":.*?\}/gi, '')
+            .replace(/\{"nombre":.*?\}/gi, '')
+            .replace(/\{"success":true.*?\}/gi, '')
+            .replace(/```json[\s\S]*?```/gi, '')
+            .trim();
+
+        // Fallback de seguridad: Si la limpieza borró todo, devolver un mensaje genérico en lugar de nada
+        if (!cleanedMessage && toolsUsed.length > 0) {
+            cleanedMessage = "He analizado tu sitio. ¿Te gustaría ver los detalles o agendar una llamada?";
+        } else if (!cleanedMessage) {
+            cleanedMessage = "Disculpa, tuve un lapsus. ¿Me podrías repetir eso?";
+        }
+
         return NextResponse.json({
             success: true,
-            message: finalContent
-                .replace(/<function=.*?\/function>/gi, '') // Eliminar tags de función style-old
-                .replace(/tool_name>\{.*?\}/gi, '')       // Eliminar filtraciones de tool_name
-                .replace(/\{"url":.*?\}/gi, '')           // Eliminar argumentos de URL filtrados (leak detectado)
-                .replace(/\{"nombre":.*?\}/gi, '')        // Eliminar otros JSON de herramientas
-                .replace(/\{"success":true.*?\}/gi, '')   // Eliminar confirmaciones de éxito
-                .replace(/```json[\s\S]*?```/gi, '')      // Eliminar bloques de código JSON
-                .replace(/^Dame un momento, déjame revisar tu sitio\.\.\./i, '') // Evitar repetición
-                .replace(/\.\.\.\s*\{.*?\}/gi, '...')      // Limpiar JSON pegado a puntos suspensivos
-                .trim(),
+            message: cleanedMessage,
             sessionId,
             toolsUsed,
             newMessages: toolResults.length > 0 ? [
-                { role: 'assistant', content: assistantMessage.content || '', tool_calls: assistantMessage.tool_calls },
-                ...toolResults
+                ...toolResults.map(tr => ({ role: 'tool', content: tr.content, tool_name: tr.tool_name })),
+                { role: 'assistant', content: cleanedMessage }
             ] : []
         });
 
