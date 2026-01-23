@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import { SALES_AGENT_SYSTEM_PROMPT, SALES_TOOLS } from '@/utils/sales-agent/system-prompt';
 import { createClient } from '@supabase/supabase-js';
 import { scrapeContactInfo, analyzeLeadWithGroq } from '@/utils/radar';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// SiliconFlow API (compatible con OpenAI) - DeepSeek-V3.1-Nex-N1 con 1M tokens/min gratis
+const siliconflow = new OpenAI({
+    apiKey: process.env.SILICONFLOW_API_KEY,
+    baseURL: 'https://api.siliconflow.cn/v1'
+});
+
+const CHAT_MODEL = 'nex-agi/DeepSeek-V3.1-Nex-N1';
 
 // Cliente admin para operaciones del bot (sin cookies de usuario)
 const supabaseAdmin = createClient(
@@ -269,9 +275,9 @@ export async function POST(req: NextRequest) {
             ...messages
         ];
 
-        // Call Groq with 70B model (more intelligent, follows instructions better)
-        const response = await groq.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+        // SiliconFlow con DeepSeek-V3.1-Nex-N1 (optimizado para agents y tool calling)
+        const response = await siliconflow.chat.completions.create({
+            model: CHAT_MODEL,
             messages: conversation as any[],
             tools: SALES_TOOLS,
             tool_choice: 'auto',
@@ -318,8 +324,8 @@ export async function POST(req: NextRequest) {
                 ...toolResults
             ];
 
-            const finalResponse = await groq.chat.completions.create({
-                model: 'llama-3.3-70b-versatile',
+            const finalResponse = await siliconflow.chat.completions.create({
+                model: CHAT_MODEL,
                 messages: finalConversation as any[],
                 max_tokens: 1024,
                 temperature: 0.7
