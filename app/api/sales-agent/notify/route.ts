@@ -13,12 +13,13 @@ const supabase = createClient(
  */
 
 interface NotificationPayload {
-    type: 'enterprise_lead' | 'hot_lead' | 'meeting_booked';
+    type: 'enterprise_lead' | 'hot_lead' | 'meeting_booked' | 'dev_escalation' | 'mkt_escalation';
     leadId?: string;
     sessionId?: string;
     message: string;
     context?: any;
 }
+
 
 export async function POST(req: NextRequest) {
     const payload: NotificationPayload = await req.json();
@@ -95,42 +96,70 @@ function getSubject(type: string): string {
         case 'enterprise_lead': return '🏢 Lead Enterprise Detectado - Acción Inmediata';
         case 'hot_lead': return '🔥 Lead Caliente en el Chat';
         case 'meeting_booked': return '📅 Nueva Reunión Agendada';
+        case 'dev_escalation': return '💻 Escalamiento DEV - Prospecto Esperando';
+        case 'mkt_escalation': return '📢 Escalamiento MKT - Prospecto Esperando';
         default: return '🔔 Notificación del Bot H0';
     }
 }
 
+
 function buildEmailHtml(payload: NotificationPayload, recipientName: string = 'Daniel'): string {
+    const ctx = payload.context || {};
+    const hasWhatsApp = !!ctx.whatsapp_link;
+
     return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px;">
         <h2 style="color: #0891b2; margin-bottom: 20px;">
             ${payload.type === 'enterprise_lead' ? '🏢 Lead Enterprise Detectado' :
             payload.type === 'hot_lead' ? '🔥 Lead Caliente' :
-                '📅 Reunión Agendada'}
+                payload.type === 'dev_escalation' ? '💻 Escalamiento DEV' :
+                    payload.type === 'mkt_escalation' ? '📢 Escalamiento MKT' :
+                        '📅 Reunión Agendada'}
         </h2>
         
-        <p style="color: #71717a; margin-bottom: 16px;">Hola ${recipientName}, te llega esto porque el bot necesita tu ayuda:</p>
+        <p style="color: #71717a; margin-bottom: 16px;">Hola ${recipientName}, un prospecto te necesita:</p>
         
         <div style="background: #f4f4f5; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
-            <p style="margin: 0; color: #18181b; font-size: 16px;">
+            <p style="margin: 0; color: #18181b; font-size: 16px; font-weight: bold;">
                 ${payload.message}
             </p>
         </div>
         
-        ${payload.context ? `
+        ${ctx.client_name ? `
+        <table style="margin-bottom: 20px; font-size: 14px;">
+            <tr><td style="color: #71717a; padding-right: 10px;">👤 Nombre:</td><td style="color: #18181b; font-weight: bold;">${ctx.client_name}</td></tr>
+            <tr><td style="color: #71717a; padding-right: 10px;">🏢 Empresa:</td><td style="color: #18181b;">${ctx.empresa || 'No especificada'}</td></tr>
+            <tr><td style="color: #71717a; padding-right: 10px;">📱 WhatsApp:</td><td style="color: #18181b;">${ctx.client_phone || 'No disponible'}</td></tr>
+            ${ctx.reason ? `<tr><td style="color: #71717a; padding-right: 10px;">📋 Razón:</td><td style="color: #18181b;">${ctx.reason}</td></tr>` : ''}
+        </table>
+        ` : ''}
+        
+        ${ctx.summary ? `
         <div style="border-left: 3px solid #0891b2; padding-left: 16px; margin-bottom: 20px;">
             <p style="color: #71717a; font-size: 14px; margin: 0;">
-                <strong>Contexto:</strong><br/>
-                ${JSON.stringify(payload.context, null, 2).replace(/\n/g, '<br/>')}
+                <strong>Resumen:</strong><br/>
+                ${ctx.summary}
             </p>
         </div>
         ` : ''}
         
-        <a href="https://hojacero.cl/dashboard/pipeline" 
-           style="display: inline-block; background: #0891b2; color: white; 
-                  padding: 12px 24px; border-radius: 8px; text-decoration: none; 
-                  font-weight: bold;">
-            Ver en Dashboard
-        </a>
+        <div style="display: flex; gap: 10px;">
+            ${hasWhatsApp ? `
+            <a href="${ctx.whatsapp_link}" 
+               style="display: inline-block; background: #25D366; color: white; 
+                      padding: 12px 24px; border-radius: 8px; text-decoration: none; 
+                      font-weight: bold; margin-right: 10px;">
+                📱 Contactar por WhatsApp
+            </a>
+            ` : ''}
+            
+            <a href="https://hojacero.cl/dashboard/pipeline" 
+               style="display: inline-block; background: #0891b2; color: white; 
+                      padding: 12px 24px; border-radius: 8px; text-decoration: none; 
+                      font-weight: bold;">
+                Ver en Dashboard
+            </a>
+        </div>
         
         <p style="color: #a1a1aa; font-size: 12px; margin-top: 20px;">
             — Bot H0 (Sistema Automático)
