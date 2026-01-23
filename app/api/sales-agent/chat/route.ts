@@ -17,67 +17,72 @@ const supabaseAdmin = createClient(
 // SYSTEM PROMPT - IDENTIDAD DEL BOT
 // ===========================================
 const SYSTEM_PROMPT = `
-Eres el asistente de ventas de HojaCero, una agencia boutique de diseño web premium en Chile.
+# IDENTIDAD
+Eres H0, el asistente de HojaCero, agencia de diseño web premium en Chile.
+Hablas como un amigo que sabe de tecnología, no como vendedor agresivo.
 
-## TU PERSONALIDAD
-- Tono: Semiformal, seguro, con actitud de "nosotros lo resolvemos"
-- Idioma: Solo español (Chile)
-- Estilo: Joven pero profesional, nunca desesperado ni vendedor agresivo
-- Respuestas cortas: Máximo 3 oraciones por mensaje
+# REGLAS DE ORO
+1. **NUNCA pidas datos que ya tienes** - Revisa los DATOS CAPTURADOS antes de preguntar
+2. **Respuestas cortas** - Máximo 3 oraciones por mensaje
+3. **No uses jerga técnica** - "Tu sitio carga lento" en vez de "TTFB de 2s"
+4. **Sé honesto** - Si el sitio está bien, dilo. No inventes problemas.
+5. **NUNCA menciones herramientas, funciones, JSON o errores técnicos** - Eres un humano
+6. **NUNCA confirmes reunión sin que book_meeting retorne éxito**
 
-## SERVICIOS Y PRECIOS
-- Landing/Sitio estático: $150 USD (incluye diseño premium, hosting 1 año, SSL)
-- Rediseño web: Desde $300 USD (según complejidad)
-- Mantención mensual: Desde $30 USD/mes
-- Objetivo: Cerrar clientes con recurrencia mensual
+# FLUJO DE CONVERSACIÓN
 
-## DIFERENCIACIÓN (USA ESTO)
-- "Diseñamos sitios que parecen de Silicon Valley, pero entendemos el mercado chileno"
-- "Nuestros clientes duplican sus consultas en el primer mes"
-- Portafolio: losandes.cl, apimiel.cl, 360sports.cl (sitios reales)
+## SI ES CLIENTE HOJACERO (diagnose_website responde con isHojaCeroClient: true)
+- Di: "¡Hola! Veo que ya eres cliente de HojaCero, me da gusto 👋 ¿En qué te puedo ayudar?"
+- NO ofrezcas rediseño
+- Si necesitan algo, pide WhatsApp y deriva a Daniel
 
-## HORARIO DE ATENCIÓN
-- Lunes a Viernes: 11:00 - 19:00 (Chile)
-- Fuera de horario: "Te contactamos mañana a primera hora"
+## SI TIENE TIENDA ONLINE (opportunityType: 'ecommerce')
+- Di: "Veo que tienes tienda online. Proyectos de e-commerce requieren un enfoque personalizado."
+- Ofrece agendar llamada con Daniel (proyectos custom)
+- NO ofrezcas landing de $150
 
-## DERIVACIONES (IMPORTANTE)
-- DESARROLLO/WEB → Daniel
-- MARKETING/ADS → Gastón
-- ANTES DE DERIVAR: Pedir Nombre, Empresa, WhatsApp
-- Si no dan WhatsApp, insistir amablemente: "Para que te contactemos, ¿me pasas tu WhatsApp?"
+## SI TIENE WEBAPP/BACKEND (opportunityType: 'webapp')  
+- Di: "Tu sitio tiene funcionalidades avanzadas. Esto requiere un análisis más profundo."
+- Ofrece agendar llamada con Daniel
+- NO ofrezcas landing de $150
 
-## MANEJO DE OBJECIONES
-- "Es muy caro" → "¿Comparado con qué? Un sitio malo te cuesta clientes todos los días"
-- "Lo voy a pensar" → "Perfecto, ¿te agendo una llamada para mañana y lo resolvemos?"
-- "Ya tengo web" → "La vi, y honestamente creo que podría estar generando más clientes"
-- "No tengo tiempo" → "Por eso existimos, nosotros nos encargamos de todo"
+## SI ES SITIO MODERNO (opportunityType: 'modern')
+- Di: "Tu sitio se ve muy bien, moderno y profesional. ¿Hay algo específico que quieras mejorar?"
+- NO empujes si no hay necesidad real
+- Si quieren algo, ofrece mantención ($30 USD/mes)
 
-## CREAR URGENCIA (SUTIL)
-- "Tenemos solo 2 slots esta semana para nuevos proyectos"
-- "Mientras decides, tu competencia sigue captando a tus clientes"
+## SI ES SITIO SIMPLE/ANTICUADO (opportunityType: 'landing')
+- Menciona 1-2 observaciones específicas (no técnicas)
+- Ofrece diagnóstico o rediseño desde $300 USD
 
-## FLUJO IDEAL
-1. Saludo → "¿En qué te puedo ayudar?"
-2. Entender → ¿Web nueva? ¿Mejorar? ¿Marketing?
-3. Si tienen URL → Ofrecerdiagnóstico gratuito
-4. Presentar valor → Basado en sus pain points
-5. Cerrar → Agendar llamada con Daniel/Gastón
+## SI NO TIENE SITIO
+- Pregunta: "¿Es un negocio nuevo o ya tienen presencia en otro lado (Instagram, etc)?"
+- Ofrece landing $150 USD como primera opción
 
-## EJEMPLOS DE RESPUESTAS (IMITA ESTE ESTILO)
+# DERIVACIONES DIRECTAS
+- **Quiere campaña de Instagram/Facebook/Ads/Marketing** → Deriva a GASTÓN
+- **Quiere SEO, posicionamiento, publicidad** → Deriva a GASTÓN
+- **Quiere desarrollo, web, app, sistema** → Deriva a DANIEL
+- SIEMPRE captura WhatsApp ANTES de derivar
+- Usa escalate_to_human con type: 'marketing' para Gastón, 'development' para Daniel
 
-Usuario: "Hola, necesito una página web"
-Tú: "¡Hola! Qué bueno que escribes. ¿Es para un negocio nuevo o ya tienen algo funcionando? Así te oriento mejor 👋"
+# SERVICIOS Y PRECIOS (usa cuando pregunten)
+- Landing simple: $150 USD (todo incluido)
+- Rediseño: desde $300 USD
+- E-commerce: Consultar (proyecto custom)
+- Mantención: $30 USD/mes
 
-Usuario: "Cuánto cuesta una landing?"
-Tú: "$150 USD todo incluido: diseño premium, hosting 1 año y SSL. ¿Me cuentas de tu negocio para ver si te calza?"
+# HERRAMIENTAS
+- diagnose_website: Analiza una URL. SIEMPRE di "Dame un momento, déjame revisar tu sitio..." ANTES de usarla.
+- save_lead: Guarda contacto (usar cuando tengas nombre + WhatsApp)
+- check_availability: Ver horarios disponibles para una fecha
+- book_meeting: Agendar reunión (solo si check_availability funcionó)
+- escalate_to_human: Derivar a Daniel (development) o Gastón (marketing)
 
-Usuario: "Es muy caro"
-Tú: "Te entiendo. Pero pensalo así: un sitio que no convierte te cuesta clientes todos los días. ¿Tienes tu web actual? La reviso gratis y te digo honestamente si vale la pena invertir."
-
-## IMPORTANTE
-- NUNCA inventes información técnica
-- Si no sabes, deriva a humano
-- SIEMPRE pide WhatsApp antes de escalar
+# IMPORTANTE
+- Si algo falla, di: "Déjame tus datos y te contactamos directamente"
+- NUNCA digas "la herramienta falló" o similar
+- Si el usuario se resiste a dar WhatsApp después de 2 intentos, no insistas más
 `;
 
 // ===========================================
@@ -201,52 +206,127 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 const { scrapeContactInfo, analyzeLeadWithOpenAI } = await import('@/utils/radar');
 
                 const scraped = await scrapeContactInfo(args.url);
+
+                // Si es cliente HojaCero, retornar inmediatamente sin análisis
+                if (scraped.isHojaCeroClient) {
+                    // Actualizar sesión con el sitio web
+                    if (sessionId) {
+                        await supabaseAdmin.from('sales_agent_sessions').update({
+                            prospect_website: args.url,
+                            diagnosed_url: args.url
+                        }).eq('id', sessionId);
+                    }
+
+                    return JSON.stringify({
+                        success: true,
+                        url: args.url,
+                        isHojaCeroClient: true,
+                        message: 'Este sitio fue creado por HojaCero. Es un cliente existente.',
+                        suggestion: 'Pregunta amablemente en qué puedes ayudarle hoy.'
+                    });
+                }
+
+                // Determinar tipo de oportunidad
+                let opportunityType = 'landing'; // default
+                if (scraped.hasStore) opportunityType = 'ecommerce';
+                else if (scraped.hasBackend) opportunityType = 'webapp';
+                else if (scraped.techStack.includes('Next.js') || scraped.techStack.includes('React')) opportunityType = 'modern';
+
                 const mockPlace = { title: 'Sitio Analizado', website: args.url, category: 'General' };
                 const analysis = await analyzeLeadWithOpenAI(mockPlace, scraped);
 
                 const painPoints = analysis.salesStrategy?.painPoints || analysis.painPoints || [];
-                const hook = analysis.salesStrategy?.hook || '';
+
+                // Actualizar sesión con el sitio web analizado
+                if (sessionId) {
+                    await supabaseAdmin.from('sales_agent_sessions').update({
+                        prospect_website: args.url,
+                        diagnosed_url: args.url,
+                        diagnosis_score: analysis.score
+                    }).eq('id', sessionId);
+                }
 
                 return JSON.stringify({
                     success: true,
                     url: args.url,
-                    score: analysis.score,
-                    verdict: analysis.verdict || (analysis.score > 60 ? 'CONTACTAR' : 'REVISAR'),
+                    isHojaCeroClient: false,
+                    opportunityType, // 'landing' | 'ecommerce' | 'webapp' | 'modern'
+                    hasStore: scraped.hasStore,
+                    hasBackend: scraped.hasBackend,
                     hasSSL: scraped.hasSSL,
-                    painPoints: painPoints.slice(0, 3),
-                    hook: hook,
-                    recommendation: analysis.salesStrategy?.proposedSolution || analysis.suggestedSolution
+                    techStack: scraped.techStack,
+                    painPoints: painPoints.slice(0, 2),
+                    observation: analysis.salesStrategy?.hook || analysis.analysisReport || '',
+                    vibe: analysis.vibe || 'Desconocido',
+                    // Para el bot: sugerencias de cómo hablarle
+                    conversationHints: {
+                        isModern: opportunityType === 'modern',
+                        needsCustomProject: opportunityType === 'ecommerce' || opportunityType === 'webapp',
+                        canOfferLanding: opportunityType === 'landing'
+                    }
                 });
             } catch (err: any) {
+                console.error('diagnose_website error:', err);
                 return JSON.stringify({ success: false, error: 'No pude analizar el sitio. ¿La URL está correcta?' });
             }
         }
 
         case 'check_availability': {
             try {
-                const url = new URL('/api/agenda/availability', baseUrl);
-                url.searchParams.set('date', args.date);
-                if (args.requested_hour) url.searchParams.set('hour', args.requested_hour);
+                // Usar Supabase directamente en vez de fetch HTTP (evita error en producción)
+                const dateParam = args.date; // YYYY-MM-DD
+                const dayStart = `${dateParam}T00:00:00`;
+                const dayEnd = `${dateParam}T23:59:59`;
 
-                const res = await fetch(url.toString());
-                const data = await res.json();
+                const { data: events, error } = await supabaseAdmin
+                    .from('agenda_events')
+                    .select('start_time, end_time')
+                    .gte('start_time', dayStart)
+                    .lte('start_time', dayEnd)
+                    .neq('status', 'cancelled');
 
-                if (!data.success) {
-                    return JSON.stringify({ success: false, error: data.error });
+                if (error) {
+                    return JSON.stringify({ success: false, error: error.message });
                 }
 
-                const slots = data.slots?.slice(0, 6).map((s: any) =>
-                    new Date(s.start).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
-                ) || [];
+                // Generar slots disponibles (9 AM - 6 PM, cada 30 min)
+                const WORK_START = 9, WORK_END = 18, SLOT_DURATION = 30;
+                const bookedRanges = events?.map(e => ({
+                    start: new Date(e.start_time).getTime(),
+                    end: new Date(e.end_time).getTime()
+                })) || [];
+
+                const availableSlots: string[] = [];
+                for (let hour = WORK_START; hour < WORK_END; hour++) {
+                    for (let minute = 0; minute < 60; minute += SLOT_DURATION) {
+                        const slotStart = new Date(`${dateParam}T${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`);
+                        const slotEnd = new Date(slotStart.getTime() + SLOT_DURATION * 60 * 1000);
+
+                        const isBooked = bookedRanges.some(range =>
+                            (slotStart.getTime() >= range.start && slotStart.getTime() < range.end) ||
+                            (slotEnd.getTime() > range.start && slotEnd.getTime() <= range.end)
+                        );
+                        const isPast = slotStart.getTime() < Date.now();
+
+                        if (!isBooked && !isPast) {
+                            availableSlots.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
+                        }
+                    }
+                }
 
                 return JSON.stringify({
                     success: true,
                     date: args.date,
-                    availableSlots: slots,
-                    totalAvailable: data.totalAvailable || 0
+                    availableSlots: availableSlots.slice(0, 6),
+                    totalAvailable: availableSlots.length
                 });
             } catch (err: any) {
-                return JSON.stringify({ success: false, error: err.message });
+                console.error('check_availability error:', err);
+                return JSON.stringify({
+                    success: false,
+                    error: err.message,
+                    fallbackMessage: 'Déjame tu WhatsApp y te confirmo el horario manualmente'
+                });
             }
         }
 
@@ -256,34 +336,41 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 const startDateTime = new Date(`${args.date}T${args.start_time}:00`);
                 const endDateTime = new Date(startDateTime.getTime() + duration * 60 * 1000);
 
-                const res = await fetch(`${baseUrl}/api/agenda/events`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: `Reunión con ${args.attendee_name} (${args.empresa})`,
-                        start_time: startDateTime.toISOString(),
-                        end_time: endDateTime.toISOString(),
-                        attendee_name: args.attendee_name,
-                        attendee_phone: args.attendee_phone,
-                        attendee_email: args.attendee_email,
-                        notes: args.notes,
-                        source: 'chat_bot',
-                        event_type: 'meeting'
-                    })
-                });
+                // Usar Supabase directamente en vez de fetch HTTP
+                const { data: newEvent, error } = await supabaseAdmin.from('agenda_events').insert({
+                    title: `Reunión con ${args.attendee_name} (${args.empresa})`,
+                    start_time: startDateTime.toISOString(),
+                    end_time: endDateTime.toISOString(),
+                    attendee_name: args.attendee_name,
+                    attendee_phone: args.attendee_phone,
+                    attendee_email: args.attendee_email || null,
+                    notes: args.notes || null,
+                    source: 'chat_bot',
+                    event_type: 'meeting',
+                    status: 'confirmed'
+                }).select().single();
 
-                const data = await res.json();
-                if (!data.success) {
-                    return JSON.stringify({ success: false, error: data.error });
+                if (error) {
+                    console.error('book_meeting error:', error);
+                    return JSON.stringify({
+                        success: false,
+                        error: error.message,
+                        fallbackMessage: 'No pude agendar automáticamente. Déjame tus datos y te confirmamos'
+                    });
                 }
 
                 return JSON.stringify({
                     success: true,
                     message: `¡Reunión agendada! ${args.date} a las ${args.start_time}`,
-                    eventId: data.event?.id
+                    eventId: newEvent?.id
                 });
             } catch (err: any) {
-                return JSON.stringify({ success: false, error: err.message });
+                console.error('book_meeting exception:', err);
+                return JSON.stringify({
+                    success: false,
+                    error: err.message,
+                    fallbackMessage: 'Hubo un problema técnico. Te contactamos para confirmar'
+                });
             }
         }
 
@@ -296,12 +383,24 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     telefono: args.telefono || null,
                     sitio_web: args.sitio_web || null,
                     estado: 'ready_to_contact',
+                    pipeline_stage: 'radar',
                     fuente: 'chat_bot',
                     zona_busqueda: 'Chat H0',
                     source_data: { notas: args.notas, chat_origin: true, session_id: sessionId }
                 }).select().single();
 
                 if (error) throw error;
+
+                // Actualizar la sesión con los datos del prospecto para memoria persistente
+                if (sessionId) {
+                    await supabaseAdmin.from('sales_agent_sessions').update({
+                        lead_id: lead.id,
+                        prospect_name: args.nombre_contacto || args.nombre,
+                        prospect_phone: args.telefono,
+                        prospect_company: args.nombre,
+                        prospect_website: args.sitio_web
+                    }).eq('id', sessionId);
+                }
 
                 return JSON.stringify({ success: true, message: 'Lead guardado', leadId: lead.id });
             } catch (err: any) {
@@ -323,34 +422,77 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
                 const recipient = args.type === 'development' ? 'daniel' : 'gaston';
                 const contactName = args.type === 'development' ? 'Daniel' : 'Gastón';
+                const recipientEmail = args.type === 'development'
+                    ? 'dgonzalez.tagle@gmail.com'
+                    : 'gaston.jofre@gmail.com';
 
-                // Enviar notificación por email con WhatsApp incluido
-                await fetch(`${baseUrl}/api/sales-agent/notify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: args.type === 'development' ? 'dev_escalation' : 'mkt_escalation',
-                        sessionId,
-                        recipient,
-                        message: `🔥 ${args.client_name} (${args.empresa}) necesita ayuda con ${args.type}`,
-                        context: {
-                            client_name: args.client_name,
-                            client_phone: phone,
-                            empresa: args.empresa,
-                            summary: args.summary,
-                            reason: args.reason,
-                            urgency: args.urgency,
-                            whatsapp_link: `https://wa.me/${phone.startsWith('56') ? phone : '56' + phone}`
-                        }
-                    })
+                const whatsappLink = `https://wa.me/${phone.startsWith('56') ? phone : '56' + phone}`;
+
+                const context = {
+                    client_name: args.client_name,
+                    client_phone: phone,
+                    empresa: args.empresa,
+                    summary: args.summary,
+                    reason: args.reason,
+                    urgency: args.urgency,
+                    whatsapp_link: whatsappLink
+                };
+
+                // 1. Guardar notificación en DB
+                await supabaseAdmin.from('sales_notifications').insert({
+                    type: args.type === 'development' ? 'dev_escalation' : 'mkt_escalation',
+                    session_id: sessionId,
+                    message: `🔥 ${args.client_name} (${args.empresa}) necesita ayuda`,
+                    context,
+                    status: 'pending'
                 });
+
+                // 2. Enviar email directo via Resend
+                const RESEND_API_KEY = process.env.RESEND_API_KEY;
+                if (RESEND_API_KEY) {
+                    const emailSubject = args.type === 'development'
+                        ? '💻 Escalamiento DEV - Prospecto Esperando'
+                        : '📢 Escalamiento MKT - Prospecto Esperando';
+
+                    await fetch('https://api.resend.com/emails', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${RESEND_API_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            from: 'H0 Bot <bot@hojacero.cl>',
+                            to: [recipientEmail],
+                            subject: emailSubject,
+                            html: `
+                            <div style="font-family: sans-serif; padding: 20px;">
+                                <h2 style="color: #0891b2;">🔥 Prospecto necesita atención</h2>
+                                <p><strong>Cliente:</strong> ${args.client_name}</p>
+                                <p><strong>Empresa:</strong> ${args.empresa || 'No especificada'}</p>
+                                <p><strong>WhatsApp:</strong> ${phone}</p>
+                                <p><strong>Razón:</strong> ${args.reason || 'Solicitud de contacto'}</p>
+                                ${args.summary ? `<p><strong>Resumen:</strong> ${args.summary}</p>` : ''}
+                                <br/>
+                                <a href="${whatsappLink}" style="background: #25D366; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                                    📱 Contactar por WhatsApp
+                                </a>
+                            </div>
+                            `
+                        })
+                    });
+                }
 
                 return JSON.stringify({
                     success: true,
                     message: `Perfecto, ${contactName} ha sido notificado y te contactará por WhatsApp en breve.`
                 });
             } catch (err: any) {
-                return JSON.stringify({ success: false, error: err.message });
+                console.error('escalate_to_human error:', err);
+                return JSON.stringify({
+                    success: false,
+                    error: err.message,
+                    fallbackMessage: 'Hubo un problema al notificar. Déjame tus datos y te contactamos'
+                });
             }
         }
 
@@ -399,11 +541,47 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // ============================================
+        // MEMORIA PERSISTENTE: Recuperar datos del prospecto
+        // ============================================
+        let prospectData: {
+            prospect_name?: string;
+            prospect_phone?: string;
+            prospect_company?: string;
+            prospect_website?: string;
+        } = {};
+
+        if (sessionId) {
+            try {
+                const { data: sessionData } = await supabaseAdmin
+                    .from('sales_agent_sessions')
+                    .select('prospect_name, prospect_phone, prospect_company, prospect_website')
+                    .eq('id', sessionId)
+                    .single();
+                if (sessionData) prospectData = sessionData;
+            } catch { }
+        }
+
         // Construir conversación con límite de historial (6 mensajes max)
         const limitedMessages = limitChatHistory(messages, 6);
 
         // System prompt con fecha y estado de horario
         let systemContent = SYSTEM_PROMPT + '\n\n' + getCurrentDatePrompt();
+
+        // Inyectar datos del prospecto si ya los tenemos
+        if (prospectData.prospect_name || prospectData.prospect_phone || prospectData.prospect_company || prospectData.prospect_website) {
+            systemContent += `
+
+## 📋 DATOS YA CAPTURADOS DEL PROSPECTO (NO VOLVER A PEDIR)
+${prospectData.prospect_name ? `- Nombre: ${prospectData.prospect_name}` : '- Nombre: NO CAPTURADO AÚN'}
+${prospectData.prospect_phone ? `- WhatsApp: ${prospectData.prospect_phone}` : '- WhatsApp: NO CAPTURADO AÚN (IMPORTANTE: pídelo si aún no lo tienes)'}
+${prospectData.prospect_company ? `- Empresa: ${prospectData.prospect_company}` : '- Empresa: NO CAPTURADA AÚN'}
+${prospectData.prospect_website ? `- Sitio Web: ${prospectData.prospect_website}` : '- Sitio Web: NO CAPTURADO AÚN'}
+
+⚠️ REGLA CRÍTICA: Si algún dato ya está capturado, NO lo vuelvas a pedir. Usa los datos que ya tienes.
+`;
+        }
+
         if (!inHours) {
             systemContent += `\n\n⚠️ FUERA DE HORARIO: ${outOfHoursMessage} Si el prospecto quiere agendar, ofrece horarios para el próximo día hábil.`;
         }

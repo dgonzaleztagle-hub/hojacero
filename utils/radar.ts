@@ -113,6 +113,9 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
     hasSSL: boolean;
     techStack: string[];
     scrapedPages: string[];
+    isHojaCeroClient: boolean;
+    hasStore: boolean;
+    hasBackend: boolean;
 }> {
     const result = {
         emails: [] as string[],
@@ -122,6 +125,9 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
         hasSSL: false,
         techStack: [] as string[],
         scrapedPages: [] as string[],
+        isHojaCeroClient: false,
+        hasStore: false,
+        hasBackend: false,
     };
 
     if (!websiteUrl) return result;
@@ -167,6 +173,30 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
         result.hasSSL = successfulBaseUrl.startsWith('https');
         result.scrapedPages.push(successfulBaseUrl);
         extractDataFromHtml(mainHtml, result);
+
+        // Detectar cliente HojaCero
+        const htmlLower = mainHtml.toLowerCase();
+        result.isHojaCeroClient =
+            htmlLower.includes('hojacero') ||
+            htmlLower.includes('hoja cero') ||
+            htmlLower.includes('<!-- h0 -->');
+
+        // Detectar si es e-commerce
+        result.hasStore =
+            htmlLower.includes('add-to-cart') ||
+            htmlLower.includes('añadir al carrito') ||
+            htmlLower.includes('woocommerce') ||
+            htmlLower.includes('shopify') ||
+            htmlLower.includes('/cart') ||
+            (htmlLower.includes('precio') && htmlLower.includes('comprar'));
+
+        // Detectar si tiene backend/webapp
+        result.hasBackend =
+            htmlLower.includes('login') ||
+            htmlLower.includes('iniciar sesión') ||
+            htmlLower.includes('mi cuenta') ||
+            htmlLower.includes('my-account') ||
+            htmlLower.includes('dashboard');
 
     } catch (e) {
         console.warn(`⚠️ Scraper failed for ${websiteUrl}: No protocol variation worked.`);
