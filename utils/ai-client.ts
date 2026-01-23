@@ -5,10 +5,22 @@ import OpenAI from 'openai';
 // Modelo: gpt-4o-mini (OpenAI)
 // ===========================================
 
-// Cliente OpenAI
-export const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+// Lazy initialization del cliente OpenAI (evita error en build time)
+let _openai: OpenAI | null = null;
+
+export function getOpenAI(): OpenAI {
+    if (!_openai) {
+        _openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY || ''
+        });
+    }
+    return _openai;
+}
+
+// Alias para compatibilidad
+export const openai = {
+    get chat() { return getOpenAI().chat; }
+};
 
 // Modelo por defecto
 export const DEFAULT_MODEL = 'gpt-4o-mini';
