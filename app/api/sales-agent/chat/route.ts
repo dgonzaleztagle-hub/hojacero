@@ -4,15 +4,20 @@ import { SALES_AGENT_SYSTEM_PROMPT, SALES_TOOLS } from '@/utils/sales-agent/syst
 import { createClient } from '@supabase/supabase-js';
 import { scrapeContactInfo, analyzeLeadWithGroq } from '@/utils/radar';
 
-// SiliconFlow API (compatible con OpenAI) - DeepSeek-V3.1-Nex-N1 con 1M tokens/min gratis
-const siliconflow = new OpenAI({
-    apiKey: process.env.SILICONFLOW_API_KEY,
-    baseURL: 'https://api.siliconflow.cn/v1'
+// OpenRouter API - Compatible con OpenAI, modelos gratuitos disponibles
+const openrouter = new OpenAI({
+    apiKey: process.env.OPENROUTER_API_KEY,
+    baseURL: 'https://openrouter.ai/api/v1',
+    defaultHeaders: {
+        'HTTP-Referer': 'https://hojacero.cl',
+        'X-Title': 'HojaCero Sales Bot'
+    }
 });
 
-const CHAT_MODEL = 'nex-agi/DeepSeek-V3.1-Nex-N1';
+// Modelo gratuito con soporte de function calling
+const CHAT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
 
-// Cliente admin para operaciones del bot (sin cookies de usuario)
+// Cliente admin para operaciones del bot
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -191,7 +196,6 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
         case 'escalate_to_human': {
             try {
-                // Enviar notificación por email
                 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
                 await fetch(`${baseUrl}/api/sales-agent/notify`, {
                     method: 'POST',
@@ -204,7 +208,6 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     })
                 });
 
-                // Log escalation
                 await supabaseAdmin.from('sales_notifications').insert({
                     type: 'escalation',
                     session_id: sessionId,
@@ -269,16 +272,26 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        // Build conversation with system prompt
-        const conversation: ChatMessage[] = [
-            { role: 'system', content: SALES_AGENT_SYSTEM_PROMPT },
+        // Fecha actual para inyectar en el prompt
+        const now = new Date();
+        const fechaActual = now.toLocaleDateString('es-CL', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago'
+        });
+
+        // System prompt con fecha inyectada
+        const systemPromptWithDate = `${SALES_AGENT_SYSTEM_PROMPT}\n\nFECHA Y HORA ACTUAL: ${fechaActual} (Chile). Usa esta fecha para calcular "mañana", "próximo lunes", etc.`;
+
+        // Build conversation
+        const conversation = [
+            { role: 'system' as const, content: systemPromptWithDate },
             ...messages
         ];
 
-        // SiliconFlow con DeepSeek-V3.1-Nex-N1 (optimizado para agents y tool calling)
-        const response = await siliconflow.chat.completions.create({
+        // Call OpenRouter
+        const response = await openrouter.chat.completions.create({
             model: CHAT_MODEL,
-            messages: conversation as any[],
+            messages: conversation,
             tools: SALES_TOOLS,
             tool_choice: 'auto',
             max_tokens: 1024,
@@ -306,7 +319,6 @@ export async function POST(req: NextRequest) {
                     content: result
                 });
 
-                // Save tool call
                 if (sessionId) {
                     await supabaseAdmin.from('sales_agent_messages').insert({
                         session_id: sessionId,
@@ -314,21 +326,20 @@ export async function POST(req: NextRequest) {
                         content: result,
                         tool_name: toolCall.function.name,
                         tool_result: JSON.parse(result)
-
                     });
                 }
             }
 
-            // Get final response with tool results
-            const finalConversation: ChatMessage[] = [
+            // Get final response
+            const finalConversation = [
                 ...conversation,
-                { role: 'assistant', content: assistantMessage.content || '', tool_calls: assistantMessage.tool_calls },
+                { role: 'assistant' as const, content: assistantMessage.content || '', tool_calls: assistantMessage.tool_calls },
                 ...toolResults
             ];
 
-            const finalResponse = await siliconflow.chat.completions.create({
+            const finalResponse = await openrouter.chat.completions.create({
                 model: CHAT_MODEL,
-                messages: finalConversation as any[],
+                messages: finalConversation as any,
                 max_tokens: 1024,
                 temperature: 0.7
             });
@@ -354,11 +365,7 @@ export async function POST(req: NextRequest) {
             success: true,
             message: finalContent,
             sessionId,
-            toolsUsed,
-            newMessages: assistantMessage.tool_calls ? [
-                { role: 'assistant', content: assistantMessage.content || '', tool_calls: assistantMessage.tool_calls },
-                ...toolResults
-            ] : []
+            toolsUsed
         });
 
     } catch (error: any) {
