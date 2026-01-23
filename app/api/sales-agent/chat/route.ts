@@ -101,7 +101,11 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
         case 'check_availability': {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/agenda/availability`);
+                const queryParams = new URLSearchParams();
+                if (args.date) queryParams.append('date', args.date);
+                if (args.requested_hour) queryParams.append('hour', args.requested_hour);
+
+                const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/agenda/availability?${queryParams.toString()}`);
                 const data = await res.json();
                 return JSON.stringify(data);
             } catch (error: any) {
@@ -112,24 +116,34 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
         case 'book_meeting': {
             try {
                 if (!sessionId) return JSON.stringify({ error: 'No session id' });
+
+                // Construir las fechas de inicio y fin
+                const startTime = `${args.date}T${args.start_time}:00`;
+                const startTimeDate = new Date(startTime);
+                const endTimeDate = new Date(startTimeDate.getTime() + (args.duration_minutes || 30) * 60000);
+
                 const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/agenda/events`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        title: `Reunión: ${args.nombre}`,
-                        start: args.fecha_hora,
-                        end: new Date(new Date(args.fecha_hora).getTime() + 20 * 60000).toISOString(),
-                        description: `Agendado por Bot H0. Notas: ${args.notas || 'Sin notas'}`,
-                        customer_name: args.nombre,
-                        customer_email: args.email
+                        title: args.title || `Reunión con ${args.attendee_name}`,
+                        start_time: startTimeDate.toISOString(),
+                        end_time: endTimeDate.toISOString(),
+                        description: args.notes || 'Agendado por el bot H0',
+                        attendee_name: args.attendee_name,
+                        attendee_email: args.attendee_email,
+                        attendee_phone: args.attendee_phone,
+                        source: 'chat_bot',
+                        status: 'confirmed'
                     })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    await trackEvent(supabase, sessionId, 'meeting_booked', { date: args.fecha_hora });
+                    await trackEvent(supabase, sessionId, 'meeting_booked', { date: args.date, time: args.start_time });
                 }
                 return JSON.stringify(data);
             } catch (error: any) {
+                console.error("Book Meeting Error:", error);
                 return JSON.stringify({ error: 'Error agendando reunión' });
             }
         }
@@ -299,7 +313,11 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: finalContent.replace(/<function=.*?\/function>/gi, '').trim(),
+            message: finalContent
+                .replace(/<function=.*?\/function>/gi, '') // Eliminar tags de función
+                .replace(/tool_name>\{.*?\}/gi, '')       // Eliminar filtraciones de tool_name con JSON
+                .replace(/\{"success":true.*?\}/gi, '')   // Eliminar confirmaciones crudas de JSON
+                .trim(),
             sessionId,
             toolsUsed,
             newMessages: toolResults.length > 0 ? [
