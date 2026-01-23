@@ -323,18 +323,16 @@ export async function POST(req: NextRequest) {
             }).eq('id', sessionId);
         }
 
-        // Limpieza de respuesta final - capturar TODOS los formatos de función
+        // Limpieza de respuesta final - REGEX NUCLEAR para eliminar toda basura técnica
         let cleanedMessage = finalContent
             .replace(/<function=[^>]*>/gi, '')                    // <function=xxx> sin cierre
             .replace(/<function=.*?\/function>/gi, '')            // <function=xxx/function> con cierre
             .replace(/<\/function>/gi, '')                        // </function> suelto
-            .replace(/\{"attendee_name":[^}]+\}/gi, '')            // JSON de book_meeting
-            .replace(/\{"url":[^}]+\}/gi, '')                      // JSON de diagnose
-            .replace(/\{"nombre":[^}]+\}/gi, '')                   // JSON de save_lead
-            .replace(/\{"success":true[^}]*\}/gi, '')              // Confirmaciones JSON
-            .replace(/\(Fue escalado[^)]*\)/gi, '')                // (Fue escalado a Daniel)
+            .replace(/\{[^{}]*"[^"]+"\s*:\s*"[^"]*"[^{}]*\}/gi, '') // CUALQUIER JSON simple {"key": "value"...}
+            .replace(/\([^)]*escalado[^)]*\)/gi, '')              // (Fue escalado a Daniel) y variantes
             .replace(/```json[\s\S]*?```/gi, '')                   // Bloques de código JSON
             .replace(/tool_name>\{.*?\}/gi, '')                    // Fugas de tool_name
+            .replace(/\s{2,}/g, ' ')                               // Múltiples espacios a uno solo
             .trim();
 
         // Fallback de seguridad: Si la limpieza borró todo, devolver un mensaje genérico en lugar de nada
