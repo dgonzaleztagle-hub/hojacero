@@ -463,9 +463,9 @@ export async function POST(req: NextRequest) {
             // ... (Tool execution logic kept same, just add usage tracking to 2nd call)
             for (const toolCall of msg1.tool_calls) {
                 // (Existing tool execution logic...)
-                const fnName = toolCall.function.name;
+                const fnName = (toolCall as any).function.name;
                 const toolName = fnName; // alias
-                const argsString = toolCall.function.arguments;
+                const argsString = (toolCall as any).function.arguments;
                 const toolArgs = JSON.parse(argsString); // Simple parse
 
                 // Execute
