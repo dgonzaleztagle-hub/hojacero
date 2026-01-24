@@ -432,14 +432,16 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                                 demo_url: editData.demo_url
                                             };
                                             await supabase.from('leads').update({
+                                                nombre_contacto: editData.nombre_contacto,
                                                 email: editData.email,
                                                 telefono: editData.telefono,
+                                                whatsapp: editData.whatsapp,
                                                 demo_url: editData.demo_url,
                                                 source_data: updatedSourceData
                                             }).eq('id', leadId);
 
                                             // Optimistic update
-                                            const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
+                                            const updatedLead = { ...selectedLead, nombre_contacto: editData.nombre_contacto, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
                                             setSelectedLead(updatedLead);
                                             // We should also update pipeline leads if possible but useRadar doesn't expose list setter easily for search
                                             fetchPipeline();
@@ -494,13 +496,15 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                                 demo_url: editData.demo_url
                                             };
                                             await supabase.from('leads').update({
+                                                nombre_contacto: editData.nombre_contacto,
                                                 email: editData.email,
                                                 telefono: editData.telefono,
+                                                whatsapp: editData.whatsapp,
                                                 demo_url: editData.demo_url,
                                                 source_data: updatedSourceData
                                             }).eq('id', leadId);
 
-                                            const updatedLead = { ...selectedLead, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
+                                            const updatedLead = { ...selectedLead, nombre_contacto: editData.nombre_contacto, email: editData.email, whatsapp: editData.whatsapp, telefono: editData.telefono, demo_url: editData.demo_url, source_data: updatedSourceData };
                                             setSelectedLead(updatedLead);
                                             fetchPipeline();
                                             setIsEditingContact(false);

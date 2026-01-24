@@ -49,7 +49,7 @@ export function useRadar() {
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isEditingContact, setIsEditingContact] = useState(false);
-    const [editData, setEditData] = useState({ email: '', whatsapp: '', telefono: '', demo_url: '' });
+    const [editData, setEditData] = useState({ nombre_contacto: '', email: '', whatsapp: '', telefono: '', demo_url: '' });
 
     // Chat State
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -106,6 +106,7 @@ export function useRadar() {
             nota: lead.nota_revision || '',
             revisadoPor: lead.revisado_por || null,
             demo_url: lead.demo_url || sourceData.demo_url || '',
+            nombre_contacto: lead.nombre_contacto || sourceData.nombre_contacto || '',
         };
     };
 

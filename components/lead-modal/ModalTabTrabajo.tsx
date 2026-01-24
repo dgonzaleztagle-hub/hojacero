@@ -27,7 +27,7 @@ interface ModalTabTrabajoProps {
     analysis: any;
     // Contact editing
     isEditingContact: boolean;
-    editData: { email: string; whatsapp: string; telefono: string; demo_url: string };
+    editData: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string };
     setEditData: (data: any) => void;
     setIsEditingContact: (val: boolean) => void;
     onSaveContact: () => Promise<void> | void;

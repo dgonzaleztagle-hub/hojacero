@@ -7,7 +7,7 @@ interface ContactCardProps {
     isDark: boolean;
     isEditingContact: boolean;
     setIsEditingContact: (val: boolean) => void;
-    editData: any;
+    editData: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string };
     setEditData: (val: any) => void;
     onSaveContact: () => Promise<void> | void;
     isSaving: boolean;
@@ -36,6 +36,7 @@ export const ContactCard = ({
                     <button
                         onClick={() => {
                             setEditData({
+                                nombre_contacto: selectedLead.nombre_contacto || '',
                                 email: ld.email || '',
                                 whatsapp: ld.whatsapp || '',
                                 telefono: ld.phone || '',
@@ -52,6 +53,15 @@ export const ContactCard = ({
 
             {isEditingContact ? (
                 <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                    <div>
+                        <label className={`text-[10px] font-bold uppercase ml-1 block mb-1.5 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Nombre Contacto</label>
+                        <input
+                            value={editData.nombre_contacto}
+                            onChange={(e) => setEditData({ ...editData, nombre_contacto: e.target.value })}
+                            className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-black/50 border-white/10 text-white focus:border-cyan-500' : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'}`}
+                            placeholder="Juan Pérez"
+                        />
+                    </div>
                     <div>
                         <label className={`text-[10px] font-bold uppercase ml-1 block mb-1.5 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Email</label>
                         <input
@@ -176,6 +186,18 @@ export const ContactCard = ({
                                 </div>
                             )
                         )}
+                    </div>
+
+                    {/* Nombre Contacto */}
+                    <div className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200'}`}>
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`p-2 rounded-lg shrink-0 ${selectedLead.nombre_contacto ? (isDark ? 'bg-cyan-500/10 text-cyan-400' : 'bg-blue-50 text-blue-500') : (isDark ? 'bg-zinc-800 text-zinc-600' : 'bg-gray-100 text-gray-400')}`}>
+                                <Zap className="w-4 h-4" />
+                            </div>
+                            <span className={`text-sm font-bold truncate select-all ${selectedLead.nombre_contacto ? (isDark ? 'text-zinc-200' : 'text-gray-900') : (isDark ? 'text-zinc-600 italic' : 'text-gray-400 italic')}`}>
+                                {selectedLead.nombre_contacto || 'Sin nombre asignado'}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Email */}
