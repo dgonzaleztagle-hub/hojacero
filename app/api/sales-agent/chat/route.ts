@@ -288,16 +288,29 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     };
                 }
 
+
                 const mockPlace = { title: 'Sitio Analizado', website: args.url };
                 const analysis = await analyzeLeadWithOpenAI(mockPlace, scraped);
 
                 // ============================================
                 // AUTO-SAVE TO PIPELINE (Criterio Unificado)
+                // Ahora incluye datos de sesión (nombre, empresa, wsp)
                 // ============================================
-                // Guardamos inmediatamente como cliente frío en Radar
                 let autoSavedLeadId = null;
+
+                // Leer datos de la sesión para incluirlos en el lead
+                let sessionData: any = {};
+                if (sessionId) {
+                    const { data } = await supabaseAdmin
+                        .from('sales_agent_sessions')
+                        .select('prospect_name, prospect_phone, prospect_company')
+                        .eq('id', sessionId)
+                        .single();
+                    if (data) sessionData = data;
+                }
+
                 try {
-                    // Primero buscar si ya existe
+                    // Primero buscar si ya existe por sitio_web
                     const { data: existingLead } = await supabaseAdmin
                         .from('leads')
                         .select('id, source_data')
@@ -307,16 +320,23 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     const newSourceData = {
                         analysis,
                         scraped,
-                        techStack: scraped.techStack, // UNIFICADO: Antes era 'technologies', ahora coincide con useRadar
+                        techStack: scraped.techStack,
                         diagnosed_at: new Date().toISOString()
                     };
 
                     if (existingLead) {
-                        // UPDATE: Merge source_data para no perder datos previos
+                        // UPDATE: Merge source_data + agregar datos de contacto de sesión
                         const { data: updatedLead } = await supabaseAdmin
                             .from('leads')
                             .update({
                                 source_data: { ...existingLead.source_data, ...newSourceData },
+                                // Agregar datos de sesión si existen
+                                nombre_contacto: sessionData.prospect_name || undefined,
+                                telefono: sessionData.prospect_phone || undefined,
+                                whatsapp: sessionData.prospect_phone || undefined,
+                                nombre: sessionData.prospect_company || undefined,
+                                // Si tenemos datos de contacto, promover estado
+                                estado: sessionData.prospect_phone ? 'ready_to_contact' : 'detected',
                                 last_activity_at: new Date().toISOString()
                             })
                             .eq('id', existingLead.id)
@@ -324,7 +344,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                             .single();
                         autoSavedLeadId = updatedLead?.id;
                     } else {
-                        // INSERT: Crear nuevo lead
+                        // INSERT: Crear nuevo lead con TODOS los datos
                         const urlObj = new URL(args.url);
                         const domainName = urlObj.hostname.replace('www.', '').split('.')[0];
 
@@ -332,8 +352,13 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                             .from('leads')
                             .insert({
                                 sitio_web: args.url,
-                                nombre: domainName, // Nombre limpio del dominio
-                                estado: 'detected', // CORREGIDO: Antes 'cold', ahora aparece en History
+                                // Usar empresa de sesión o nombre de dominio
+                                nombre: sessionData.prospect_company || domainName,
+                                nombre_contacto: sessionData.prospect_name || null,
+                                telefono: sessionData.prospect_phone || null,
+                                whatsapp: sessionData.prospect_phone || null,
+                                // Si tenemos datos de contacto, ir directo a ready_to_contact
+                                estado: sessionData.prospect_phone ? 'ready_to_contact' : 'detected',
                                 pipeline_stage: 'radar',
                                 fuente: 'chat_bot_diagnosis',
                                 zona_busqueda: 'Chat H0',
@@ -428,79 +453,60 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
             }
 
             case 'save_lead': {
-                // Buscar lead existente: primero por sesión, luego por sitio_web
-                let existingLeadId = null;
+                // =====================================================
+                // NUEVO FLUJO: Guardar SOLO en memoria de sesión
+                // El lead se crea cuando el usuario da el sitio web
+                // =====================================================
 
-                if (sessionId) {
-                    const { data: session } = await supabaseAdmin
-                        .from('sales_agent_sessions')
-                        .select('lead_id, prospect_website')
-                        .eq('id', sessionId)
-                        .single();
-
-                    if (session?.lead_id) {
-                        existingLeadId = session.lead_id;
-                    } else if (session?.prospect_website || args.sitio_web) {
-                        // Buscar por sitio_web
-                        const { data: leadByUrl } = await supabaseAdmin
-                            .from('leads')
-                            .select('id')
-                            .eq('sitio_web', session?.prospect_website || args.sitio_web)
-                            .single();
-                        existingLeadId = leadByUrl?.id;
-                    }
+                if (!sessionId) {
+                    return { result: JSON.stringify({ success: false, error: 'No session' }) };
                 }
 
-                let lead;
-                if (existingLeadId) {
-                    // UPDATE lead existente (conectar datos de contacto con diagnóstico previo)
-                    const { data, error } = await supabaseAdmin.from('leads').update({
+                // Guardar datos en la sesión (memoria)
+                await supabaseAdmin.from('sales_agent_sessions').update({
+                    prospect_name: args.nombre_contacto || args.nombre || undefined,
+                    prospect_phone: args.telefono || undefined,
+                    prospect_company: args.nombre || undefined,
+                    prospect_website: args.sitio_web || undefined
+                }).eq('id', sessionId);
+
+                // SI ya existe un lead ligado a la sesión, actualizar sus datos
+                const { data: session } = await supabaseAdmin
+                    .from('sales_agent_sessions')
+                    .select('lead_id')
+                    .eq('id', sessionId)
+                    .single();
+
+                if (session?.lead_id) {
+                    // Lead ya existe (se creó con diagnose_website), actualizar datos de contacto
+                    await supabaseAdmin.from('leads').update({
                         nombre: args.nombre || undefined,
                         nombre_contacto: args.nombre_contacto || undefined,
                         telefono: args.telefono || undefined,
-                        whatsapp: args.telefono || undefined, // Guardamos también en campo whatsapp
+                        whatsapp: args.telefono || undefined,
                         email: args.email || undefined,
-                        estado: 'ready_to_contact',
+                        estado: 'ready_to_contact', // Promover estado porque ya tenemos datos
                         last_activity_at: new Date().toISOString()
-                    }).eq('id', existingLeadId).select().single();
+                    }).eq('id', session.lead_id);
 
-                    if (error) throw error;
-                    lead = data;
-                } else {
-                    // INSERT nuevo lead (sin diagnóstico previo)
-                    const { data, error } = await supabaseAdmin.from('leads').insert({
-                        nombre: args.nombre,
-                        nombre_contacto: args.nombre_contacto,
-                        telefono: args.telefono,
-                        whatsapp: args.telefono,
-                        email: args.email,
-                        sitio_web: args.sitio_web,
-                        estado: 'ready_to_contact',
-                        fuente: 'chat_bot',
-                        pipeline_stage: 'radar'
-                    }).select().single();
-
-                    if (error) throw error;
-                    lead = data;
+                    return {
+                        result: JSON.stringify({ success: true, updated: true, message: 'Datos actualizados en lead existente' }),
+                        prospectUpdates: {
+                            prospect_name: args.nombre_contacto || args.nombre,
+                            prospect_phone: args.telefono,
+                            prospect_company: args.nombre
+                        }
+                    };
                 }
 
-                if (sessionId) {
-                    await supabaseAdmin.from('sales_agent_sessions').update({
-                        lead_id: lead.id,
-                        prospect_name: args.nombre_contacto || args.nombre,
-                        prospect_phone: args.telefono,
-                        prospect_company: args.nombre,
-                        prospect_website: args.sitio_web
-                    }).eq('id', sessionId);
-                }
-
+                // Lead NO existe aún, solo guardamos en memoria
+                // Se creará cuando el usuario dé el sitio web
                 return {
-                    result: JSON.stringify({ success: true, leadId: lead.id, updated: !!existingLeadId }),
+                    result: JSON.stringify({ success: true, saved_to_session: true, message: 'Datos guardados. Cuando me des el sitio web, creo el lead completo.' }),
                     prospectUpdates: {
                         prospect_name: args.nombre_contacto || args.nombre,
                         prospect_phone: args.telefono,
-                        prospect_company: args.nombre,
-                        prospect_website: args.sitio_web
+                        prospect_company: args.nombre
                     }
                 };
             }
