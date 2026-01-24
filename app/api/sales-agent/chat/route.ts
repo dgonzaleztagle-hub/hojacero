@@ -307,7 +307,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     const newSourceData = {
                         analysis,
                         scraped,
-                        technologies: scraped.techStack,
+                        techStack: scraped.techStack, // UNIFICADO: Antes era 'technologies', ahora coincide con useRadar
                         diagnosed_at: new Date().toISOString()
                     };
 
@@ -333,7 +333,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                             .insert({
                                 sitio_web: args.url,
                                 nombre: domainName, // Nombre limpio del dominio
-                                estado: 'cold',
+                                estado: 'detected', // CORREGIDO: Antes 'cold', ahora aparece en History
                                 pipeline_stage: 'radar',
                                 fuente: 'chat_bot_diagnosis',
                                 zona_busqueda: 'Chat H0',
@@ -403,14 +403,24 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 const startDateTime = new Date(`${args.date}T${args.start_time}:00`);
                 const endDateTime = new Date(startDateTime.getTime() + 30 * 60000);
 
+                // Construir notas con contexto completo
+                const meetingNotes = [
+                    args.empresa ? `Empresa: ${args.empresa}` : null,
+                    args.attendee_email ? `Email: ${args.attendee_email}` : null,
+                    args.notes || null
+                ].filter(Boolean).join(' | ');
+
                 const { data: event, error } = await supabaseAdmin.from('agenda_events').insert({
-                    title: `Reunión ${args.attendee_name}`,
+                    title: `Reunión ${args.attendee_name}${args.empresa ? ` - ${args.empresa}` : ''}`,
                     start_time: startDateTime.toISOString(),
                     end_time: endDateTime.toISOString(),
                     attendee_name: args.attendee_name,
                     attendee_phone: args.attendee_phone,
+                    attendee_email: args.attendee_email || null,
+                    notes: meetingNotes || null, // NUEVO: empresa y contexto en notes
                     event_type: 'meeting',
-                    status: 'confirmed'
+                    status: 'confirmed',
+                    source: 'chat_bot'
                 }).select().single();
 
                 if (error) throw error;
@@ -513,7 +523,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                             from: 'H0 Bot <bot@hojacero.cl>',
                             to: [recipient],
                             subject: subject,
-                            html: `<p>Nombre: ${args.client_name}</p><p>WhatsApp: ${args.client_phone}</p><p>Razón: ${args.reason}</p>`
+                            html: `<p>Nombre: ${args.client_name}</p><p>Empresa: ${args.empresa || 'No especificada'}</p><p>WhatsApp: ${args.client_phone}</p><p>Razón: ${args.reason}</p><p>Resumen: ${args.summary || 'Sin resumen'}</p>`
                         })
                     });
                 }
@@ -525,6 +535,23 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     context: args,
                     status: 'pending'
                 });
+
+                // NUEVO: Actualizar lead a estado 'in_contact' cuando se escala
+                if (sessionId) {
+                    const { data: session } = await supabaseAdmin
+                        .from('sales_agent_sessions')
+                        .select('lead_id')
+                        .eq('id', sessionId)
+                        .single();
+
+                    if (session?.lead_id) {
+                        await supabaseAdmin.from('leads').update({
+                            estado: 'in_contact',
+                            pipeline_stage: 'contactado',
+                            last_activity_at: new Date().toISOString()
+                        }).eq('id', session.lead_id);
+                    }
+                }
 
                 return { result: JSON.stringify({ success: true, message: 'Notificación enviada a humano.' }) };
             }
