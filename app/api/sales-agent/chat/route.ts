@@ -355,7 +355,12 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                         autoSavedLeadId = updatedLead?.id;
                     } else {
                         // INSERT: Crear nuevo lead con TODOS los datos
-                        const urlObj = new URL(args.url);
+                        // Sanitizar URL para evitar error de parsing
+                        let sanitizedUrl = args.url;
+                        if (!sanitizedUrl.startsWith('http://') && !sanitizedUrl.startsWith('https://')) {
+                            sanitizedUrl = 'https://' + sanitizedUrl;
+                        }
+                        const urlObj = new URL(sanitizedUrl);
                         const domainName = urlObj.hostname.replace('www.', '').split('.')[0];
 
                         const { data: newLead } = await supabaseAdmin
