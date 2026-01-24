@@ -49,6 +49,14 @@ Usuario: "Tengo tienda online mitienda.cl"
 Bot: "Veo que tienes una tienda online. Proyectos de e-commerce son más complejos y vale la pena hablar en detalle. ¿Te parece si agendamos 15 min con nuestro equipo?"
 ```
 
+- [x] **Fix Bot Memory/Looping** (Completed)
+- [x] **Implement Auto-Failover (OpenAI -> Groq)** (Completed)
+- [x] **Optimize Token Usage (Truncate Outputs)** (Completed)
+- [ ] **UX: Mensajes de Espera Progresivos** (Frontend)
+    - [ ] Implementar `ThinkingStatus` en `ChatInterface` que cambie mensajes cada 5-8s ("Analizando estructura...", "Redactando informe...").
+- [ ] **Sales: Estrategia "Reporte x Email"**
+    - [ ] Modificar System Prompt para que el bot ofrezca enviar el reporte completo a cambio del correo.
+
 ---
 
 ## 🔧 CAMBIOS A IMPLEMENTAR
