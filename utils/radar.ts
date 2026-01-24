@@ -1,4 +1,5 @@
-import { createClient } from '@/utils/supabase/server';
+// Removed unused createClient import to prevent context issues
+// import { createClient } from '@/utils/supabase/server';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
@@ -285,12 +286,14 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
     - Tecnología detectada: ${techStackStr || 'No identificada de forma clara'}
     - Seguridad: ${scraped.hasSSL ? 'HTTPS Activo ✓' : 'SIN SSL - Inseguro ⚠'}
     
-    REGLAS DE EVALUACIÓN (CRÍTICO):
-    1. SI la tecnología es "Next.js" o "React", el sitio es MODERNO. El score debe ser BAJO (10-30) a menos que falte el SSL o tenga un rating muy malo.
-    2. SI ves "Designed by HOJACERO" o similar, el sitio es PERFECTO. Score: 0. Vibe: "Premium / HojaCero Masterpiece".
-    3. NO inventes que el sitio es de la década de 2000 si tiene stack moderno.
-    4. SÉ HONESTO: Si el sitio es muy bueno, diles "Tu sitio es increíble, felicitaciones". Busca oportunidades en otros lados (ej: ¿Necesitan una App? ¿Mejorar su SEO local?).
-    5. Solo califica como "Desactualizado" si realmente ves tecnología vieja o falta de SSL/Responsive.
+    REGLAS DE EVALUACIÓN (CRÍTICO - NO SEAS AMABLE):
+    1. "Moderno" = Diseño tipo Apple, Stripe, Linear. Si se ve como una plantilla de comida rápida estándar, NO ES MODERNO.
+    2. SI es un sitio de comida/delivery genérico: Score MÁXIMO 60. Di que "funciona pero no diferencia la marca".
+    3. Next.js/React NO garantiza calidad. Si el diseño es feo, el score baja.
+    4. SI ves "Designed by HOJACERO" o similar, el sitio es PERFECTO. Score: 0.
+    5. DETECTA DEBILIDADES REALES: ¿Tipografía aburrida? ¿Fotos de stock? ¿Colores chillones? DÍSELO.
+    6. TU OBJETIVO: Encontrar el "dolor" para venderle un rediseño premium. Si le dices que está lindo, NO VENDEMOS.
+    7. Sé HONESTO: Si realmente es increíble, reconócelo, pero busca otra excusa (SEO, App Móvil).
 
     ESTRUCTURA JSON EXACTA:
     {
@@ -310,6 +313,11 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
         "painPoints": ["problema real 1", "problema real 2"],
         "proposedSolution": "Servicio que realmente aporte valor",
         "estimatedValue": "[Bajo|Medio|Alto|Premium]"
+      },
+      "conversation": {
+        "opener": "Frase amigable para romper el hielo sobre el sitio",
+        "observation": "Comentario técnico simple (ej: 'tu sitio carga lento')",
+        "softOffer": "Oferta sutil para atraer interés (ej: 'podemos modernizarlo')"
       },
       "competitiveAnalysis": "Comparativa realista",
       "recommendedChannel": "Canal sugerido"
@@ -363,9 +371,13 @@ export async function analyzeLeadWithOpenAI(place: any, scraped: any) {
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
     if (!OPENAI_API_KEY) {
-        // Fallback a Groq si no hay OpenAI
-        console.warn('⚠️ OPENAI_API_KEY no configurada, usando Groq como fallback');
-        return analyzeLeadWithGroq(place, scraped);
+        console.error('❌ OPENAI_API_KEY no configurada');
+        return {
+            error: "OPENAI_NOT_CONFIGURED",
+            score: null,
+            vibe: "Error de Configuración",
+            analysisReport: "La API de OpenAI no está configurada. Contacta al administrador."
+        };
     }
 
     const techStackStr = scraped.techStack?.length > 0 ? scraped.techStack.join(', ') : 'No detectada';
@@ -384,11 +396,12 @@ DATOS:
 - Tech: ${techStackStr}
 - SSL: ${scraped.hasSSL ? 'Sí ✓' : 'NO ⚠'}
 
-REGLAS:
-- Next.js/React = Moderno (score bajo 10-30)
-- "HOJACERO" en web = Score 0
-- Sin web = Score 90-100
-- WordPress viejo/Wix feo = Score 60-80
+REGLAS (CRÍTICO - NO ADULES):
+- "Moderno" = Estética nivel Awwwards/Stripe. Si es plantilla estándar = "Funcional pero genérico" (Score 60-70).
+- Next.js/React con diseño feo = "Tecnología moderna, ejecución visual mejorable".
+- Si es "mamasole.cl" o similar (comida rápida estándar): NO le digas que es "muy moderno". Dile que es "funcional".
+- OBJETIVO: Vender. Encuentra el detalle que falta (Branding, Velocidad, Diferenciación).
+- "HOJACERO" en web = Score 0.
 - Sé HONESTO y ESPECÍFICO
 
 RESPONDE SOLO JSON:
@@ -399,10 +412,15 @@ RESPONDE SOLO JSON:
   "buyerPersona": "Cliente ideal del negocio en 1 oración",
   "analysisReport": "Análisis honesto en 2 oraciones",
   "salesStrategy": {
-    "hook": "Frase de apertura específica para este negocio",
+    "hook": "Frase de apertura específica",
     "painPoints": ["dolor1", "dolor2"],
-    "proposedSolution": "Servicio concreto que necesitan",
-    "estimatedValue": "Bajo|Medio|Alto|Premium"
+    "proposedSolution": "Servicio concreto",
+    "estimatedValue": "Bajo|Medio|Alto"
+  },
+  "conversation": {
+    "opener": "Frase amigable para romper el hielo sobre el sitio",
+    "observation": "Comentario técnico simple (ej: 'tu sitio carga lento')",
+    "softOffer": "Oferta sutil para atraer interés (ej: 'podemos modernizarlo')"
   },
   "recommendedChannel": "WhatsApp|Email|Llamada",
   "opportunity": "Tipo de proyecto potencial"
@@ -432,7 +450,12 @@ RESPONDE SOLO JSON:
 
         if (!response.ok) {
             console.error('OpenAI API error:', response.status);
-            return analyzeLeadWithGroq(place, scraped);
+            return {
+                error: "OPENAI_API_ERROR",
+                score: null,
+                vibe: "Servicio Ocupado",
+                analysisReport: `La API de OpenAI retornó error ${response.status}. Intenta de nuevo en unos minutos.`
+            };
         }
 
         const data = await response.json();
@@ -446,7 +469,12 @@ RESPONDE SOLO JSON:
             competitiveAnalysis: parsed.competitiveAnalysis || 'N/A'
         };
     } catch (e) {
-        console.error("OpenAI Analysis failed, falling back to Groq", e);
-        return analyzeLeadWithGroq(place, scraped);
+        console.error("OpenAI Analysis failed (Critical). No Fallback allowed.");
+        // Return a structured error so the bot knows analysis failed
+        return {
+            error: "ANALYSIS_FAILED_SERVICE_BUSY",
+            score: null,
+            vibe: "Analyzer Busy"
+        };
     }
 }

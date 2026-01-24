@@ -13,6 +13,49 @@ interface ChatMessage {
     tool_calls?: any[];
     tool_call_id?: string;
     tool_name?: string;
+    usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+        model_name?: string;
+    };
+}
+
+// Helper component for progressive messages
+function ThinkingStatus() {
+    const [step, setStep] = useState(0);
+    const messages = [
+        "Conectando...",
+        "Analizando estructura...",
+        "Revisando tecnologías...",
+        "Redactando informe...",
+        "Finalizando..."
+    ];
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setStep(s => (s + 1) % messages.length);
+        }, 4000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start items-center">
+            <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center shrink-0">
+                <Bot className="w-4 h-4 text-white" />
+            </div>
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl rounded-bl-none px-4 py-3 flex items-center gap-3">
+                <div className="flex gap-1">
+                    <motion.div className="w-1.5 h-1.5 bg-cyan-500 rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.6, repeat: Infinity }} />
+                    <motion.div className="w-1.5 h-1.5 bg-cyan-500 rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} />
+                    <motion.div className="w-1.5 h-1.5 bg-cyan-500 rounded-full" animate={{ y: [0, -5, 0] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} />
+                </div>
+                <span className="text-xs text-zinc-400 font-mono animate-pulse">
+                    {messages[step]}
+                </span>
+            </div>
+        </motion.div>
+    );
 }
 
 export function ChatInterface() {
@@ -85,7 +128,8 @@ export function ChatInterface() {
                 const finalAssistantMsg: ChatMessage = {
                     id: Date.now().toString(),
                     role: 'assistant',
-                    content: data.message
+                    content: data.message,
+                    usage: data.tokenUsage
                 };
 
                 setMessages(prev => [...prev, ...mappedApiMessages, finalAssistantMsg]);
@@ -95,10 +139,11 @@ export function ChatInterface() {
                     setShowAgenda(true);
                 }
             } else {
+                console.error("Chat API Error:", data.error);
                 setMessages(prev => [...prev, {
-                    id: 'error',
+                    id: `error-${Date.now()}`,
                     role: 'system',
-                    content: 'Hubo un problema conectando. ¿Puedes intentar de nuevo?'
+                    content: `Error del sistema: ${data.error || 'Hubo un problema conectando.'}`
                 }]);
             }
         } catch (err) {
@@ -152,6 +197,14 @@ export function ChatInterface() {
                                         : 'bg-zinc-900 border border-white/10 text-zinc-100 rounded-bl-none'
                                     }`}>
                                     {m.content}
+                                    {m.usage && (
+                                        <div className="mt-2 text-xs text-zinc-500 font-mono border-t border-white/5 pt-2 flex justify-between items-center">
+                                            <div className="flex gap-2">
+                                                <span>{m.usage.total_tokens} toks</span>
+                                            </div>
+                                            <span title="Prompt / Completion">({m.usage.prompt_tokens}/{m.usage.completion_tokens})</span>
+                                        </div>
+                                    )}
                                 </div>
                                 {m.role === 'user' && (
                                     <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center shrink-0">
@@ -161,16 +214,7 @@ export function ChatInterface() {
                             </motion.div>
                         );
                     })}
-                    {isProcessing && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
-                            <div className="w-8 h-8 rounded-full bg-cyan-600 flex items-center justify-center">
-                                <Bot className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="bg-zinc-900 border border-white/10 rounded-2xl rounded-bl-none px-4 py-3">
-                                <Loader2 className="w-4 h-4 animate-spin text-cyan-500" />
-                            </div>
-                        </motion.div>
-                    )}
+                    {isProcessing && <ThinkingStatus />}
                 </AnimatePresence>
 
                 {showAgenda && (
