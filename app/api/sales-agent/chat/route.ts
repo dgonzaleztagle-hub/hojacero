@@ -389,6 +389,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                         diagnosis_score: analysis.score,
                         lead_id: autoSavedLeadId // Ligar sesión al lead creado
                     }).eq('id', sessionId);
+                    console.log('[diagnose_website] Ligado lead_id a sesión:', { sessionId, lead_id: autoSavedLeadId });
                 }
 
                 return {
@@ -501,7 +502,8 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
                 if (session?.lead_id) {
                     // Lead ya existe (se creó con diagnose_website), actualizar datos de contacto
-                    await supabaseAdmin.from('leads').update({
+                    console.log('[save_lead] Actualizando lead existente:', { lead_id: session.lead_id, args });
+                    const { error: updateError } = await supabaseAdmin.from('leads').update({
                         nombre: args.nombre || undefined,
                         nombre_contacto: args.nombre_contacto || undefined,
                         telefono: args.telefono || undefined,
@@ -510,6 +512,8 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                         estado: 'ready_to_contact', // Promover estado porque ya tenemos datos
                         last_activity_at: new Date().toISOString()
                     }).eq('id', session.lead_id);
+
+                    if (updateError) console.error('[save_lead] Error updating lead:', updateError);
 
                     return {
                         result: JSON.stringify({ success: true, updated: true, message: 'Datos actualizados en lead existente' }),
