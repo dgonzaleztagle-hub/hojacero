@@ -394,7 +394,6 @@ DATOS:
 - Web: ${place.website || 'NO TIENE'}
 - Contactos: ${contactsStr}
 - Tech: ${techStackStr}
-- SSL: ${scraped.hasSSL ? 'Sí ✓' : 'NO ⚠'}
 
 REGLAS (CRÍTICO - NO ADULES):
 - "Moderno" = Estética nivel Awwwards/Stripe. Si es plantilla estándar = "Funcional pero genérico" (Score 60-70).

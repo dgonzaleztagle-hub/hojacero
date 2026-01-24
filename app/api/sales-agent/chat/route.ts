@@ -203,21 +203,52 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 // Guardamos inmediatamente como cliente frío en Radar
                 let autoSavedLeadId = null;
                 try {
-                    const { data: savedLead } = await supabaseAdmin.from('leads').upsert({
-                        sitio_web: args.url,
-                        nombre: args.url, // Temporal hasta tener nombre real
-                        estado: 'cold',
-                        pipeline_stage: 'radar',
-                        fuente: 'chat_bot_diagnosis',
-                        zona_busqueda: 'Chat H0',
-                        source_data: {
-                            analysis,
-                            scraped,
-                            technologies: scraped.techStack
-                        }
-                    }, { onConflict: 'sitio_web' }).select().single();
+                    // Primero buscar si ya existe
+                    const { data: existingLead } = await supabaseAdmin
+                        .from('leads')
+                        .select('id, source_data')
+                        .eq('sitio_web', args.url)
+                        .single();
 
-                    autoSavedLeadId = savedLead?.id;
+                    const newSourceData = {
+                        analysis,
+                        scraped,
+                        technologies: scraped.techStack,
+                        diagnosed_at: new Date().toISOString()
+                    };
+
+                    if (existingLead) {
+                        // UPDATE: Merge source_data para no perder datos previos
+                        const { data: updatedLead } = await supabaseAdmin
+                            .from('leads')
+                            .update({
+                                source_data: { ...existingLead.source_data, ...newSourceData },
+                                last_activity_at: new Date().toISOString()
+                            })
+                            .eq('id', existingLead.id)
+                            .select()
+                            .single();
+                        autoSavedLeadId = updatedLead?.id;
+                    } else {
+                        // INSERT: Crear nuevo lead
+                        const urlObj = new URL(args.url);
+                        const domainName = urlObj.hostname.replace('www.', '').split('.')[0];
+
+                        const { data: newLead } = await supabaseAdmin
+                            .from('leads')
+                            .insert({
+                                sitio_web: args.url,
+                                nombre: domainName, // Nombre limpio del dominio
+                                estado: 'cold',
+                                pipeline_stage: 'radar',
+                                fuente: 'chat_bot_diagnosis',
+                                zona_busqueda: 'Chat H0',
+                                source_data: newSourceData
+                            })
+                            .select()
+                            .single();
+                        autoSavedLeadId = newLead?.id;
+                    }
                 } catch (err) {
                     console.error('Auto-save lead failed:', err);
                 }
@@ -293,17 +324,61 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
             }
 
             case 'save_lead': {
-                const { data: lead, error } = await supabaseAdmin.from('leads').insert({
-                    nombre: args.nombre,
-                    nombre_contacto: args.nombre_contacto,
-                    telefono: args.telefono,
-                    email: args.email,
-                    sitio_web: args.sitio_web,
-                    estado: 'ready_to_contact',
-                    fuente: 'chat_bot'
-                }).select().single();
+                // Buscar lead existente: primero por sesión, luego por sitio_web
+                let existingLeadId = null;
 
-                if (error) throw error;
+                if (sessionId) {
+                    const { data: session } = await supabaseAdmin
+                        .from('sales_agent_sessions')
+                        .select('lead_id, prospect_website')
+                        .eq('id', sessionId)
+                        .single();
+
+                    if (session?.lead_id) {
+                        existingLeadId = session.lead_id;
+                    } else if (session?.prospect_website || args.sitio_web) {
+                        // Buscar por sitio_web
+                        const { data: leadByUrl } = await supabaseAdmin
+                            .from('leads')
+                            .select('id')
+                            .eq('sitio_web', session?.prospect_website || args.sitio_web)
+                            .single();
+                        existingLeadId = leadByUrl?.id;
+                    }
+                }
+
+                let lead;
+                if (existingLeadId) {
+                    // UPDATE lead existente (conectar datos de contacto con diagnóstico previo)
+                    const { data, error } = await supabaseAdmin.from('leads').update({
+                        nombre: args.nombre || undefined,
+                        nombre_contacto: args.nombre_contacto || undefined,
+                        telefono: args.telefono || undefined,
+                        whatsapp: args.telefono || undefined, // Guardamos también en campo whatsapp
+                        email: args.email || undefined,
+                        estado: 'ready_to_contact',
+                        last_activity_at: new Date().toISOString()
+                    }).eq('id', existingLeadId).select().single();
+
+                    if (error) throw error;
+                    lead = data;
+                } else {
+                    // INSERT nuevo lead (sin diagnóstico previo)
+                    const { data, error } = await supabaseAdmin.from('leads').insert({
+                        nombre: args.nombre,
+                        nombre_contacto: args.nombre_contacto,
+                        telefono: args.telefono,
+                        whatsapp: args.telefono,
+                        email: args.email,
+                        sitio_web: args.sitio_web,
+                        estado: 'ready_to_contact',
+                        fuente: 'chat_bot',
+                        pipeline_stage: 'radar'
+                    }).select().single();
+
+                    if (error) throw error;
+                    lead = data;
+                }
 
                 if (sessionId) {
                     await supabaseAdmin.from('sales_agent_sessions').update({
@@ -316,7 +391,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 }
 
                 return {
-                    result: JSON.stringify({ success: true, leadId: lead.id }),
+                    result: JSON.stringify({ success: true, leadId: lead.id, updated: !!existingLeadId }),
                     prospectUpdates: {
                         prospect_name: args.nombre_contacto || args.nombre,
                         prospect_phone: args.telefono,
