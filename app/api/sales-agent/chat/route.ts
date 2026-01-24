@@ -428,8 +428,20 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
             }
 
             case 'book_meeting': {
-                const startDateTime = new Date(`${args.date}T${args.start_time}:00`);
+                // Normalizar hora (manejar '12', '12:00', '12:30', etc)
+                let normalizedTime = args.start_time;
+                if (!normalizedTime.includes(':')) {
+                    normalizedTime = `${normalizedTime.padStart(2, '0')}:00`;
+                } else if (normalizedTime.split(':')[1]?.length === 1) {
+                    const [h, m] = normalizedTime.split(':');
+                    normalizedTime = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+                }
+
+                // Crear fechas con timezone Chile (UTC-3)
+                const startDateTime = new Date(`${args.date}T${normalizedTime}:00-03:00`);
                 const endDateTime = new Date(startDateTime.getTime() + 30 * 60000);
+
+                console.log('[book_meeting] args:', { date: args.date, start_time: args.start_time, normalized: normalizedTime, startDateTime: startDateTime.toISOString() });
 
                 // Construir notas con contexto completo
                 const meetingNotes = [
@@ -524,17 +536,27 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 const subject = `🔥 LEADS: ${args.client_name} quiere hablar con ${args.type}`;
 
                 const RESEND_API_KEY = process.env.RESEND_API_KEY;
+                console.log('[escalate_to_human] Sending email to:', recipient, 'RESEND_KEY exists:', !!RESEND_API_KEY);
+
                 if (RESEND_API_KEY) {
-                    await fetch('https://api.resend.com/emails', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            from: 'H0 Bot <bot@hojacero.cl>',
-                            to: [recipient],
-                            subject: subject,
-                            html: `<p>Nombre: ${args.client_name}</p><p>Empresa: ${args.empresa || 'No especificada'}</p><p>WhatsApp: ${args.client_phone}</p><p>Razón: ${args.reason}</p><p>Resumen: ${args.summary || 'Sin resumen'}</p>`
-                        })
-                    });
+                    try {
+                        const emailResponse = await fetch('https://api.resend.com/emails', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                from: 'H0 Bot <bot@hojacero.cl>',
+                                to: [recipient],
+                                subject: subject,
+                                html: `<p>Nombre: ${args.client_name}</p><p>Empresa: ${args.empresa || 'No especificada'}</p><p>WhatsApp: ${args.client_phone}</p><p>Razón: ${args.reason}</p><p>Resumen: ${args.summary || 'Sin resumen'}</p>`
+                            })
+                        });
+                        const emailResult = await emailResponse.json();
+                        console.log('[escalate_to_human] Email result:', emailResult);
+                    } catch (emailError) {
+                        console.error('[escalate_to_human] Email ERROR:', emailError);
+                    }
+                } else {
+                    console.error('[escalate_to_human] RESEND_API_KEY NOT FOUND!');
                 }
 
                 await supabaseAdmin.from('sales_notifications').insert({
