@@ -58,7 +58,11 @@ function ThinkingStatus() {
     );
 }
 
-export function ChatInterface() {
+interface ChatInterfaceProps {
+    onClose?: () => void;
+}
+
+export function ChatInterface({ onClose }: ChatInterfaceProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -164,8 +168,32 @@ export function ChatInterface() {
     };
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-zinc-950/20">
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 flex flex-col h-full bg-zinc-950/20 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-4 border-b border-white/10 bg-zinc-900/50 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center">
+                        <Bot className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-white leading-tight">Agente H0</h3>
+                        <div className="flex items-center gap-1.5 ">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-medium">Online</span>
+                        </div>
+                    </div>
+                </div>
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-all"
+                    >
+                        <Terminal className="w-4 h-4 rotate-90" />
+                    </button>
+                )}
+            </div>
+
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
                 <AnimatePresence>
                     {messages.filter(m => (m.role !== 'tool' && m.content) || (m.role === 'tool' && m.tool_name === 'diagnose_website')).map((m) => {
                         if (m.role === 'tool' && m.tool_name === 'diagnose_website') {
