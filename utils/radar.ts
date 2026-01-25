@@ -399,7 +399,7 @@ REGLAS (CRÍTICO - NO ADULES):
 - "Moderno" = Estética nivel Awwwards/Stripe. Si es plantilla estándar = "Funcional pero genérico" (Score 60-70).
 - Next.js/React con diseño feo = "Tecnología moderna, ejecución visual mejorable".
 - Si es "mamasole.cl" o similar (comida rápida estándar): NO le digas que es "muy moderno". Dile que es "funcional".
-- OBJETIVO: Vender. Encuentra el detalle que falta (Branding, Velocidad, Diferenciación).
+- OBJETIVO: Vender. Encuentra el detalle que falta (Branding, Diferenciación).
 - "HOJACERO" en web = Score 0.
 - Sé HONESTO y ESPECÍFICO
 
