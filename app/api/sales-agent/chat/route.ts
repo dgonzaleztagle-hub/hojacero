@@ -715,15 +715,44 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 function buildSystemMessage(prospectData: any) {
     let content = SYSTEM_PROMPT + '\n\n' + getCurrentDatePrompt();
 
-    content += `\n\n## 📋 DATOS YA CAPTURADOS (VERDAD ABSOLUTA)\n`;
-    content += `Nombre: ${prospectData.prospect_name || 'NO CAPTURADO (Preguntalo)'}\n`;
-    content += `WhatsApp: ${prospectData.prospect_phone || 'NO CAPTURADO (Preguntalo)'}\n`;
-    content += `Empresa: ${prospectData.prospect_company || 'NO CAPTURADO'}\n`;
-    content += `Sitio Web: ${prospectData.prospect_website || 'NO CAPTURADO'}\n`;
+    content += `\n\n## 📋 DATOS YA CAPTURADOS (VERDAD ABSOLUTA - LEE ESTO)\n`;
+    content += `┌──────────────────────────────────────────────┐\n`;
 
-    // Reglas derivadas
-    if (prospectData.prospect_phone && prospectData.prospect_name) {
-        content += `\n✅ TIENES LOS DATOS CLAVE. Si el usuario pide hablar con alguien, USA escalate_to_human. NO LO DUDES.`;
+    if (prospectData.prospect_name) {
+        content += `│ ✅ NOMBRE: ${prospectData.prospect_name} (¡NO LO PIDAS!)\n`;
+    } else {
+        content += `│ ❓ Nombre: No capturado\n`;
+    }
+
+    if (prospectData.prospect_phone) {
+        content += `│ ✅ WHATSAPP: ${prospectData.prospect_phone} (¡NO LO PIDAS!)\n`;
+    } else {
+        content += `│ ❓ WhatsApp: No capturado\n`;
+    }
+
+    if (prospectData.prospect_company) {
+        content += `│ ✅ EMPRESA: ${prospectData.prospect_company}\n`;
+    } else {
+        content += `│ ❓ Empresa: No capturada\n`;
+    }
+
+    if (prospectData.prospect_website) {
+        content += `│ ✅ SITIO: ${prospectData.prospect_website}\n`;
+    }
+
+    content += `└──────────────────────────────────────────────┘\n`;
+
+    // Reglas derivadas según lo que ya tenemos
+    const tieneNombre = !!prospectData.prospect_name;
+    const tieneTelefono = !!prospectData.prospect_phone;
+
+    if (tieneNombre && tieneTelefono) {
+        content += `\n🚫 PROHIBIDO: Volver a pedir nombre o WhatsApp. YA LOS TIENES ARRIBA.\n`;
+        content += `✅ PERMITIDO: Si el usuario pide hablar con alguien, USA escalate_to_human directamente.\n`;
+    } else if (tieneNombre) {
+        content += `\n🚫 PROHIBIDO: Pedir el nombre otra vez. Ya lo tienes.\n`;
+    } else if (tieneTelefono) {
+        content += `\n🚫 PROHIBIDO: Pedir el WhatsApp otra vez. Ya lo tienes.\n`;
     }
 
     return content;
@@ -827,6 +856,18 @@ export async function POST(req: NextRequest) {
                 // ★ UPDATE MEMORY IMMEDIATELY ★
                 if (outcome.prospectUpdates) {
                     prospectData = { ...prospectData, ...outcome.prospectUpdates };
+
+                    // ★ PERSIST TO DATABASE (FIX MEMORY BUG) ★
+                    // Si no persistimos, el bot "olvida" datos entre mensajes
+                    if (sessionId) {
+                        await supabaseAdmin.from('sales_agent_sessions').update({
+                            prospect_name: prospectData.prospect_name || null,
+                            prospect_phone: prospectData.prospect_phone || null,
+                            prospect_company: prospectData.prospect_company || null,
+                            prospect_website: prospectData.prospect_website || null,
+                            updated_at: new Date().toISOString()
+                        }).eq('id', sessionId);
+                    }
                 }
             }
 
