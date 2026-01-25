@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Helper to get admin client (lazy init)
+function getAdminClient() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 // POST: Registrar dispositivo como del equipo
 export async function POST(req: NextRequest) {
     try {
+        const supabase = getAdminClient();
         const body = await req.json();
         const { fingerprint, owner, device_name } = body;
 
@@ -45,6 +49,7 @@ export async function POST(req: NextRequest) {
 
 // GET: Listar dispositivos del equipo
 export async function GET() {
+    const supabase = getAdminClient();
     const { data, error } = await supabase
         .from('team_devices')
         .select('*')
@@ -62,6 +67,7 @@ export async function GET() {
 
 // DELETE: Eliminar dispositivo
 export async function DELETE(req: NextRequest) {
+    const supabase = getAdminClient();
     const { searchParams } = new URL(req.url);
     const fingerprint = searchParams.get('fingerprint');
 

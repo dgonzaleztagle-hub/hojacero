@@ -4,11 +4,13 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
+// Helper to get admin client (lazy init)
+function getAdminClient() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 
 interface DemoVisit {
@@ -78,6 +80,7 @@ async function sendVisitNotification(visit: DemoVisit) {
 // POST: Registrar visita a demo
 export async function POST(req: NextRequest) {
     try {
+        const supabase = getAdminClient();
         const body = await req.json();
         const { prospecto, device_fingerprint, referrer } = body;
 
@@ -158,6 +161,7 @@ export async function POST(req: NextRequest) {
 
 // GET: Obtener visitas de un demo específico
 export async function GET(req: NextRequest) {
+    const supabase = getAdminClient();
     const { searchParams } = new URL(req.url);
     const prospecto = searchParams.get('prospecto');
 

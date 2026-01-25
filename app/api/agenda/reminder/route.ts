@@ -4,18 +4,20 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
-// Cliente admin para operaciones del cron
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 // Mapeo de emails por responsable
 const TEAM_EMAILS: Record<string, string[]> = {
     daniel: ['dgonzaleztagle@gmail.com'],
     gaston: ['Gaston.jofre1995@gmail.com'],
     both: ['dgonzaleztagle@gmail.com', 'Gaston.jofre1995@gmail.com']
 };
+
+// Helper to get admin client (lazy init)
+function getAdminClient() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 async function sendReminderEmail(event: any, recipients: string[]) {
     const startTime = new Date(event.start_time);
@@ -92,6 +94,8 @@ export async function GET(req: NextRequest) {
         // Si hay secret configurado, verificar
         // return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const supabase = getAdminClient();
 
     const now = new Date();
     const in30min = new Date(now.getTime() + 30 * 60 * 1000);

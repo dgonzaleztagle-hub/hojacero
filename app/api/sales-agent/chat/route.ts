@@ -7,11 +7,13 @@ import { createClient } from '@supabase/supabase-js';
 // Modelo: gpt-4o-mini (OpenAI)
 // ===========================================
 
-// Cliente Supabase admin
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Helper to get admin client (lazy init)
+function getAdminClient() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 // ===========================================
 // SYSTEM PROMPT - PROFESIONAL (v2.0)
@@ -296,6 +298,7 @@ Esto cancela la reunión más reciente del usuario en esa fecha para poder re-ag
 // ===========================================
 async function executeTool(name: string, args: any, sessionId: string | null): Promise<{ result: string, prospectUpdates?: any }> {
     try {
+        const supabaseAdmin = getAdminClient();
         switch (name) {
             case 'diagnose_website': {
                 // Importar funciones de radar dinámicamente
@@ -784,6 +787,7 @@ async function callAIWithFallback(params: any) {
 
 export async function POST(req: NextRequest) {
     try {
+        const supabaseAdmin = getAdminClient();
         const { messages, sessionId: clientSessionId } = await req.json();
         let sessionId = clientSessionId;
 
