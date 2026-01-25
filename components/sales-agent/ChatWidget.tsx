@@ -58,16 +58,16 @@ export function ChatWidget() {
                     }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`w-16 h-16 rounded-full flex items-center justify-center relative shadow-2xl transition-colors overflow-hidden ${isOpen
+                    className={`w-16 h-16 rounded-full flex items-center justify-center relative shadow-2xl transition-all overflow-hidden ${isOpen
                         ? 'bg-zinc-900 border border-white/20'
-                        : 'bg-cyan-600 hover:bg-cyan-500 shadow-cyan-500/20'
+                        : 'bg-transparent'
                         }`}
                 >
-                    <div className="w-14 h-14 flex items-center justify-center">
+                    <div className="w-16 h-16 flex items-center justify-center">
                         <img
                             src={ROBOT_GIF_PATH}
                             alt="H0 Robot"
-                            className="w-full h-full object-contain scale-110"
+                            className="w-full h-full object-contain scale-125 mix-blend-screen"
                         />
                     </div>
 
