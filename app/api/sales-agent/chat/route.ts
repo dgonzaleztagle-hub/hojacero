@@ -213,6 +213,7 @@ DATOS REQUERIDOS: fecha, hora, nombre, whatsapp, empresa. TODOS son obligatorios
                     attendee_phone: { type: 'string', description: 'WhatsApp del prospecto (OBLIGATORIO)' },
                     attendee_email: { type: 'string', description: 'Email (opcional)' },
                     empresa: { type: 'string', description: 'Nombre del negocio o empresa' },
+                    website: { type: 'string', description: 'URL del sitio web del negocio (ej: ejemplo.cl)' },
                     notes: { type: 'string', description: 'Notas adicionales sobre la reunión' },
                     duration_minutes: { type: 'number', description: 'Duración en minutos (default: 30)' }
                 },
@@ -533,11 +534,15 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     end_time: endDateTime.toISOString(),
                     attendee_name: args.attendee_name,
                     attendee_phone: args.attendee_phone,
+                    whatsapp: args.attendee_phone, // Datos duplicados en columnas nuevas para reporte
+                    company_name: args.empresa,
+                    website: args.website || null,
                     attendee_email: args.attendee_email || null,
                     notes: meetingNotes || null,
                     event_type: 'meeting',
                     status: 'confirmed',
-                    source: 'chat_bot'
+                    source: 'chat_bot',
+                    send_reminder_email: true // Notificar por defecto al humano
                 }).select().single();
 
                 if (error) throw error;

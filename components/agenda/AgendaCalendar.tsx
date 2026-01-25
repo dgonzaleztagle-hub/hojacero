@@ -10,6 +10,8 @@ interface AgendaEvent {
     event_type: string;
     status: string;
     source: string;
+    attendee_name?: string;
+    company_name?: string;
 }
 
 interface AgendaCalendarProps {
@@ -113,9 +115,17 @@ export function AgendaCalendar({ events, currentDate, onEventClick, isDark }: Ag
                                     <div
                                         key={event.id}
                                         onClick={() => onEventClick(event)}
-                                        className={`text-[10px] px-1.5 py-0.5 rounded border truncate cursor-pointer transition-all hover:scale-[1.02] ${getEventColor(event.event_type)}`}
+                                        className={`text-[10px] px-1.5 py-0.5 rounded border truncate cursor-pointer transition-all hover:scale-[1.02] flex items-center gap-1.5 ${getEventColor(event.event_type)}`}
+                                        title={`${event.title}${event.attendee_name ? ` - ${event.attendee_name}` : ''}`}
                                     >
-                                        {new Date(event.start_time).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} {event.title}
+                                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${event.status === 'completed' ? 'bg-green-500' :
+                                            event.status === 'missed' ? 'bg-orange-500' :
+                                                event.status === 'cancelled' ? 'bg-red-500' :
+                                                    'bg-blue-400'
+                                            }`} />
+                                        <span className="truncate">
+                                            {new Date(event.start_time).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} {event.title}
+                                        </span>
                                     </div>
                                 ))}
                                 {dayEvents.length > 3 && (

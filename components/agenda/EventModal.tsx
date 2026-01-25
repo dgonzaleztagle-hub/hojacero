@@ -21,8 +21,13 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
         attendee_name: '',
         attendee_email: '',
         attendee_phone: '',
+        whatsapp: '',
+        website: '',
+        company_name: '',
+        status: 'pending',
         location: '',
-        notes: ''
+        notes: '',
+        send_reminder_email: false
     });
 
     useEffect(() => {
@@ -36,11 +41,15 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
                 attendee_name: event.attendee_name || '',
                 attendee_email: event.attendee_email || '',
                 attendee_phone: event.attendee_phone || '',
+                whatsapp: event.whatsapp || event.attendee_phone || '',
+                website: event.website || '',
+                company_name: event.company_name || '',
+                status: event.status || 'pending',
                 location: event.location || '',
-                notes: event.notes || ''
+                notes: event.notes || '',
+                send_reminder_email: event.send_reminder_email || false
             });
         } else {
-            // Default: ahora + 1 hora
             const now = new Date();
             const start = new Date(now.getTime() + 60 * 60 * 1000);
             const end = new Date(start.getTime() + 30 * 60 * 1000);
@@ -53,7 +62,12 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
     }, [event]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        const { name, value, type } = e.target;
+        if (type === 'checkbox') {
+            setForm({ ...form, [name]: (e.target as HTMLInputElement).checked });
+        } else {
+            setForm({ ...form, [name]: value });
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -65,6 +79,13 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
         });
     };
 
+    const handleDelete = () => {
+        if (onDelete) {
+            onDelete();
+            onClose(); // Arreglar bug: cerrar modal después de eliminar
+        }
+    };
+
     const inputClass = `w-full px-3 py-2 rounded-lg text-sm ${isDark
         ? 'bg-black/50 border border-white/10 text-white placeholder:text-zinc-600 focus:border-cyan-500/50'
         : 'bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-400'
@@ -72,12 +93,9 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Overlay */}
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            {/* Modal */}
-            <div className={`relative w-full max-w-lg rounded-2xl p-6 shadow-2xl ${isDark ? 'bg-zinc-900 border border-white/10' : 'bg-white border border-gray-200'}`}>
-                {/* Header */}
+            <div className={`relative w-full max-w-lg rounded-2xl p-6 shadow-2xl ${isDark ? 'bg-zinc-900 border border-white/10' : 'bg-white border border-gray-200'}`} onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                     <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {event ? 'Editar Evento' : 'Nueva Reunión'}
@@ -87,102 +105,126 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
                     </button>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Título */}
-                    <div>
-                        <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                            Título *
-                        </label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={form.title}
-                            onChange={handleChange}
-                            placeholder="Ej: Sesión Estratégica con Cliente"
-                            required
-                            className={inputClass}
-                        />
+                <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Título y Estado */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-2">
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Título *</label>
+                            <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="Ej: Sesión Estratégica" required className={inputClass} />
+                        </div>
+                        <div>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Estado</label>
+                            <select name="status" value={form.status} onChange={handleChange} className={`${inputClass} font-bold ${form.status === 'completed' ? 'text-green-500' : form.status === 'missed' ? 'text-red-500' : 'text-cyan-500'}`}>
+                                <option value="pending">⏳ Pendiente</option>
+                                <option value="completed">✅ Realizada</option>
+                                <option value="missed">❌ Perdida</option>
+                                <option value="cancelled">🚫 Cancelada</option>
+                            </select>
+                        </div>
                     </div>
 
-                    {/* Tipo */}
-                    <div>
-                        <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                            Tipo
-                        </label>
-                        <select name="event_type" value={form.event_type} onChange={handleChange} className={inputClass}>
-                            <option value="meeting">🤝 Reunión</option>
-                            <option value="task">📋 Tarea</option>
-                            <option value="block">🚫 Bloqueo</option>
-                            <option value="reminder">⏰ Recordatorio</option>
-                        </select>
+                    {/* Tipo y Empresa */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Tipo</label>
+                            <select name="event_type" value={form.event_type} onChange={handleChange} className={inputClass}>
+                                <option value="meeting">🤝 Reunión</option>
+                                <option value="task">📋 Tarea</option>
+                                <option value="block">🚫 Bloqueo</option>
+                                <option value="reminder">⏰ Recordatorio</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Empresa</label>
+                            <input type="text" name="company_name" value={form.company_name} onChange={handleChange} placeholder="Nombre del Negocio" className={inputClass} />
+                        </div>
                     </div>
 
                     {/* Fechas */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                                Inicio *
-                            </label>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Inicio *</label>
                             <input type="datetime-local" name="start_time" value={form.start_time} onChange={handleChange} required className={inputClass} />
                         </div>
                         <div>
-                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                                Fin *
-                            </label>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Fin *</label>
                             <input type="datetime-local" name="end_time" value={form.end_time} onChange={handleChange} required className={inputClass} />
                         </div>
                     </div>
 
-                    {/* Asistente */}
+                    {/* Asistente y WhatsApp */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                                Nombre del Asistente
-                            </label>
-                            <input type="text" name="attendee_name" value={form.attendee_name} onChange={handleChange} placeholder="Daniel" className={inputClass} />
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Asistente</label>
+                            <input type="text" name="attendee_name" value={form.attendee_name} onChange={handleChange} placeholder="Nombre del cliente" className={inputClass} />
                         </div>
                         <div>
-                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                                Email
-                            </label>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>WhatsApp</label>
+                            <div className="relative">
+                                <input type="text" name="whatsapp" value={form.whatsapp} onChange={handleChange} placeholder="+56 9..." className={inputClass} />
+                                {form.whatsapp && (
+                                    <a href={`https://wa.me/${form.whatsapp.replace(/\D/g, '')}`} target="_blank" className="absolute right-2 top-1.5 p-1 hover:bg-green-500/20 text-green-500 rounded transition-colors">
+                                        <Phone className="w-4 h-4" />
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Email y Sitio Web */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Email</label>
                             <input type="email" name="attendee_email" value={form.attendee_email} onChange={handleChange} placeholder="cliente@email.com" className={inputClass} />
+                        </div>
+                        <div>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Sitio Web</label>
+                            <input type="text" name="website" value={form.website} onChange={handleChange} placeholder="www.ejemplo.cl" className={inputClass} />
                         </div>
                     </div>
 
                     {/* Notas */}
                     <div>
-                        <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                            Notas
+                        <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Notas</label>
+                        <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} placeholder="Detalles de la reunión..." className={inputClass} />
+                    </div>
+
+                    {/* Reminder Toggle */}
+                    <div className={`p-4 rounded-xl border flex items-center justify-between ${isDark ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-cyan-50 border-cyan-200'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-500/20' : 'bg-cyan-100'}`}>
+                                <Mail className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                            </div>
+                            <div>
+                                <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Notificar al Equipo</p>
+                                <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-zinc-500'}`}>Recibir recordatorio por Email</p>
+                            </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                name="send_reminder_email"
+                                checked={form.send_reminder_email}
+                                onChange={handleChange}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
                         </label>
-                        <textarea
-                            name="notes"
-                            value={form.notes}
-                            onChange={handleChange}
-                            rows={3}
-                            placeholder="Notas adicionales..."
-                            className={inputClass}
-                        />
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-4 border-t border-white/10">
                         {onDelete ? (
-                            <button
-                                type="button"
-                                onClick={onDelete}
-                                className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-500/10 rounded-lg text-sm font-medium transition-all"
-                            >
+                            <button type="button" onClick={handleDelete} className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-500/10 rounded-lg text-sm font-medium transition-all">
                                 <Trash2 className="w-4 h-4" />
                                 Eliminar
                             </button>
                         ) : <div />}
 
                         <div className="flex items-center gap-2">
-                            <button type="button" onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? 'text-zinc-400 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'}`}>
-                                Cancelar
-                            </button>
-                            <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-sm font-medium transition-all">
+                            <button type="button" onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark ? 'text-zinc-400 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'}`}>Cancelar</button>
+                            <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-cyan-900/20">
                                 <Save className="w-4 h-4" />
                                 {event ? 'Guardar Cambios' : 'Crear Evento'}
                             </button>

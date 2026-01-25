@@ -15,6 +15,10 @@ interface AgendaEvent {
     end_time: string;
     attendee_name?: string;
     attendee_email?: string;
+    attendee_phone?: string;
+    whatsapp?: string;
+    website?: string;
+    company_name?: string;
     status: string;
     source: string;
     leads?: { nombre: string; sitio_web?: string };
@@ -154,42 +158,84 @@ export default function AgendaPage() {
                     </p>
                 ) : (
                     <div className="space-y-3">
-                        {upcomingEvents.map(event => (
-                            <div
-                                key={event.id}
-                                onClick={() => handleEditEvent(event)}
-                                className={`p-3 rounded-lg cursor-pointer transition-all ${isDark
-                                    ? 'bg-zinc-900 border border-white/10 hover:border-cyan-500/50'
-                                    : 'bg-white border border-gray-200 hover:border-blue-300'
-                                    }`}
-                            >
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                            {event.title}
-                                        </p>
-                                        <div className={`flex items-center gap-2 text-xs mt-1 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                                            <Clock className="w-3 h-3" />
-                                            {new Date(event.start_time).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}
-                                            {' • '}
-                                            {new Date(event.start_time).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
-                                        </div>
-                                        {event.attendee_name && (
-                                            <div className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                                                <User className="w-3 h-3" />
-                                                {event.attendee_name}
+                        {upcomingEvents.map(event => {
+                            const startTime = new Date(event.start_time);
+                            const now = new Date();
+                            const isToday = startTime.toDateString() === now.toDateString();
+                            const diffMs = startTime.getTime() - now.getTime();
+                            const diffMins = Math.round(diffMs / 60000);
+
+                            let proximityLabel = "";
+                            if (isToday) {
+                                if (diffMins > 0 && diffMins <= 60) {
+                                    proximityLabel = `En ${diffMins} min`;
+                                } else if (diffMins <= 0 && diffMins > -30) {
+                                    proximityLabel = "Ahora";
+                                } else {
+                                    proximityLabel = "Hoy";
+                                }
+                            }
+
+                            return (
+                                <div
+                                    key={event.id}
+                                    onClick={() => handleEditEvent(event)}
+                                    className={`p-3 rounded-xl cursor-pointer transition-all border group ${isDark
+                                        ? 'bg-zinc-900/50 border-white/5 hover:border-cyan-500/50 hover:bg-zinc-900'
+                                        : 'bg-white border-gray-100 hover:border-blue-300 hover:shadow-md'
+                                        }`}
+                                >
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                {proximityLabel && (
+                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold animate-pulse ${proximityLabel === 'Ahora' || proximityLabel.startsWith('En')
+                                                            ? 'bg-red-500 text-white'
+                                                            : 'bg-cyan-500 text-white'
+                                                        }`}>
+                                                        {proximityLabel}
+                                                    </span>
+                                                )}
+                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${event.status === 'completed' ? (isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700') :
+                                                        event.status === 'missed' ? (isDark ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-100 text-orange-700') :
+                                                            event.status === 'cancelled' ? (isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-700') :
+                                                                (isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700')
+                                                    }`}>
+                                                    {event.status === 'pending' ? 'Pendiente' :
+                                                        event.status === 'confirmed' ? 'Confirmada' :
+                                                            event.status === 'completed' ? 'Completada' :
+                                                                event.status === 'missed' ? 'Perdida' :
+                                                                    event.status === 'cancelled' ? 'Cancelada' : event.status}
+                                                </span>
                                             </div>
-                                        )}
+
+                                            <p className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                                {event.title}
+                                            </p>
+
+                                            {(event.company_name || event.attendee_name) && (
+                                                <p className={`text-xs mt-0.5 truncate ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
+                                                    {event.company_name || event.attendee_name}
+                                                </p>
+                                            )}
+
+                                            <div className={`flex items-center gap-2 text-[11px] mt-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
+                                                <Clock className="w-3 h-3" />
+                                                {!isToday && startTime.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }) + ' • '}
+                                                {startTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        </div>
+
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${event.source === 'bot'
+                                                ? (isDark ? 'bg-cyan-500/10 text-cyan-400' : 'bg-cyan-50')
+                                                : (isDark ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100')
+                                            }`}>
+                                            <User className="w-4 h-4" />
+                                        </div>
                                     </div>
-                                    <span className={`text-[9px] px-1.5 py-0.5 rounded uppercase font-bold ${event.source === 'bot'
-                                        ? 'bg-cyan-500/20 text-cyan-400'
-                                        : 'bg-zinc-500/20 text-zinc-400'
-                                        }`}>
-                                        {event.source}
-                                    </span>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
