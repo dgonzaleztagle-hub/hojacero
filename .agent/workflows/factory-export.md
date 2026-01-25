@@ -2,10 +2,10 @@
 description: Empaqueta un sitio de prospecto para entrega final al cliente
 ---
 
-# 📦 HojaCero Factory EXPORT v2 - Protocolo Blindado
+# 📦 HojaCero Factory EXPORT v3 - Smart Export
 
-Este workflow empaqueta un sitio para entrega final, asegurando que sea **100% standalone**.
-Utiliza `scripts/export-helper.js` para automatizar la detección de dependencias y assets.
+Este workflow empaqueta un sitio de prospecto para entrega final al cliente.
+Usa análisis inteligente de dependencias para copiar SOLO lo necesario.
 
 **IMPORTANTE:** Ejecutar SOLO después del pago.
 
@@ -15,127 +15,104 @@ Utiliza `scripts/export-helper.js` para automatizar la detección de dependencia
 
 Antes de ejecutar:
 - [ ] Cliente ha PAGADO
-- [ ] `style_lock.md` muestra SEO inyectado
-- [ ] La carpeta `app/prospectos/[cliente]` existe
+- [ ] El demo está listo en `app/prospectos/[cliente]`
+- [ ] Has probado que funciona en `localhost:3000/prospectos/[cliente]`
 
 ---
 
-## Fase 1: Preparación del Terreno
+## Paso 1: Definir Cliente
 
-1.  Definir variable del cliente (ej: `apimiel`):
-    ```powershell
-    $CLIENT = "apimiel"
-    ```
-
-3.  **Handshake Protocol (CRÍTICO):**
-    Verificar si ya existe un export previo válido.
-    ```powershell
-    if (Test-Path "exports\$CLIENT\EXPORT_MANIFEST.json") {
-       Write-Host "⚠️ YA EXISTE UN EXPORT PREVIO." -ForegroundColor Yellow
-       Write-Host "Si tienes cambios manuales ahí, NO ejecutes 'Remove-Item' ciegamente."
-       Write-Host "Revisa si puedes iterar sobre esa carpeta en lugar de borrarla."
-    }
-    
-    # SOLO SI deseas re-generar de cero:
-    Remove-Item -Recurse -Force "exports\$CLIENT" -ErrorAction SilentlyContinue
-    ```
-
-3.  Crear estructura base:
-    ```powershell
-    New-Item -ItemType Directory -Force -Path "exports\$CLIENT\src\app"
-    New-Item -ItemType Directory -Force -Path "exports\$CLIENT\src\components"
-    New-Item -ItemType Directory -Force -Path "exports\$CLIENT\src\lib"
-    New-Item -ItemType Directory -Force -Path "exports\$CLIENT\src\hooks"
-    New-Item -ItemType Directory -Force -Path "exports\$CLIENT\src\utils"
-    New-Item -ItemType Directory -Force -Path "exports\$CLIENT\public"
-    ```
-
----
-
-## Fase 2: Migración del Código Fuente (The Great Copy)
-
-En lugar de intentar "adivinar" qué archivos se usan, **copiamos todo el núcleo** para garantizar que nada falte. El script de build de Next.js hará el tree-shaking final.
-
-1.  **Copiar Páginas del Prospecto**:
-    ```powershell
-    Copy-Item -Recurse "app\prospectos\$CLIENT\*" "exports\$CLIENT\src\app\"
-    ```
-
-2.  **Copiar Núcleo de Componentes y Utilidades**:
-    *(Copiamos todo para soportar los alias @/ sin romper referencias)*
-    ```powershell
-    Copy-Item -Recurse "components\*" "exports\$CLIENT\src\components\"
-    Copy-Item -Recurse "lib\*" "exports\$CLIENT\src\lib\"
-    Copy-Item -Recurse "hooks\*" "exports\$CLIENT\src\hooks\"
-    Copy-Item -Recurse "utils\*" "exports\$CLIENT\src\utils\"
-    Copy-Item "next-env.d.ts" "exports\$CLIENT\"
-    ```
-
-3.  **Renombrar Página Principal**:
-    Mover `page.tsx` de la carpeta del cliente a la raíz de la app exportada.
-    *(Ajustar rutas según la estructura específica del prospecto)*
-    ```powershell
-    # Ejemplo: Si el home estaba en app/prospectos/apimiel/page.tsx
-    # Al copiar, quedó en src/app/page.tsx (correcto)
-    # Pero si había subcarpetas, verificar estructura.
-    ```
-
----
-
-## Fase 3: Automatización Inteligente (El Cerebro)
-
-Ejecutar el script helper que:
-1.  Escanea el código en `exports/$CLIENT` para encontrar `imports` y `assets`.
-2.  Genera `package.json` con SOLO las dependencias usadas (y Tailwind v3 fijo).
-3.  Copia imágenes/videos detectados de `public/` a `exports/$CLIENT/public/`.
-4.  **Sanitización**: Elimina carpetas de agencias (`radar`, `vault`, `pipeline`) que no deben ir al cliente.
-5.  Genera `tsconfig.json` con los paths (`@/*`) configurados.
-6.  Genera `next.config.js` y `tailwind.config.js`.
+Reemplaza `CLIENTE` con el nombre de la carpeta del prospecto:
 
 ```powershell
-node scripts/export-helper.js $CLIENT
+$CLIENT = "apimiel"
 ```
 
-*Revisar la salida del script para ver si hubo errores de copia de assets.*
-
 ---
 
-## Fase 4: Prueba de Humo (Smokescreen)
+## Paso 2: Ejecutar Export Inteligente
 
-Verificar que el paciente está vivo antes de dar el alta.
+El script v3 hace TODO automáticamente:
+1. ✅ Analiza recursivamente las dependencias del sitio
+2. ✅ Copia SOLO los archivos necesarios
+3. ✅ Genera package.json con dependencias precisas
+4. ✅ Copia assets detectados en el código
+5. ✅ Genera configuración (tsconfig, tailwind, etc.)
+6. ✅ Ejecuta npm install
+7. ✅ Ejecuta build de prueba
+8. ✅ Reporta errores si hay
 
 ```powershell
-cd exports\$CLIENT
-npm install
-npm run build
+node scripts/export-helper-v3.js $CLIENT
 ```
 
 **Si el build falla:**
-1.  Leer el error.
-2.  Si falta un archivo, copiarlo manualmente desde el proyecto raíz.
-3.  Si falta una dependencia, agregarla a `package.json` y reinstalar.
+- El script mostrará los errores específicos
+- Corrige el problema en `/app/prospectos/[cliente]` (NO en exports)
+- Vuelve a ejecutar el script
 
 ---
 
-## Fase 5: Empaquetado y Entrega
+## Paso 3: Verificar (Opcional)
 
-Si el build pasó en verde:
+Si quieres probar el sitio localmente antes de subir:
 
-1.  Generar comprimido:
-    ```powershell
-    cd ..
-    Compress-Archive -Path "$CLIENT\*" -DestinationPath "$CLIENT-delivery.zip" -Force
-    ```
+```powershell
+cd exports\$CLIENT
+npm run dev
+```
 
-2.  **Reportar en `style_lock.md`**:
-    - [x] Exportado para entrega (v2 Automated)
-    - Archivo: `exports/$CLIENT-delivery.zip`
+Abre http://localhost:3000 y verifica que todo funcione.
+
+```powershell
+cd ../..
+```
 
 ---
 
-## Debugging
+## Paso 4: Subir al Repo del Cliente
 
-Si el cliente ve "pantalla negra":
-- Verificar `next.config.js` (output: export vs default).
-- Verificar que `package.json` tenga `framer-motion` si se usa animaciones.
-- Verificar consola del navegador para errores 404 de JS/CSS.
+Si el cliente ya tiene un repo standalone:
+
+```powershell
+cd exports\$CLIENT
+
+# Inicializar git si es nuevo
+git init
+git remote add origin https://github.com/TU-ORG/[cliente]-standalone.git
+
+# O si ya existe, solo hacer push
+git add .
+git commit -m "feat: actualización del sitio"
+git push -u origin main
+```
+
+Vercel detectará el push y desplegará automáticamente.
+
+---
+
+## Troubleshooting
+
+### "Build failed - Module not found"
+- El script debería detectar dependencias automáticamente
+- Si falta algo, agrégalo manualmente al package.json y reinstala
+
+### "Cannot find module @/components/..."
+- Verifica que el archivo exista en el proyecto original
+- El script copia solo lo que encuentra
+
+### Assets no aparecen
+- Verifica que los assets estén en `/public/`
+- El path en el código debe ser absoluto (ej: `/imagen.png`)
+
+---
+
+## Limpieza
+
+Después de subir al repo del cliente, puedes borrar el export local:
+
+```powershell
+Remove-Item -Recurse -Force exports\$CLIENT
+```
+
+El export se regenera cuando lo necesites.
