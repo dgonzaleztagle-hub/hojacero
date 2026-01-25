@@ -268,6 +268,25 @@ NUNCA ASUMAS EL TIPO. Si el usuario solo dijo "quiero hablar" sin especificar te
                 required: ['type', 'client_name', 'client_phone', 'empresa', 'reason']
             }
         }
+    },
+    {
+        type: 'function' as const,
+        function: {
+            name: 'cancel_meeting',
+            description: `Cancela una reunión existente del mismo día.
+CUÁNDO USAR: Cuando el usuario dice "cambia la cita", "mejor a otra hora", "cancela la reunión".
+CUÁNDO NO USAR: Si no hay reunión previa para cancelar.
+Esto cancela la reunión más reciente del usuario en esa fecha para poder re-agendar.`,
+            parameters: {
+                type: 'object',
+                properties: {
+                    date: { type: 'string', description: 'Fecha en formato YYYY-MM-DD' },
+                    attendee_name: { type: 'string', description: 'Nombre de la persona para identificar la reunión' },
+                    reason: { type: 'string', description: 'Motivo de cancelación' }
+                },
+                required: ['date', 'attendee_name']
+            }
+        }
     }
 ];
 
@@ -523,6 +542,39 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
                 if (error) throw error;
                 return { result: JSON.stringify({ success: true, message: 'Reunión Agendada Exitosamente' }) };
+            }
+
+            case 'cancel_meeting': {
+                const dayStart = `${args.date}T00:00:00`;
+                const dayEnd = `${args.date}T23:59:59`;
+
+                // Buscar reunión del usuario en esa fecha
+                const { data: meetings, error: searchError } = await supabaseAdmin
+                    .from('agenda_events')
+                    .select('id, start_time, attendee_name')
+                    .gte('start_time', dayStart)
+                    .lte('start_time', dayEnd)
+                    .neq('status', 'cancelled')
+                    .ilike('attendee_name', `%${args.attendee_name}%`)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (searchError) throw searchError;
+
+                if (!meetings || meetings.length === 0) {
+                    return { result: JSON.stringify({ success: false, error: 'NO_MEETING_FOUND', message: 'No encontré reunión para cancelar en esa fecha.' }) };
+                }
+
+                // Cancelar la reunión (soft delete)
+                const { error: cancelError } = await supabaseAdmin
+                    .from('agenda_events')
+                    .update({ status: 'cancelled' })
+                    .eq('id', meetings[0].id);
+
+                if (cancelError) throw cancelError;
+
+                console.log('[cancel_meeting] Cancelled:', meetings[0]);
+                return { result: JSON.stringify({ success: true, message: `Reunión cancelada. ¿A qué hora prefieres re-agendar?`, cancelled_id: meetings[0].id }) };
             }
 
             case 'save_lead': {
