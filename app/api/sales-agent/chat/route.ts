@@ -47,8 +47,10 @@ Mira SIEMPRE la sección "DATOS YA CAPTURADOS" abajo.
 ✅ SI dice "Nombre: Juan" → YA SE LLAMA JUAN. NO preguntes el nombre.
 ✅ SI dice "WhatsApp: +569..." → YA TIENES EL WHATSAPP. NO lo pidas de nuevo.
 ✅ SI dice "Empresa: Mamasole" → YA TIENES LA EMPRESA. NO la pidas de nuevo.
+✅ SI ya diste un diagnóstico del sitio → NO repitas el análisis. Ve al siguiente paso.
 
 ⚠️ VIOLACIÓN GRAVE: Pedir un dato que ya tienes. El usuario se frustrará.
+⚠️ VIOLACIÓN GRAVE: Repetir diagnóstico ya dado. Parece robot y da desconfianza.
 
 # 🛠️ USO DE TOOLS (OBLIGATORIO - NO FINGIR)
 
@@ -456,6 +458,49 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
                 console.log('[book_meeting] args:', { date: args.date, start_time: args.start_time, normalized: normalizedTime, startDateTime: startDateTime.toISOString() });
 
+                // ========================================
+                // VALIDAR DISPONIBILIDAD ANTES DE AGENDAR
+                // ========================================
+                const dayStart = `${args.date}T00:00:00`;
+                const dayEnd = `${args.date}T23:59:59`;
+
+                const { data: existingEvents } = await supabaseAdmin
+                    .from('agenda_events')
+                    .select('start_time, end_time')
+                    .gte('start_time', dayStart)
+                    .lte('start_time', dayEnd)
+                    .neq('status', 'cancelled');
+
+                // Verificar si hay conflicto
+                const requestedStart = startDateTime.getTime();
+                const requestedEnd = endDateTime.getTime();
+                const hasConflict = existingEvents?.some(e => {
+                    const eventStart = new Date(e.start_time).getTime();
+                    const eventEnd = new Date(e.end_time).getTime();
+                    return (requestedStart < eventEnd && requestedEnd > eventStart);
+                });
+
+                if (hasConflict) {
+                    // Calcular horarios disponibles para sugerir
+                    const WORK_START = 9, WORK_END = 18;
+                    const booked = existingEvents?.map(e => ({ s: new Date(e.start_time).getTime(), e: new Date(e.end_time).getTime() })) || [];
+                    const availableSlots: string[] = [];
+
+                    for (let h = WORK_START; h < WORK_END; h++) {
+                        const slotTime = new Date(`${args.date}T${h.toString().padStart(2, '0')}:00:00-03:00`).getTime();
+                        const isBusy = booked.some(b => slotTime >= b.s && slotTime < b.e);
+                        if (!isBusy) availableSlots.push(`${h}:00`);
+                    }
+
+                    return {
+                        result: JSON.stringify({
+                            success: false,
+                            error: 'SLOT_OCCUPIED',
+                            message: `Esa hora ya está ocupada. Horarios disponibles: ${availableSlots.slice(0, 4).join(', ')}`
+                        })
+                    };
+                }
+
                 // Construir notas con contexto completo
                 const meetingNotes = [
                     args.empresa ? `Empresa: ${args.empresa}` : null,
@@ -470,7 +515,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     attendee_name: args.attendee_name,
                     attendee_phone: args.attendee_phone,
                     attendee_email: args.attendee_email || null,
-                    notes: meetingNotes || null, // NUEVO: empresa y contexto en notes
+                    notes: meetingNotes || null,
                     event_type: 'meeting',
                     status: 'confirmed',
                     source: 'chat_bot'
