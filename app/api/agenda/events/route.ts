@@ -55,11 +55,14 @@ async function sendMeetingEmail(event: any) {
     }
 }
 
-// Cliente admin para operaciones del bot (sin cookies de usuario)
-const supabaseAdmin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+
+// Helper to get admin client (lazy init to avoid build errors)
+function getAdminClient() {
+    return createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+}
 
 // GET: Lista eventos (con filtros opcionales)
 export async function GET(req: NextRequest) {
@@ -103,7 +106,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // Usar cliente admin si viene del bot (no tiene cookies de usuario)
-    const supabase = source === 'chat_bot' ? supabaseAdmin : await createClient();
+    const supabase = source === 'chat_bot' ? getAdminClient() : await createClient();
 
     if (!title || !start_time || !end_time) {
         return NextResponse.json({ success: false, error: 'Faltan campos requeridos (title, start_time, end_time)' }, { status: 400 });
