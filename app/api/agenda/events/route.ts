@@ -98,7 +98,8 @@ export async function POST(req: NextRequest) {
         title, description, event_type, start_time, end_time,
         attendee_name, attendee_email, attendee_phone,
         whatsapp, website, company_name, status,
-        lead_id, location, notes, source, send_reminder_email
+        lead_id, location, notes, meeting_notes, assigned_to,
+        source, send_reminder_email
     } = body;
 
     // Usar cliente admin si viene del bot (no tiene cookies de usuario)
@@ -123,6 +124,8 @@ export async function POST(req: NextRequest) {
         lead_id,
         location,
         notes,
+        meeting_notes,
+        assigned_to: assigned_to || 'daniel',
         source: source || 'manual',
         status: status || 'pending',
         send_reminder_email: send_reminder_email || false

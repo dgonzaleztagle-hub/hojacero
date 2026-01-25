@@ -27,6 +27,8 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
         status: 'pending',
         location: '',
         notes: '',
+        meeting_notes: '',
+        assigned_to: 'daniel',
         send_reminder_email: false
     });
 
@@ -47,6 +49,8 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
                 status: event.status || 'pending',
                 location: event.location || '',
                 notes: event.notes || '',
+                meeting_notes: event.meeting_notes || '',
+                assigned_to: event.assigned_to || 'daniel',
                 send_reminder_email: event.send_reminder_email || false
             });
         } else {
@@ -123,8 +127,8 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
                         </div>
                     </div>
 
-                    {/* Tipo y Empresa */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Tipo, Asignado y Empresa */}
+                    <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Tipo</label>
                             <select name="event_type" value={form.event_type} onChange={handleChange} className={inputClass}>
@@ -132,6 +136,14 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
                                 <option value="task">📋 Tarea</option>
                                 <option value="block">🚫 Bloqueo</option>
                                 <option value="reminder">⏰ Recordatorio</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Asignado a</label>
+                            <select name="assigned_to" value={form.assigned_to} onChange={handleChange} className={inputClass}>
+                                <option value="daniel">👤 Daniel</option>
+                                <option value="gaston">👤 Gastón</option>
+                                <option value="both">👥 Ambos</option>
                             </select>
                         </div>
                         <div>
@@ -183,10 +195,32 @@ export function EventModal({ event, onSave, onDelete, onClose, isDark }: EventMo
                         </div>
                     </div>
 
-                    {/* Notas */}
+                    {/* Notas previas */}
                     <div>
-                        <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Notas</label>
-                        <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} placeholder="Detalles de la reunión..." className={inputClass} />
+                        <label className={`text-xs font-medium uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Notas Previas</label>
+                        <textarea name="notes" value={form.notes} onChange={handleChange} rows={2} placeholder="Contexto antes de la reunión..." className={inputClass} />
+                    </div>
+
+                    {/* Notas de Reunión (Post-meeting) - Siempre visible pero destacado cuando es completed */}
+                    <div className={`p-4 rounded-xl border ${form.status === 'completed'
+                        ? (isDark ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200')
+                        : (isDark ? 'bg-zinc-800/50 border-white/5' : 'bg-gray-50 border-gray-200')
+                        }`}>
+                        <label className={`text-xs font-medium uppercase tracking-wider flex items-center gap-2 mb-2 ${form.status === 'completed'
+                                ? (isDark ? 'text-green-400' : 'text-green-600')
+                                : (isDark ? 'text-zinc-500' : 'text-gray-500')
+                            }`}>
+                            📝 Notas de Cierre
+                            {form.status === 'completed' && <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20">Reunión Completada</span>}
+                        </label>
+                        <textarea
+                            name="meeting_notes"
+                            value={form.meeting_notes}
+                            onChange={handleChange}
+                            rows={3}
+                            placeholder="¿Qué se acordó? ¿Próximos pasos? ¿Resultado de la reunión?..."
+                            className={`${inputClass} ${form.status === 'completed' ? (isDark ? 'border-green-500/30' : 'border-green-300') : ''}`}
+                        />
                     </div>
 
                     {/* Reminder Toggle */}

@@ -19,9 +19,11 @@ SI existe /prospectos/[cliente]/page.tsx:
   → El cliente ya aprobó este diseño.
 
 ### 0.2 Leer Manifest (Memory Persistence)
-Busca el archivo `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md`.
+Busca los archivos de ADN del proyecto:
+1.  `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md` (Prioridad 1)
+2.  `d:\proyectos\hojacero\app\prospectos\[cliente]\discovery_notes.md` (Contexto V4.0)
 
-*   **SI EXISTE:** Úsalo como biblia. No cambies colores ni componentes declarados ahí.
+*   **SI EXISTE style_lock.md:** Úsalo como biblia. No cambies colores ni componentes declarados ahí.
 *   **SI NO EXISTE (Legacy):** Créalo manualmente extrayendo la información del `page.tsx` existente (Ingeniería Inversa).
 
 ```markdown
@@ -33,10 +35,15 @@ Busca el archivo `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md`.
 # Style Lock: [Nombre Cliente] (APROBADO)
 
 ## Estado
-- [x] Demo aprobado por cliente
+- [x] Demo aprobado por cliente (V4.0 Skill-Driven)
 - [ ] Factory Final en progreso
 - [ ] SEO inyectado
 - [ ] Exportado para entrega
+
+## Creative Director DNA (V4.0)
+(Si disponible en discovery_notes)
+- Layout Strategy: [ej. Asimetría Radical]
+- Motion Personality: [ej. Liquid Flow]
 
 ## Componentes Autorizados
 (Lista los componentes importados en el demo)

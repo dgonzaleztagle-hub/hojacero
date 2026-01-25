@@ -387,43 +387,48 @@ export async function analyzeLeadWithOpenAI(place: any, scraped: any) {
         scraped.instagram ? `Instagram: @${scraped.instagram}` : null
     ].filter(Boolean).join(', ') || 'No encontrados';
 
-    const prompt = `Analiza este lead para la agencia HojaCero (diseño web Chile).
-
-DATOS:
-- Negocio: ${place.title}
-- Web: ${place.website || 'NO TIENE'}
-- Contactos: ${contactsStr}
-- Tech: ${techStackStr}
-
-REGLAS (CRÍTICO - NO ADULES):
-- "Moderno" = Estética nivel Awwwards/Stripe. Si es plantilla estándar = "Funcional pero genérico" (Score 60-70).
-- Next.js/React con diseño feo = "Tecnología moderna, ejecución visual mejorable".
-- Si es "mamasole.cl" o similar (comida rápida estándar): NO le digas que es "muy moderno". Dile que es "funcional".
-- OBJETIVO: Vender. Encuentra el detalle que falta (Branding, Diferenciación).
-- "HOJACERO" en web = Score 0.
-- Sé HONESTO y ESPECÍFICO
-
-RESPONDE SOLO JSON:
-{
-  "score": 0-100,
-  "verdict": "CONTACTAR" | "REVISAR" | "DESCARTAR",
-  "vibe": "Premium|Moderno|Profesional|Local|Desactualizado|Inexistente",
-  "buyerPersona": "Cliente ideal del negocio en 1 oración",
-  "analysisReport": "Análisis honesto en 2 oraciones",
-  "salesStrategy": {
-    "hook": "Frase de apertura específica",
-    "painPoints": ["dolor1", "dolor2"],
-    "proposedSolution": "Servicio concreto",
-    "estimatedValue": "Bajo|Medio|Alto"
-  },
-  "conversation": {
-    "opener": "Frase amigable para romper el hielo sobre el sitio",
-    "observation": "Comentario técnico simple (ej: 'tu sitio carga lento')",
-    "softOffer": "Oferta sutil para atraer interés (ej: 'podemos modernizarlo')"
-  },
-  "recommendedChannel": "WhatsApp|Email|Llamada",
-  "opportunity": "Tipo de proyecto potencial"
-}`;
+    const prompt = `Analiza este lead para la agencia HojaCero (diseño web Premium).
+    
+    DATOS:
+    - Negocio: ${place.title}
+    - Web: ${place.website || 'NO TIENE'}
+    - Contactos: ${contactsStr}
+    - Tech: ${techStackStr}
+    
+    REGLAS DE ANÁLISIS (ENFOQUE VISUAL/MARCA):
+    - NO menciones velocidad, SSL, o código como argumento principal. Eso aburre al cliente.
+    - TU ENFOQUE: Estética, Percepción de Marca, Confianza.
+    - CRÍTICA CONSTRUCTIVA: "Se ve anticuado", "No refleja la calidad del producto", "Poca jerarquía visual". NUNCA digas "barata" o seas ofensivo.
+    - DETECTA: Potencial desperdiciado. (Ej: "Tienen fotos increíbles pero la web es de 2010").
+    
+    ESTRATEGIA DE VENTA (GOLD STANDARD):
+    El usuario (Agencia) usará este análisis para contactar al cliente con un DEMO YA HECHO.
+    Tu misión es darle los argumentos para el correo:
+    
+    BASE DEL SPEECH (Parafrasear esto con variaciones en 'hook' y 'conversation'):
+    "Estamos en campaña de mejora de imagen local y buscamos marcas con potencial. Tienes un EXCELENTE producto, pero tu web actual no le hace justicia (se ve antigua/desordenada). Te hice un demo sin compromiso para que veas cómo podría verse tu marca con un diseño 10x mejor."
+    
+    RESPONDE SOLO JSON:
+    {
+      "score": 0-100,
+      "verdict": "CONTACTAR" | "REVISAR" | "DESCARTAR",
+      "vibe": "Premium|Moderno|Profesional|Local|Desactualizado|Inexistente",
+      "buyerPersona": "Cliente ideal del negocio en 1 oración",
+      "analysisReport": "Análisis de 2 oraciones enfocado en IMAGEN y MARCA (no técnico).",
+      "salesStrategy": {
+        "hook": "Frase de enganche basada en el speech GOLD STANDARD (adaptado al rubro)",
+        "painPoints": ["Estética desactualizada", "No transmite confianza", "Diseño no responsive"],
+        "proposedSolution": "Rediseño Premium (Demo incluida)",
+        "estimatedValue": "Bajo|Medio|Alto"
+      },
+      "conversation": {
+        "opener": "Variación amigable del speech Gold Standard",
+        "observation": "Comentario sobre cómo la web actual no refleja la calidad real del negocio",
+        "softOffer": "Mencionar el demo creado específicamente para ellos"
+      },
+      "recommendedChannel": "Email",
+      "opportunity": "Modernización de Marca"
+    }`;
 
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {

@@ -1,148 +1,188 @@
----
-description: Genera un demo landing premium para un prospecto usando HojaCero Factory
----
+# 🏭 HojaCero Factory - Generación de Demo Landing (v4.1)
 
-# 🏭 HojaCero Factory - Generación de Demo Landing
-
-Este workflow genera una **landing page premium** para un prospecto aplicando los protocolos de diseño V3.2.
+Este workflow genera una **landing page premium** para un prospecto aplicando los protocolos de diseño **V4.0 (Skill-Driven)**.
 Para generar un **sitio multi-página completo**, usa el workflow `/factory-final`.
 
 // turbo-all
 
-## Fase 0: Deep Discovery (CRÍTICO)
+---
 
-Antes de cualquier diseño, el agente DEBE conocer el alma del negocio. No intentes construir si no has entendido el nicho a fondo.
+## 🔀 CHECKPOINT INICIAL: ¿Mejora o Creación?
+
+**ANTES de comenzar, determina el escenario:**
+
+```
+IF el usuario proporciona una URL:
+  → MODO A: DEEP DISCOVERY (scrapear sitio existente)
+  
+ELSE (sin URL, negocio nuevo o ficticio):
+  → MODO B: SOUL INTERVIEW (hacer preguntas al usuario)
+```
+
+---
+
+## 📋 MODO B: SOUL INTERVIEW (Creación desde Cero)
+
+**Si NO hay URL para scrapear, el agente DEBE hacer estas preguntas al usuario.**
+No continuar hasta tener respuestas a las preguntas CRÍTICAS (marcadas con 🔴).
+
+**DIFERENCIADOR HOJACERO:** Este cuestionario es más profundo que cualquier "website builder". Lovable y similares preguntan lo mínimo y entregan plantillas. Nosotros preguntamos las 6 FUNCIONES y entregamos sin iteraciones.
+
+### Preguntas por FUNCIÓN (Obligatorias):
+
+```markdown
+## 🔴 BLOQUE 1: IDENTIDAD (La Base)
+1. **Nombre del negocio:** [___]
+2. **Industria/Categoría:** [Gastronomía, Legal, Tech, Salud, Servicios, etc.]
+3. **Ubicación:** [Ciudad, país, o "100% online"]
+4. **¿Qué venden/ofrecen?** (Función OFERTA)
+   [Productos, servicios, descripción en 2-3 oraciones]
+
+## 🔴 BLOQUE 2: CREDIBILIDAD (¿Por qué confiar?)
+5. **¿Por qué debería confiar en ustedes?** (Marcar todas las que apliquen)
+   □ Tenemos X años de experiencia: [___años]
+   □ Tenemos certificaciones/licencias: [cuáles]
+   □ Tenemos clientes importantes que nos avalan
+   □ Nuestro fundador/equipo tiene historia relevante: [describir]
+   □ Nuestra tecnología/método es superior: [describir]
+   □ Tenemos garantía o promesa única: [cuál]
+   □ Somos nuevos, pero...: [cómo compensan]
+
+## 🔴 BLOQUE 3: DIFERENCIACIÓN (¿Por qué elegirlos?)
+6. **¿Qué hacen DIFERENTE a la competencia?** (Marcar la principal)
+   □ Proceso único: [describir brevemente]
+   □ Producto/servicio exclusivo que otros no tienen
+   □ Precio (más barato O más premium con justificación)
+   □ Velocidad/conveniencia superior
+   □ Resultados garantizados/demostrables
+   □ Experiencia de cliente superior: [describir]
+
+## 🔴 BLOQUE 4: TARGET (¿A quién?)
+7. **¿Quién es su cliente ideal?**
+   - Edad aproximada: [___]
+   - Nivel económico: [bajo/medio/alto/premium]
+   - ¿Qué problema tienen que ustedes resuelven?: [___]
+
+## 🟡 BLOQUE 5: VALIDACIÓN (Prueba Social)
+8. **¿Qué pruebas tienen de que funcionan?**
+   □ Reviews de Google/Yelp: [cuántas, qué rating]
+   □ Testimonios de clientes: [tienen frases reales?]
+   □ Casos de éxito con números: [describir 1]
+   □ Logos de clientes reconocibles
+   □ Premios/menciones en prensa
+   □ Ninguna todavía (negocio nuevo) → Usaremos la promesa
+
+9. **¿Algún número impresionante?**
+   [Clientes atendidos, proyectos, años, % de satisfacción, etc.]
+
+## 🟡 BLOQUE 6: PERCEPCIÓN Y RESTRICCIONES
+10. **¿Cómo quieren ser percibidos?** (Marcar UNA principal)
+    □ Premium/Exclusivo (precio alto, pocos clientes selectos)
+    □ Accesible/Cercano (amigable, para todos)
+    □ Técnico/Experto (autoridad, confianza profesional)
+    □ Innovador/Moderno (vanguardia, tech-forward)
+    □ Tradicional/Confiable (años, estabilidad, "los de siempre")
+
+11. **¿Hay algo que NO debe aparecer?**
+    [Evitar ciertos colores, palabras, estilos, comparaciones]
+
+## 🟢 BLOQUE 7: ASSETS (Lo que ya tienen)
+12. **¿Tienen logo?** [SÍ/NO - si sí, proporcionar archivo]
+13. **¿Colores de marca definidos?** [Hex codes si los tienen]
+14. **¿Fotos reales del negocio/equipo/productos?** [SÍ/NO]
+15. **¿Algún referente visual que les guste?** [URL de sitio que admiran]
+```
+
+### Proceso Post-Interview:
+
+1. **Esperar respuestas** del usuario antes de continuar
+2. **Documentar todo** en `discovery_notes.md` 
+3. **Si faltan respuestas críticas (🔴)** → Preguntar de nuevo
+4. **Mapear respuestas a FUNCIONES** usando la tabla de la BIBLIA
+5. **Decidir manifestación** de cada función según industria
+
+---
+
+## 📡 MODO A: DEEP DISCOVERY (Sitio Existente)
+
+**Si HAY URL para scrapear, ejecutar este flujo.**
 
 ### 0.1 Deep Crawling (Más allá de la Home)
 No te quedes en la primera página. Identifica las sub-páginas críticas del prospecto y léelas todas:
-- **Página de Servicios/Productos:** Para extraer catálogos técnicos, especialidades y terminología del nicho (ej. Células de carga, cromatografía, etc.).
+- **Página de Servicios/Productos:** Para extraer catálogos técnicos, especialidades y terminología del nicho.
 - **Página 'Sobre Nosotros' / Historia:** Para captar la voz, los años de experiencia y la autoridad de marca.
 - **FAQs o Recursos:** Para entender qué problemas resuelven a sus clientes.
 
 ### 0.2 Reputation & Sentiment Research
 Usa `search_web` para investigar qué dice el mundo real:
-- **Reviews de Google:** Busca "[Nombre Negocio] opiniones". Rescata frases reales de clientes contentos (para el social proof) y quejosos (para resolver ese dolor en la landing).
+- **Reviews de Google:** Busca "[Nombre Negocio] opiniones". Rescata frases reales.
 - **Redes Sociales:** Verifica tono en Instagram/LinkedIn.
-- **Noticias/Premios:** Busca hitos que den autoridad "blindada".
 
 ### 0.3 Competition Benchmarking
-Busca **"Mejores [Industria] en [Ubicación]"** para ver qué están haciendo bien los competidores Pro. Tu demo debe ser MEJOR que lo mejor que tengan ellos.
+Busca **"Mejores [Industria] en [Ubicación]"**. Tu demo debe superar a estos referentes.
 
 ### 0.4 Documentar Hallazgos (OUTPUT OBLIGATORIO)
-**ANTES de continuar**, crea un archivo `discovery_notes.md` en la carpeta del prospecto con:
-```markdown
-# Discovery Notes: [Nombre Prospecto]
+**ANTES de continuar**, crea un archivo `discovery_notes.md` con los hallazgos.
 
-## Datos Clave
-- Nombre: ...
-- Industria: ...
-- Servicios principales: ...
-- Años de experiencia: ...
+---
 
-## Voz y Tono
-- Palabras clave que usan: ...
-- Filosofía/valores: ...
+## 🎲 Fase 0.5: The Creative Director (NUEVO V4.0)
 
-## Reputación
-- Puntos fuertes (de reviews): ...
-- Puntos de dolor (de reviews): ...
+**ESTO ES CRÍTICO PARA EVITAR PLANTILLAS:**
+Antes de elegir un prompt, debes definir la "Semilla de Variabilidad".
 
-## Competencia
-- Competidor 1: [URL] - Qué hacen bien: ...
-- Competidor 2: [URL] - Qué hacen bien: ...
-
-## Decisiones para el Diseño
-- Estilo recomendado: ...
-- Colores a evitar: ...
-- Mensaje principal: ...
-```
-**USA ESTE ARCHIVO** en las siguientes fases para no perder el contexto.
+1.  **LEE LA SKILL:** Usa `view_file` en `.agent/skills/creative-director-h0.md`.
+2.  **EJECUTA LA SKILL:** Sigue las instrucciones de la Skill para "tirar los dados" y elegir:
+    *   `Layout Strategy` (ej: Asimetría Radical)
+    *   `Typography Pairing` (ej: The Disruptor)
+    *   `Motion Personality` (ej: Liquid Flow)
+    *   `Color Strategy` (ej: Deep Earth)
+3.  **REGISTRA EL BRIEF:** Incluye estas decisiones en tus `discovery_notes.md`.
 
 ---
 
 ## Fase 1: Recopilar Información del Prospecto
 
 Antes de comenzar, necesitas:
-- **URL del sitio actual** del prospecto (para el Deep Crawl)
-- **Logo** del cliente (imagen)
+- **URL del sitio actual** (si existe) O **respuestas del Soul Interview**
+- **Logo** del cliente
 - **Industria** del negocio
 
 ## Fase 2: Scrapear Contenido Real (Editorial Curation)
 
-Usa `read_url_content` para extraer del sitio del prospecto:
+Usa `read_url_content` para extraer datos duros. NO inventes precios ni direcciones.
 
-```
-EXTRAER:
-- Nombre del negocio
-- Servicios/productos con precios exactos
-- Horarios de atención
-- Ubicación/dirección
-- Nombres del equipo/dueños
-- Filosofía/valores
-- Información de contacto
-- Keywords importantes (pet-friendly, familiar, premium, etc.)
-```
+## Fase 3: Pre-filter de Contexto
 
-**IMPORTANTE:** No inventes datos. Si no encuentras algo crítico, marca como "A CONFIRMAR".
+Analiza horarios, keywords y competencia para descartar estilos incompatibles (ej: No usar "Dark Mode" para una guardería diurna).
 
-## Fase 3: Pre-filter de Contexto (CRÍTICO)
+## Fase 4: Selección de Estilo (Ruleta V4.0 + Barrio Premium)
 
-Antes de seleccionar estilo, analiza el contexto:
+1. Identifica la industria del prospecto.
+2. Consulta la Base de Datos (`demo_prompts`) para obtener el prompt adecuado.
+3. **CRÍTICO:** Los prompts V4.0 ahora delegan el diseño visual a la Skill (Fase 0.5). Obedece a la Skill sobre el Prompt si hay contradicción visual.
 
-### 3.1 Análisis de Horarios
-```
-IF horario cierra antes de 21:00 → EXCLUIR estilos "nocturnos/dark"
-IF abre temprano (antes de 10am) → FAVORECER estilos "frescos/light"
-IF solo fines de semana → Adaptar messaging
-```
-
-### 3.2 Análisis de Keywords
-```
-IF "familiar" OR "niños" OR "pet-friendly" → EXCLUIR estilos "exclusivo/adultos"
-IF "premium" OR "exclusivo" OR "boutique" → EXCLUIR estilos "casual/económico"
-IF "rural" OR "campo" OR "jardín" → FAVORECER estilos "cálidos/naturales"
-IF "urbano" OR "centro" OR "moderno" → FAVORECER estilos "contemporáneos"
-```
-
-### 3.3 Análisis de Industria
-```
-GASTRONOMÍA:
-- Familiar + rural → Tuscan Warmth
-- Fine dining + nocturno → Midnight Theatre
-- Experimental + conceptual → Avant-Garde Lab
-
-LEGAL:
-- Corporativo + tradicional → Swiss Authority
-- Litigación + dramático → Legal Drama
-- Tech/startups → TechLaw
-
-(Similar para otras industrias)
-```
-
-## Fase 4: Selección de Estilo (Ruleta Filtrada)
-
-1. Identifica la industria del prospecto
-2. Aplica los filtros de la Fase 3
-3. De los estilos COMPATIBLES, selecciona uno
-4. Consulta el prompt correspondiente en `seed_batch_X_v3.2.sql`
-
-### Estilos por Industria:
+### Mapa de Estilos Disponibles (V4.0):
 
 | Industria | Style 1 | Style 2 | Style 3 |
 |-----------|---------|---------|---------|
-| Gastronomía | Midnight Theatre | Tuscan Warmth | Avant-Garde Lab |
-| Turismo | Wanderlust Cinema | Local Insider | Luxury Escape |
-| Moda | Runway Editorial | Lifestyle Brand | Streetwear Drop |
-| Automotriz | Performance Theatre | Trusted Dealer | Collector Gallery |
-| Legal | Swiss Authority | Legal Drama | TechLaw |
-| Real Estate | Architectural Luxury | Interactive Map | Investment Dashboard |
-| Tech | Product-Led Growth | Developer First | Enterprise Trust |
-| Consultoría | Transformation Story | Workshop Energy | Thought Leader |
-| Salud | Future Clinical | Holistic Wellness | Smile Gallery |
-| Educación | Future Learning | Career Accelerator | Learning Platform |
-| Construcción | Master Builder | TechBuild | Heritage Craftsman |
-| Fitness | Transformation Energy | Wellness Sanctuary | Performance Lab |
+| **Gastronomía** | Midnight Theatre | Tuscan Warmth | Avant-Garde Lab |
+| **Turismo** | Wanderlust Cinema | Local Insider | Luxury Escape |
+| **Moda** | Runway Editorial | Lifestyle Brand | Streetwear Drop |
+| **Automotriz** | Performance Theatre | Trusted Dealer | Collector Gallery |
+| **Legal** | Swiss Authority | Legal Drama | TechLaw |
+| **Real Estate** | Architectural Luxury | Interactive Map | Investment Dashboard |
+| **Tech/SaaS** | Product-Led Growth | Developer First | Enterprise Trust |
+| **Consultoría** | Transformation Story | Workshop Energy | Thought Leader |
+| **Salud** | Future Clinical | Holistic Wellness | Smile Gallery |
+| **Educación** | Future Learning | Career Accelerator | Learning Platform |
+| **Construcción** | Master Builder | TechBuild | Heritage Craftsman |
+| **Fitness** | Transformation Energy | Wellness Sanctuary | Performance Lab |
+| **Trades (Oficios)** 🆕 | The Heroic Fixer | BluePrint Authority | Trusted Neighbor |
+| **Retail Local** 🆕 | Fresh Market | Neon Corner | Heritage Shop |
+| **Beauty/Personal** 🆕 | Studio Glam | Barber Club | Zen Garden |
 
+---
 
 ## Fase 4.5: Mobile-First Hard Constraints (FAIL FAST)
 
@@ -860,17 +900,164 @@ Verificar:
 - [ ] Links de CTA funcionan
 - [ ] Responsive (si aplica)
 
-## Fase 9: Self-Check Final
+---
+
+## 🚨 Fase 9: VERIFICACIÓN DE ASSETS (CHECKPOINT OBLIGATORIO)
+
+**ANTES de continuar, verifica que TODOS los assets del prompt fueron generados.**
+Si el prompt pedía imágenes específicas y no las generaste, **DETENTE Y GENERA**.
+
+### 9.1 Checklist de Assets vs Prompt
+
+Lee el prompt que elegiste y verifica:
+
+```
+PREGUNTA POR CADA ASSET MENCIONADO EN EL PROMPT:
+- [ ] "¿El prompt pedía una imagen HERO específica?" → ¿La generé?
+- [ ] "¿El prompt pedía una galería de productos/servicios?" → ¿Tengo las imágenes?
+- [ ] "¿El prompt pedía texturas, fondos o elementos decorativos?" → ¿Los creé?
+- [ ] "¿El prompt pedía iconos o ilustraciones?" → ¿Los tengo?
+
+SI ALGUNA RESPUESTA ES NO → GENERAR AHORA CON generate_image
+```
+
+### 9.2 Verificación Anti-Placeholder
+
+```
+BUSCAR EN EL CÓDIGO:
+❌ "placeholder" → ELIMINAR
+❌ "example.com" → REEMPLAZAR
+❌ "Lorem ipsum" → REESCRIBIR
+❌ Iconos emoji como placeholder (✦, ⭐, etc.) → REEMPLAZAR con imágenes reales
+❌ "COMING SOON" → ELIMINAR o generar el contenido
+```
+
+### 9.3 Verificación de Dependencias
+
+```bash
+# Ejecutar ANTES de continuar:
+npm ls splitting  # ¿Está instalado?
+npm ls gsap       # ¿Está instalado?
+npm ls framer-motion  # ¿Está instalado?
+
+# Si algo falta, instalar AHORA
+npm install [dependencia-faltante]
+```
+
+---
+
+## 🔨 Fase 10: BUILD VERIFICATION (CRÍTICO)
+
+**Un demo que no compila es un demo que NO EXISTE.**
+
+### 10.1 Ejecutar Build de Producción
+
+```bash
+# OBLIGATORIO antes de entregar
+npm run build
+```
+
+### 10.2 Si el Build Falla
+
+```
+PROCESO DE RESOLUCIÓN:
+1. LEER el error completo
+2. IDENTIFICAR el archivo/línea del problema
+3. ARREGLAR el código (no simplificar, ARREGLAR)
+4. RE-INTENTAR el build
+
+⚠️ REGLA DE ORO:
+SI un componente no compila porque falta una dependencia:
+→ INSTALAR la dependencia (npm install X)
+→ NO reemplazar con un componente más simple
+
+SI un componente no funciona con SSR:
+→ USAR dynamic import
+→ NO eliminarlo
+```
+
+### 10.3 Verificar en Dev Server
+
+```bash
+npm run dev
+# Navegar a http://localhost:3000/prospectos/[cliente]
+# Verificar que TODO funciona
+```
+
+---
+
+## 🧠 Fase 11: REFLEXIÓN PRE-ENTREGA (ANTI-MVP)
+
+**Este demo debe CERRAR VENTAS, no ser un prototipo.**
+
+### 11.1 Preguntas de Reflexión Obligatorias
+
+Responde HONESTAMENTE a cada pregunta antes de entregar:
+
+```markdown
+## REFLEXIÓN: [Nombre Cliente]
+
+### CALIDAD VISUAL
+1. "¿Este sitio podría ganar un premio de diseño?" 
+   - [ ] SÍ definitivamente
+   - [ ] Más o menos ← INACEPTABLE, mejorar
+   - [ ] No ← INACEPTABLE, rediseñar
+
+2. "¿El cliente quedaría impresionado y llamaría inmediatamente?"
+   - [ ] SÍ ← Continuar
+   - [ ] Lo pensaría ← Mejorar el WOW factor
+
+3. "¿Este es el mejor trabajo que puedo entregar?"
+   - [ ] SÍ ← Continuar
+   - [ ] Podría ser mejor si... ← HACER ESO AHORA
+
+### FIDELIDAD AL PROMPT
+4. "¿Seguí LITERALMENTE lo que el prompt pedía?"
+   - [ ] SÍ, cada sección y asset
+   - [ ] Me desvié porque... ← Evaluar si fue mejora o pereza
+
+5. "¿Generé TODAS las imágenes que el prompt especificaba?"
+   - [ ] SÍ, todas con generate_image
+   - [ ] No, usé placeholders ← GENERAR AHORA
+
+### DIFERENCIACIÓN
+6. "¿El footer es único para esta industria/cliente?"
+   - [ ] SÍ, tiene personalidad específica
+   - [ ] Es genérico ← REDISEÑAR
+
+7. "¿Los micro-copy son específicos del negocio?"
+   - [ ] SÍ, no son genéricos
+   - [ ] Podrían estar en cualquier sitio ← REESCRIBIR
+
+8. "¿Las animaciones agregan valor o son decoración?"
+   - [ ] Agregan valor narrativo
+   - [ ] Son solo decoración ← Evaluar si eliminar o mejorar
+```
+
+### 11.2 Comparación con Referentes
+
+```
+PREGUNTA FINAL:
+"Si pongo este demo al lado de un sitio de Awwwards, ¿está a la altura?"
+
+- SÍ → Continuar a entrega
+- NO → ¿Qué le falta? HACERLO AHORA
+```
+
+---
+
+## Fase 12: Self-Check Final
 
 Antes de entregar, responde:
 1. "¿El cliente reconocería su negocio en esta landing?" → Debe ser SÍ
 2. "¿El estilo visual matchea con su horario/contexto?" → Debe ser SÍ
 3. "¿Screenshotearía esto para inspiración?" → Debe ser SÍ
 4. "¿Podría existir en 1000 sitios genéricos?" → Debe ser NO
+5. "¿Este demo puede cerrar una venta HOY?" → **Debe ser SÍ**
 
 ---
 
-## Fase 10: Bloquear Estilo (Memory Persistence) - OBLIGATORIO
+## Fase 13: Bloquear Estilo (Memory Persistence) - OBLIGATORIO
 
 Para evitar la amnesia del proyecto, **DEBES** crear el archivo de memoria al finalizar.
 
@@ -887,20 +1074,55 @@ Crea `d:\proyectos\hojacero\app\prospectos\[cliente]\style_lock.md`:
 
 ## ADN del Diseño
 - Estilo Seleccionado: [Nombre del Estilo]
+- Creative Director Seeds: [Layout + Typo + Motion + Color]
 - Paleta de Colores: [Primary, Secondary, Background]
 - Tipografía: [Fuentes usadas]
+
+## Assets Generados
+- [ ] Hero Image: [descripción]
+- [ ] [Listar cada imagen generada con generate_image]
 
 ## Stack Técnico (Manifest)
 - [x] BentoGrid
 - [ ] 3DCard
 - [ ] VelocityScroll
+- [ ] KineticText
+- [ ] ClipPathReveal
 - [ ] (Marca con X lo que hayas instalado/usado)
+
+## Reflexión Pre-Entrega
+- ¿Build exitoso?: [SÍ/NO]
+- ¿Placeholder eliminados?: [SÍ/NO]
+- ¿Assets completos?: [SÍ/NO]
+- ¿Footer único?: [SÍ/NO]
 
 ## Contexto
 - Discovery Notes: [Link relativo a discovery_notes.md]
 ```
 
 **SIN ESTE ARCHIVO, EL PROYECTO NO EXISTE PARA EL SISTEMA.**
+
+---
+
+## 📋 RESUMEN: MENTALIDAD "NO MVP"
+
+```
+🚫 LO QUE ESTE WORKFLOW **NO** ES:
+- Un prototipo rápido
+- Un "buen comienzo" para iterar
+- Algo que "funciona"
+- Un template con datos del cliente
+
+✅ LO QUE ESTE WORKFLOW **SÍ** ES:
+- Un producto terminado de calidad agencia premium
+- Algo que cierra ventas en la primera llamada
+- Un demo que el cliente comparte con su equipo diciendo "WOW"
+- Un sitio que el cliente imagina como su versión final
+
+PREGUNTA RECTORA:
+"Si el cliente ve esto y dice 'quiero exactamente esto en producción', ¿estamos listos?"
+→ Si la respuesta es NO, no hemos terminado.
+```
 
 ---
 
@@ -914,10 +1136,14 @@ AI:
    - Scrapea Home, Servicios, Nosotros de biocrom.cl
    - Busca "Biocrom opiniones" en Google
    - Crea discovery_notes.md con hallazgos
-2. FASE 1-2: Recopila datos estructurados
-3. FASE 3: Analiza contexto (industria técnica, B2B)
-4. FASE 4: Selecciona estilo "Enterprise Trust" o "Future Clinical"
-5. FASE 5: Genera imágenes de laboratorio premium
-6. FASE 6-7: Crea landing en /prospectos/biocrom
-7. FASE 8-9: Verifica y entrega
+2. FASE 0.5: Creative Director
+   - Tira dados y documenta seeds en discovery_notes.md
+3. FASE 1-4: Recopila datos, selecciona estilo
+4. FASE 5: Genera TODAS las imágenes (Hero, productos, equipo)
+5. FASE 6-7: Crea landing con assets reales
+6. FASE 8: Verifica en browser
+7. FASE 9: Checkpoint de Assets (¿generé todo?)
+8. FASE 10: npm run build (¿compila?)
+9. FASE 11: Reflexión (¿es producto final o MVP?)
+10. FASE 12-13: Self-check y style_lock.md
 ```

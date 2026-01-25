@@ -14,6 +14,7 @@ export default function Sidebar() {
     const pathname = usePathname();
     const { theme, isSidebarOpen, closeSidebar } = useDashboard();
     const [unreadCount, setUnreadCount] = useState(0);
+    const [agendaCount, setAgendaCount] = useState(0);
     const supabase = createClient();
 
     useEffect(() => {
@@ -22,21 +23,40 @@ export default function Sidebar() {
             setUnreadCount(count || 0);
         };
 
+        const fetchAgenda = async () => {
+            // Reuniones de hoy pendientes
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const { count } = await supabase
+                .from('agenda_events')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'pending')
+                .gte('start_time', today.toISOString())
+                .lt('start_time', tomorrow.toISOString());
+
+            setAgendaCount(count || 0);
+        };
+
         fetchUnread();
+        fetchAgenda();
 
         const channel = supabase.channel('sidebar-badges')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'email_inbox' }, fetchUnread)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda_events' }, fetchAgenda)
             .subscribe();
 
         return () => { supabase.removeChannel(channel); };
     }, []);
 
-    const menuItems: { label: string; href: string; icon: any; isBeta?: boolean; badge?: number }[] = [
+    const menuItems: { label: string; href: string; icon: any; isBeta?: boolean; badge?: number; badgeColor?: string }[] = [
         { label: 'DASHBOARD', href: '/dashboard', icon: LayoutDashboard },
         { label: 'MÉTRICAS', href: '/dashboard/metrics', icon: Activity },
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
         { label: 'PIPELINE', href: '/dashboard/pipeline', icon: KanbanSquare },
-        { label: 'AGENDA', href: '/dashboard/agenda', icon: Calendar },
+        { label: 'AGENDA', href: '/dashboard/agenda', icon: Calendar, badge: agendaCount, badgeColor: 'cyan' },
         { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
@@ -81,6 +101,7 @@ export default function Sidebar() {
                             ? pathname === '/dashboard'
                             : pathname.startsWith(item.href);
                         const badge = 'badge' in item ? item.badge : null;
+                        const badgeColor = 'badgeColor' in item ? item.badgeColor : 'red';
 
                         return (
                             <Link
@@ -108,7 +129,8 @@ export default function Sidebar() {
                                     </span>
                                 )}
                                 {badge && badge > 0 && (
-                                    <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                    <span className={`text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${badgeColor === 'cyan' ? 'bg-cyan-500' : 'bg-red-500'
+                                        }`}>
                                         {badge}
                                     </span>
                                 )}
@@ -120,7 +142,7 @@ export default function Sidebar() {
 
                 {/* User Footer (Static) */}
                 <div className={`p-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-                    <div className="flex items-center gap-3 px-2 p-2 select-none">
+                    <div className="flex items-center gap-3 px-2 p-2 select-none cursor-pointer hover:opacity-80 transition-opacity" onClick={handleRegisterDevice}>
                         <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold ${isDark ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-500' : 'bg-blue-100 border-blue-300 text-blue-600'
                             }`}>
                             DG
@@ -139,5 +161,50 @@ export default function Sidebar() {
             </aside>
         </>
     );
+}
+
+function handleRegisterDevice() {
+    // Función simple para registrar dispositivo actual
+    // En el futuro mover a DemoTracker.tsx como hook exportado si se complica
+    if (!confirm('¿Registrar este dispositivo como EQUIPO (Daniel/Gastón)?\n\nEsto evitará que tus visitas a los demos generen notificaciones.')) return;
+
+    const fingerprint = generateFingerprint();
+
+    fetch('/api/tracking/team-device', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            fingerprint,
+            owner: 'admin', // Por defecto admin
+            device_name: navigator.platform
+        })
+    }).then(res => res.json()).then(data => {
+        if (data.success) {
+            alert('✅ Dispositivo registrado correctamente.\nTus visitas ya no contarán en las métricas.');
+        } else {
+            alert('❌ Error: ' + data.error);
+        }
+    });
+}
+
+function generateFingerprint(): string {
+    const data = [
+        navigator.userAgent,
+        navigator.language,
+        screen.width + 'x' + screen.height,
+        screen.colorDepth,
+        new Date().getTimezoneOffset(),
+        navigator.hardwareConcurrency || 'unknown',
+        // @ts-ignore
+        navigator.deviceMemory || 'unknown'
+    ].join('|');
+
+    let hash = 0;
+    for (let i = 0; i < data.length; i++) {
+        const char = data.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36);
 }
 

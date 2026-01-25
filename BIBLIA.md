@@ -18,24 +18,102 @@ Antes de construir, el agente realiza un **Deep Research** que anula cualquier "
 
 ---
 
-## 🤖 PROTOCOLO DE AUTOMATIZACIÓN (Hands-Off)
-El agente es responsable de la infraestructura y la calidad sin molestar al usuario con "ruido de motor".
+## 🧩 FUNCIONES UNIVERSALES DE SECCIÓN (One-Shot Framework)
 
-1. **Ley de Puerto Cero:** Antes de iniciar `npm run dev`, el agente limpia proactivamente los puertos (3000/3001).
-2. **QA Técnico (No Visual):** El agente puede usar terminales para verificar builds, pero **NUNCA** debe usar herramientas de navegador para "mirar" la estética. Son lentas y no tienen "ojo".
-3. **Ley de la Ventana Fantasma:** El usuario siempre tiene el preview abierto. No le preguntes "qué ves", asume que lo ve. Pide feedback directo.
+### Filosofía: El Prompt es el PISO, no el TECHO
+Los prompts definen la estructura MÍNIMA. El Soul Interview revela información que EXPANDE el sitio. Pero SIEMPRE manteniendo el VIBE del prompt original.
+
+### Las 6 Funciones que TODO Sitio Debe Cumplir:
+
+Cada sitio, sin importar la industria, debe cumplir estas **FUNCIONES**. Cómo se manifiestan depende del contexto:
+
+| Función | Propósito | Manifesta como... |
+|---------|-----------|-------------------|
+| **1. CAPTURA** | Primera impresión, hook visual | Hero siempre. Headline + Visual |
+| **2. OFERTA** | Qué venden/hacen | Servicios, Productos, Menú, Planes |
+| **3. CREDIBILIDAD** | Por qué confiar | Ver tabla de manifestaciones abajo |
+| **4. DIFERENCIACIÓN** | Por qué elegirlos | Ver tabla de manifestaciones abajo |
+| **5. VALIDACIÓN** | Otros confían | Testimonios, Logos, Reviews, Casos |
+| **6. CONVERSIÓN** | Qué hacer ahora | CTA, Reserva, Contacto, Cotización |
+
+### Tabla de Manifestaciones por Industria:
+
+#### CREDIBILIDAD (Función 3):
+| Industria | Se manifiesta como... |
+|-----------|----------------------|
+| Negocio personal/local | Historia del fundador, años de experiencia |
+| Corporativo/Enterprise | Logos de clientes, partnerships |
+| Salud/Legal | Certificaciones, licencias, años |
+| Tech/SaaS | Tecnología, seguridad, stack |
+| Consultoría | Metodología, framework propio |
+| Retail/E-commerce | Garantías, políticas, envío |
+
+#### DIFERENCIACIÓN (Función 4):
+| Industria | Se manifiesta como... |
+|-----------|----------------------|
+| Gastronomía | Proceso de cocina, origen de ingredientes |
+| Servicios locales | Proceso único, herramientas, equipo |
+| Tech | Features, comparación, integrations |
+| Fitness/Wellness | Resultados, transformaciones, método |
+| Educación | Outcome, empleabilidad, método |
+| Construcción | Proyectos previos, materiales, técnica |
+
+#### VALIDACIÓN (Función 5):
+| Contexto | Se manifiesta como... |
+|----------|----------------------|
+| B2C Local | Reviews de Google, testimonios |
+| B2B | Casos de éxito, logos de clientes |
+| Enterprise | ROI, métricas, estudios |
+| Nuevo (sin historial) | Promesa + garantía + fundador |
+
+### Regla de Expansión:
+
+```
+IF Soul Interview revela información que cumple una FUNCIÓN
+   pero NO está en el prompt:
+   
+   → AGREGAR sección nueva
+   → MANTENER el vibe/paleta/motion del prompt
+   
+   Ejemplo:
+   - Prompt base: 3 secciones
+   - Soul Interview revela: fundador carismático
+   - ACCIÓN: Agregar sección de CREDIBILIDAD (manifestada como "Fundador")
+   - VIBE: Mismo estilo visual que el resto
+```
+
+### Pregunta Clave (Para Soul Interview):
+
+En vez de preguntar cosas específicas de industria, preguntar por FUNCIÓN:
+
+```markdown
+🔴 CREDIBILIDAD: "¿Por qué debería confiar en ustedes?"
+   □ Tenemos X años de experiencia
+   □ Tenemos certificaciones/licencias
+   □ Tenemos clientes importantes que nos avalan
+   □ Nuestro fundador/equipo tiene historia relevante
+   □ Nuestra tecnología/método es superior
+   □ Tenemos garantía o promesa única
+
+🔴 DIFERENCIACIÓN: "¿Qué hacen diferente a la competencia?"
+   □ Proceso único (describir)
+   □ Producto/servicio exclusivo
+   □ Precio (más barato o más premium)
+   □ Velocidad/conveniencia
+   □ Resultados garantizados
+   □ Experiencia superior
+
+🟡 VALIDACIÓN: "¿Qué pruebas tienen?"
+   □ Reviews/testimonios
+   □ Casos de éxito con números
+   □ Logos de clientes
+   □ Premios/menciones en prensa
+   □ Ninguna todavía (negocio nuevo)
+```
 
 ---
 
-## 🎨 COMANDAMIENTOS TÉCNICOS
-1. **Asimetría y Tensión:** Evitar el orden de "plantilla de Word". Jerarquías claras y layouts disruptivos.
-2. **Aesthetic Tech-Luxury:** Paletas de bajo contraste (Dark modes, Carbono, Glassmorphism) con acentos vibrantes.
-3. **Framer Motion & GSAP:** La animación es la "textura" del sitio. Fluida y sutil.
-4. **Mobile-First WOW:** El sitio debe impactar en móvil tanto como en desktop.
-
----
-
-## 🐝 PROTOCOLO DE NICHOS DISRUPTIVOS
+## 🔄 PROTOCOLO DE NICHOS DISRUPTIVOS
 Cuando un negocio no encaja en los prompts predefinidos:
 - **Modo Síntesis:** Mezclar conceptos para crear un ADN visual único.
 - **Grano de Verdad:** Basar el diseño en la especificidad técnica encontrada.

@@ -1,24 +1,22 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-// @ts-expect-error - splitting no tiene tipos
-import Splitting from 'splitting';
+import { useEffect, useRef, useState } from 'react';
 
 interface KineticTextProps {
-    /** Texto a animar */
-    text: string;
-    /** Clase CSS adicional */
-    className?: string;
-    /** Tag HTML a usar */
-    as?: 'h1' | 'h2' | 'h3' | 'p' | 'span' | 'div';
-    /** Tipo de split: chars, words, o lines */
-    splitBy?: 'chars' | 'words' | 'lines';
-    /** Delay entre cada elemento (en segundos) */
-    stagger?: number;
-    /** Duración de la animación (en segundos) */
-    duration?: number;
-    /** Estilo de animación */
-    animation?: 'fade-up' | 'fade-in' | 'scale' | 'blur' | 'wave';
+  /** Texto a animar */
+  text: string;
+  /** Clase CSS adicional */
+  className?: string;
+  /** Tag HTML a usar */
+  as?: 'h1' | 'h2' | 'h3' | 'p' | 'span' | 'div';
+  /** Tipo de split: chars, words, o lines */
+  splitBy?: 'chars' | 'words' | 'lines';
+  /** Delay entre cada elemento (en segundos) */
+  stagger?: number;
+  /** Duración de la animación (en segundos) */
+  duration?: number;
+  /** Estilo de animación */
+  animation?: 'fade-up' | 'fade-in' | 'scale' | 'blur' | 'wave';
 }
 
 /**
@@ -37,47 +35,64 @@ interface KineticTextProps {
  * />
  */
 export function KineticText({
-    text,
-    className = '',
-    as: Tag = 'div',
-    splitBy = 'chars',
-    stagger = 0.03,
-    duration = 0.6,
-    animation = 'fade-up',
+  text,
+  className = '',
+  as: Tag = 'div',
+  splitBy = 'chars',
+  stagger = 0.03,
+  duration = 0.6,
+  animation = 'fade-up',
 }: KineticTextProps) {
-    const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
-    useEffect(() => {
-        if (!ref.current) return;
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ref.current || !isClient) return;
+
+    // Dynamic import para evitar SSR issues
+    const initSplitting = async () => {
+      try {
+        // @ts-expect-error - splitting no tiene tipos
+        const Splitting = (await import('splitting')).default;
 
         // Aplicar Splitting
-        const result = Splitting({
-            target: ref.current,
-            by: splitBy,
+        Splitting({
+          target: ref.current,
+          by: splitBy,
         });
 
         // Aplicar animación con CSS custom properties
-        const elements = ref.current.querySelectorAll(`[data-${splitBy.slice(0, -1)}]`);
+        const elements = ref.current?.querySelectorAll(`[data-${splitBy.slice(0, -1)}]`);
 
-        elements.forEach((el, i) => {
-            const htmlEl = el as HTMLElement;
-            htmlEl.style.setProperty('--char-index', String(i));
-            htmlEl.style.setProperty('--stagger', `${i * stagger}s`);
-            htmlEl.style.setProperty('--duration', `${duration}s`);
-            htmlEl.classList.add(`kinetic-${animation}`);
+        elements?.forEach((el, i) => {
+          const htmlEl = el as HTMLElement;
+          htmlEl.style.setProperty('--char-index', String(i));
+          htmlEl.style.setProperty('--stagger', `${i * stagger}s`);
+          htmlEl.style.setProperty('--duration', `${duration}s`);
+          htmlEl.classList.add(`kinetic-${animation}`);
         });
+      } catch (error) {
+        console.warn('KineticText: Splitting library failed to load', error);
+      }
+    };
 
-        return () => {
-            // Cleanup
-            if (ref.current) {
-                ref.current.innerHTML = text;
-            }
-        };
-    }, [text, splitBy, stagger, duration, animation]);
+    initSplitting();
 
-    return (
-        <>
-            <style jsx global>{`
+    return () => {
+      // Cleanup
+      if (ref.current) {
+        ref.current.innerHTML = text;
+      }
+    };
+  }, [text, splitBy, stagger, duration, animation, isClient]);
+
+  return (
+    <>
+      <style jsx global>{`
         .kinetic-fade-up {
           opacity: 0;
           transform: translateY(20px);
@@ -131,15 +146,15 @@ export function KineticText({
           50% { transform: translateY(-10px); }
         }
       `}</style>
-            <Tag
-                ref={ref as any}
-                className={`splitting ${className}`}
-                data-splitting
-            >
-                {text}
-            </Tag>
-        </>
-    );
+      <Tag
+        ref={ref as any}
+        className={`splitting ${className}`}
+        data-splitting
+      >
+        {text}
+      </Tag>
+    </>
+  );
 }
 
 export default KineticText;
