@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Lottie from 'lottie-react';
 import { ChatInterface } from './ChatInterface';
 
-// Robot Animation (High quality waving robot)
-const ROBOT_LOTTIE_URL = "https://lottie.host/6ad2e77b-6d12-4217-9154-1506a72e70e9/XfT3InhRzF.json";
+const ROBOT_LOTTIE_URL = "https://assets10.lottiefiles.com/packages/lf20_t9gkkhz4.json";
+
+import { Bot } from 'lucide-react';
 
 export function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
@@ -74,12 +75,14 @@ export function ChatWidget() {
                         }`}
                 >
                     <div className="w-12 h-12 flex items-center justify-center">
-                        {animationData && (
+                        {animationData ? (
                             <Lottie
                                 animationData={animationData}
                                 loop={true}
-                                className="w-full h-full"
+                                className="w-full h-full scale-125"
                             />
+                        ) : (
+                            <Bot className="w-7 h-7 text-white animate-pulse" />
                         )}
                     </div>
 

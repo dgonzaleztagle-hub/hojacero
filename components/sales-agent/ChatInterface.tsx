@@ -225,14 +225,7 @@ export function ChatInterface({ onClose }: ChatInterfaceProps) {
                                         : 'bg-zinc-900 border border-white/10 text-zinc-100 rounded-bl-none'
                                     }`}>
                                     {m.content}
-                                    {m.usage && (
-                                        <div className="mt-2 text-xs text-zinc-500 font-mono border-t border-white/5 pt-2 flex justify-between items-center">
-                                            <div className="flex gap-2">
-                                                <span>{m.usage.total_tokens} toks</span>
-                                            </div>
-                                            <span title="Prompt / Completion">({m.usage.prompt_tokens}/{m.usage.completion_tokens})</span>
-                                        </div>
-                                    )}
+
                                 </div>
                                 {m.role === 'user' && (
                                     <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center shrink-0">
