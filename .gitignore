@@ -40,8 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# exports
-exports/**/node_modules
-exports/**/.next
-exports/**/.git
+# exports (se suben a repos independientes por cliente)
+/exports/
 
+
+.vercel
+.env*.local
