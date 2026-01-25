@@ -6,7 +6,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
 async function sendMeetingEmail(event: any) {
-    if (!event.attendee_email) return;
+    // if (!event.attendee_email) return; // Permitir notificar sin email del cliente (usa el del admin)
 
     const dateStr = new Date(event.start_time).toLocaleDateString('es-CL', {
         weekday: 'long',
@@ -58,7 +58,7 @@ async function sendMeetingEmail(event: any) {
 // Cliente admin para operaciones del bot (sin cookies de usuario)
 const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 // GET: Lista eventos (con filtros opcionales)
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    if (send_reminder_email && data.attendee_email) {
+    if (send_reminder_email) {
         await sendMeetingEmail(data);
     }
 
@@ -158,7 +158,7 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    if (updates.send_reminder_email && data.attendee_email) {
+    if (updates.send_reminder_email) {
         await sendMeetingEmail(data);
     }
 
