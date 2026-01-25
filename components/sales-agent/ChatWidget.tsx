@@ -2,25 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Lottie from 'lottie-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { ChatInterface } from './ChatInterface';
 
-const ROBOT_LOTTIE_URL = "https://assets10.lottiefiles.com/packages/lf20_t9gkkhz4.json";
+const ROBOT_LOTTIE_PATH = "/waiting-clicky.lottie";
 
 import { Bot } from 'lucide-react';
 
 export function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
     const [hasNewMessage, setHasNewMessage] = useState(false);
-    const [animationData, setAnimationData] = useState<any>(null);
-
-    // Fetch Lottie JSON
-    useEffect(() => {
-        fetch(ROBOT_LOTTIE_URL)
-            .then(res => res.json())
-            .then(data => setAnimationData(data))
-            .catch(err => console.error("Lottie Load Error:", err));
-    }, []);
 
     // Auto-open or show notification after some time (optional)
     useEffect(() => {
@@ -74,16 +65,13 @@ export function ChatWidget() {
                         : 'bg-cyan-600 hover:bg-cyan-500 shadow-cyan-500/20'
                         }`}
                 >
-                    <div className="w-12 h-12 flex items-center justify-center">
-                        {animationData ? (
-                            <Lottie
-                                animationData={animationData}
-                                loop={true}
-                                className="w-full h-full scale-125"
-                            />
-                        ) : (
-                            <Bot className="w-7 h-7 text-white animate-pulse" />
-                        )}
+                    <div className="w-14 h-14 flex items-center justify-center">
+                        <DotLottieReact
+                            src={ROBOT_LOTTIE_PATH}
+                            loop
+                            autoplay
+                            className="w-full h-full scale-110"
+                        />
                     </div>
 
                     {!isOpen && hasNewMessage && (
