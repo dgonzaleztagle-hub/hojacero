@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+const ROBOT_GIF_PATH = "/waiting-clicky.gif";
 import { ChatInterface } from './ChatInterface';
-
-const ROBOT_LOTTIE_PATH = "/waiting-clicky.lottie";
 
 import { Bot } from 'lucide-react';
 
@@ -66,11 +64,10 @@ export function ChatWidget() {
                         }`}
                 >
                     <div className="w-14 h-14 flex items-center justify-center">
-                        <DotLottieReact
-                            src={ROBOT_LOTTIE_PATH}
-                            loop
-                            autoplay
-                            className="w-full h-full scale-110"
+                        <img
+                            src={ROBOT_GIF_PATH}
+                            alt="H0 Robot"
+                            className="w-full h-full object-contain scale-110"
                         />
                     </div>
 
