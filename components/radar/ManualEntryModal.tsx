@@ -50,8 +50,8 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
+            <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
                 <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/40">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                         <Building className="w-4 h-4 text-cyan-400" />

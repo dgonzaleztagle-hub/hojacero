@@ -66,8 +66,8 @@ export function AddCustomTaskModal({ clientId, onClose, onAdded }: AddCustomTask
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-white/5">
                     <div className="flex items-center gap-3">
@@ -110,8 +110,8 @@ export function AddCustomTaskModal({ clientId, onClose, onAdded }: AddCustomTask
                                     type="button"
                                     onClick={() => setCategory(cat.value)}
                                     className={`py-2 px-3 rounded-lg text-xs font-bold uppercase transition-all border ${category === cat.value
-                                            ? `${cat.color} bg-white/10 border-current`
-                                            : 'text-zinc-500 bg-zinc-800 border-white/5 hover:bg-zinc-700'
+                                        ? `${cat.color} bg-white/10 border-current`
+                                        : 'text-zinc-500 bg-zinc-800 border-white/5 hover:bg-zinc-700'
                                         }`}
                                 >
                                     {cat.label}

@@ -206,8 +206,8 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className={`relative w-full h-[95vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl transition-colors md:w-[95vw] md:max-w-7xl ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setSelectedLead(null)}>
+            <div className={`relative w-full h-[95vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl transition-colors md:w-[95vw] md:max-w-7xl ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border-gray-200'}`} onClick={(e) => e.stopPropagation()}>
 
                 {/* VAULT SETUP OVERLAY */}
                 {showVaultSetup && (
