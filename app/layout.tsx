@@ -78,6 +78,7 @@ export const metadata: Metadata = {
 };
 
 import Script from "next/script";
+import { DemoTracker } from "@/components/tracking/DemoTracker";
 
 // ... (imports existentes)
 
@@ -112,6 +113,7 @@ export default function RootLayout({
           `}
         </Script>
 
+        <DemoTracker />
         {children}
       </body>
     </html>

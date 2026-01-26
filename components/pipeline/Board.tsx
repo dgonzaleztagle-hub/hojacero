@@ -20,6 +20,8 @@ import { Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import confetti from 'canvas-confetti';
 import { toast } from 'sonner';
+import { VictoryModal, VictoryData } from './VictoryModal';
+import { createClient } from '@/utils/supabase/client';
 
 // Mock Data Type
 type BoardData = {
@@ -38,6 +40,12 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
     });
     const [activeId, setActiveId] = useState<string | null>(null);
     const [originalContainer, setOriginalContainer] = useState<string | null>(null);
+
+    // Victory Modal State
+    const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
+    const [victoryCandidate, setVictoryCandidate] = useState<{ id: string, container: string } | null>(null);
+
+    const supabase = createClient();
 
     // Sync Props to State
     useEffect(() => {
@@ -219,14 +227,18 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
 
         // If we have an original container and it's different from current, we moved between containers
         if (originalContainer && originalContainer !== currentContainer) {
-            // The visual state 'items' is already updated by handleDragOver for the move?
-            // Actually, handleDragOver moves it *visually*. 
-            // handleDragEnd commits it.
-            // But wait, DndKit's handleDragOver modifies 'items' state directly during the drag.
-            // So 'items[currentContainer]' ALREADY contains the item in its new position?
-            // Yes, if handleDragOver logic is correct.
 
-            // So we just need to persist the current state of the currentContainer (destination)
+            // CHECK FOR VICTORY (Move to Produccion)
+            if (currentContainer === 'produccion') {
+                setVictoryCandidate({ id: active.id as string, container: currentContainer });
+                setIsVictoryModalOpen(true);
+                // Do NOT call updateColumnOrder yet. Interaction pauses here.
+                setActiveId(null);
+                setOriginalContainer(null);
+                return;
+            }
+
+            // Normal move
             const destItems = items[currentContainer];
             updateColumnOrder(destItems, currentContainer);
         }
@@ -248,6 +260,52 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
 
         setActiveId(null);
         setOriginalContainer(null);
+    };
+
+    const handleVictoryConfirm = async (data: VictoryData) => {
+        if (!victoryCandidate) return;
+
+        const { id, container } = victoryCandidate;
+        setIsVictoryModalOpen(false);
+
+        // 1. Update Supabase with Financial Data
+        try {
+            const { error } = await supabase.from('leads').update({
+                pipeline_stage: 'produccion',
+                estado: 'won',
+                deal_type: data.dealType,
+                deal_amount: data.amount,
+                partner_split: data.partnerSplit,
+                services_justification: data.justifications
+            }).eq('id', id);
+
+            if (error) throw error;
+
+            // 2. Trigger Confetti & Success
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#00f0ff', '#10b981', '#ffffff']
+            });
+            toast.success('¡Cierre Confirmado! Datos financieros actualizados.');
+
+            // 3. Persist Order in Pipeline (to be safe)
+            const destItems = items[container];
+            // Update local item optimistic state if needed? 
+            // Actually items[container] already has the item because handleDragOver moved it.
+            // We just need to persist the order now.
+            updateColumnOrder(destItems, container);
+
+            // 4. Trigger Parent Refresh
+            if (onLeadMove) onLeadMove(id, 'produccion');
+
+        } catch (err: any) {
+            console.error("Victory Update Error:", err);
+            toast.error('Error al guardar cierre: ' + err.message);
+            // Revert? For now, we assume success or user retries. 
+            // Ideally we should revert the drag separation if this fails, but dragging is already "done".
+        }
     };
 
     const activeItem = activeId ? Object.values(items).flat().find(i => i.id === activeId) : null;
@@ -319,6 +377,20 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
             <DragOverlay>
                 {activeItem ? <Ticket {...activeItem} /> : null}
             </DragOverlay>
+
+            <VictoryModal
+                isOpen={isVictoryModalOpen}
+                onClose={() => {
+                    setIsVictoryModalOpen(false);
+                    // Revert move if cancelled?
+                    // Reloading leads from parent is safest way to revert the optimistic drag.
+                    // Or we could manually move it back to originalContainer.
+                    // For now, simpler to just close and let user fix or reload.
+                    // window.location.reload(); // Too aggressive.
+                }}
+                onConfirm={handleVictoryConfirm}
+                leadName={items[victoryCandidate?.container || '']?.find(i => i.id === victoryCandidate?.id)?.company || 'Cliente'}
+            />
         </DndContext>
     );
 };

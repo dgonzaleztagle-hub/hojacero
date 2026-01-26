@@ -12,8 +12,10 @@ interface SEOHeadProps {
     address?: string;
     phone?: string;
     priceRange?: string; // "$", "$$", "$$$"
-    industry?: 'Restaurant' | 'LegalService' | 'MedicalBusiness' | 'LocalBusiness' | 'AutomotiveBusiness' | 'Store';
+    industry?: 'Restaurant' | 'LegalService' | 'MedicalBusiness' | 'LocalBusiness' | 'AutomotiveBusiness' | 'Store' | 'ProfessionalService' | 'HomeAndConstructionBusiness';
     openingHours?: string;
+    // AEO Additions
+    faqs?: { question: string; answer: string }[];
 }
 
 export function SEOHead({

@@ -12,7 +12,9 @@ import {
     Calendar,
     Briefcase,
     CreditCard,
-    BarChart2
+    BarChart2,
+    Code,
+    Megaphone
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,6 +36,15 @@ interface MetricsState {
     chartData?: any[];
     pausedSitesData?: any[];
     loading: boolean;
+    partnerRevenue?: {
+        daniel: number;
+        gaston: number;
+        total: number;
+        dealsCount: {
+            daniel_major: number;
+            gaston_major: number;
+        };
+    };
 }
 
 export default function MetricsPage() {
@@ -91,6 +102,14 @@ export default function MetricsPage() {
 
             if (pagosError) throw pagosError;
 
+            // 3. Fetch Won Leads for Partner Splits
+            const { data: wonLeads, error: leadsError } = await supabase
+                .from('leads')
+                .select('deal_type, deal_amount, partner_split')
+                .eq('estado', 'won');
+
+            if (leadsError) console.error("Error fetching leads for splits:", leadsError); // Non-blocking
+
             // --- CALCULATIONS ---
 
             // Active sites are those logically active in contract AND technically active in switch
@@ -106,7 +125,42 @@ export default function MetricsPage() {
                 return statusObj?.is_active === false;
             }) || [];
 
+
+
             const mrr = activeSites.reduce((sum, site) => sum + (site.monto_mensual || 0), 0);
+
+            // Partner Revenue Calculation
+            let danielTotal = 0;
+            let gastonTotal = 0;
+            let danielMajorCount = 0;
+            let gastonMajorCount = 0;
+
+            wonLeads?.forEach(lead => {
+                const amount = lead.deal_amount || 0;
+                let danielShare = 0;
+
+                // Logic based on types
+                if (lead.partner_split === 'daniel_major') { // Plan 150 or Custom Dev
+                    danielShare = 0.65;
+                    danielMajorCount++;
+                } else if (lead.partner_split === 'gaston_major') { // Custom Mkt
+                    danielShare = 0.35;
+                    gastonMajorCount++;
+                } else {
+                    // Fallback using deal_type if partner_split is missing (legacy safety)
+                    if (lead.deal_type === 'custom_mkt') {
+                        danielShare = 0.35;
+                        gastonMajorCount++;
+                    } else {
+                        // Default to Daniel Major (Plan 150 / Dev / Standard)
+                        danielShare = 0.65;
+                        danielMajorCount++;
+                    }
+                }
+
+                danielTotal += amount * danielShare;
+                gastonTotal += amount * (1 - danielShare);
+            });
 
             // Time Ranges
             const now = new Date();
@@ -192,6 +246,16 @@ export default function MetricsPage() {
                     heightImplementacion: (m.implementacion / maxChartValue) * 100,
                     totalPercentage: (m.total / maxChartValue) * 100
                 })),
+
+                partnerRevenue: {
+                    daniel: danielTotal,
+                    gaston: gastonTotal,
+                    total: danielTotal + gastonTotal,
+                    dealsCount: {
+                        daniel_major: danielMajorCount,
+                        gaston_major: gastonMajorCount
+                    }
+                },
                 loading: false
             });
 
@@ -265,6 +329,93 @@ export default function MetricsPage() {
                         subtitle="Clientes suspendidos"
                     />
                 </Link>
+            </div>
+
+            {/* Partner Split Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* DANIEL */}
+                <div className="bg-zinc-900/50 p-6 rounded-2xl border border-cyan-500/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-white">Daniel (Dev/Tech)</h3>
+                                <p className="text-xs text-cyan-400">Target: 65% Plan 150 / Dev</p>
+                            </div>
+                            <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-400">
+                                <Code className="w-6 h-6" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-zinc-500">Revenue Acumulado</p>
+                                <p className="text-3xl font-mono font-bold text-white">{formatCurrency(metrics.partnerRevenue?.daniel || 0)}</p>
+                            </div>
+
+                            {/* Distribution Bar */}
+                            <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-cyan-500"
+                                    style={{ width: `${((metrics.partnerRevenue?.daniel || 0) / ((metrics.partnerRevenue?.total || 1))) * 100}%` }}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500">
+                                <div>
+                                    <span className="block text-white font-bold">{metrics.partnerRevenue?.dealsCount?.daniel_major || 0} Deals</span>
+                                    MAJOR (65%)
+                                </div>
+                                <div>
+                                    <span className="block text-white font-bold">{metrics.partnerRevenue?.dealsCount?.gaston_major || 0} Deals</span>
+                                    MINOR (35%)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* GASTON */}
+                <div className="bg-zinc-900/50 p-6 rounded-2xl border border-purple-500/20 relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-white">Gastón (Mkt/Ops)</h3>
+                                <p className="text-xs text-purple-400">Target: 65% Mkt / 35% Plan 150</p>
+                            </div>
+                            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400">
+                                <Megaphone className="w-6 h-6" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-zinc-500">Revenue Acumulado</p>
+                                <p className="text-3xl font-mono font-bold text-white">{formatCurrency(metrics.partnerRevenue?.gaston || 0)}</p>
+                            </div>
+
+                            {/* Distribution Bar */}
+                            <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-purple-500"
+                                    style={{ width: `${((metrics.partnerRevenue?.gaston || 0) / ((metrics.partnerRevenue?.total || 1))) * 100}%` }}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500">
+                                <div>
+                                    <span className="block text-white font-bold">{metrics.partnerRevenue?.dealsCount?.gaston_major || 0} Deals</span>
+                                    MAJOR (65%)
+                                </div>
+                                <div>
+                                    <span className="block text-white font-bold">{metrics.partnerRevenue?.dealsCount?.daniel_major || 0} Deals</span>
+                                    MINOR (35%)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

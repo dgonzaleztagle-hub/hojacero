@@ -8,7 +8,6 @@ import { RadarScanner } from '@/components/radar/RadarScanner';
 import { RadarResultsList } from '@/components/radar/RadarResultsList';
 import { TargetIcon } from '@/components/radar/shared';
 import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
-import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
 import { getAnalysis } from '@/utils/radar-helpers';
 
 function RadarContent() {

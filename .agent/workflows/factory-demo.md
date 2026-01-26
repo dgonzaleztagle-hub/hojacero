@@ -141,6 +141,16 @@ Antes de elegir un prompt, debes definir la "Semilla de Variabilidad".
 
 ---
 
+## 🧠 Fase 0.6: SEO & AEO Strategy (New Skill)
+
+**Antes de diseñar, define qué vamos a posicionar.**
+
+1.  **LEE LA SKILL:** Usa `view_file` en `.agent/skills/seo-strategist-h0.md`.
+2.  **EJECUTA LA ESTRATEGIA:** Genera las preguntas clave (AEO) y la estructura de datos.
+3.  **SALIDA:** Debes tener claro qué preguntas responderás en la sección FAQ del Home.
+
+---
+
 ## Fase 1: Recopilar Información del Prospecto
 
 Antes de comenzar, necesitas:
@@ -184,7 +194,16 @@ Analiza horarios, keywords y competencia para descartar estilos incompatibles (e
 
 ---
 
-## Fase 4.5: Mobile-First Hard Constraints (FAIL FAST)
+## Fase 4.5: Tracking Injection (Shift Left)
+
+**Todo demo debe nacer con ojos.**
+
+1.  Asegúrate de que `layout.tsx` incluya el componente `<DemoTracker />`.
+2.  Esto activará las notificaciones en cuanto alguien (que no seas tú) abra el link.
+
+---
+
+## Fase 4.6: Mobile-First Hard Constraints (FAIL FAST)
 
 **ANTES** de generar assets, define la estructura pensando en 393px (iPhone 15).
 

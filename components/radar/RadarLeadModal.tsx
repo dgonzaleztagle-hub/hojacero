@@ -17,6 +17,7 @@ import { ModalTabDiagnostico } from '@/components/lead-modal/ModalTabDiagnostico
 import { ModalTabAuditoria } from '@/components/lead-modal/ModalTabAuditoria';
 import { ModalTabEstrategia } from '@/components/lead-modal/ModalTabEstrategia';
 import { ModalTabTrabajo } from '@/components/lead-modal/ModalTabTrabajo';
+import { VictoryModal, VictoryData } from '@/components/pipeline/VictoryModal';
 
 interface RadarLeadModalProps {
     radar: ReturnType<typeof useRadar>;
@@ -56,6 +57,9 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         billingStart: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0], // Today + 5 default
         currency: 'UF'
     });
+
+    // Victory Modal State
+    const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
 
     // Vault Logic State
     const [inVault, setInVault] = useState(false);
@@ -203,6 +207,43 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         setLeads(prev => prev.filter(l => l.id !== id && l.db_id !== id));
         setHistoryLeads(prev => prev.filter(l => l.id !== id && l.db_id !== id));
         // Pipeline update handled by re-fetch usually
+    };
+
+
+
+    const handleVictoryConfirm = async (data: VictoryData) => {
+        setIsVictoryModalOpen(false);
+        setIsSaving(true);
+        const id = selectedLead.id || selectedLead.db_id;
+
+        try {
+            await supabase.from('leads').update({
+                estado: 'won',
+                deal_type: data.dealType,
+                deal_amount: data.amount,
+                partner_split: data.partnerSplit,
+                services_justification: data.justifications
+            }).eq('id', id);
+
+            await logActivity(id, 'closed_won', selectedLead.estado, 'won', `Cierre Ganado (${data.dealType}) - $${data.amount}`);
+
+            fetchPipeline();
+            setSelectedLead(null);
+
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#00f0ff', '#10b981', '#ffffff']
+            });
+            toast.success('¡Venta registrada exitosamente!');
+
+        } catch (err: any) {
+            console.error(err);
+            toast.error('Error al cerrar venta: ' + err.message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -690,19 +731,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                             <Trash2 className="w-4 h-4" /> Descartar
                                         </button>
 
-                                        <button onClick={async () => {
-                                            if (!confirm('¡Felicidades! ¿Confirmar cierre ganado? Esto moverá el cliente al Vault.')) return;
-                                            setIsSaving(true);
-                                            const id = selectedLead.id || selectedLead.db_id;
-                                            await supabase.from('leads').update({ estado: 'won' }).eq('id', id);
-                                            await logActivity(id, 'closed_won', selectedLead.estado, 'won', 'Ganado - Movido a Vault');
-                                            // Optional: Create Project in another table if needed
-
-                                            fetchPipeline();
-                                            setSelectedLead(null);
-                                            setIsSaving(false);
-                                            // Could trigger confetti here in parent
-                                        }} className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl text-xs uppercase tracking-wide hover:shadow-lg hover:shadow-green-500/20 flex gap-2 transition-all hover:scale-105">
+                                        <button onClick={() => setIsVictoryModalOpen(true)} className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl text-xs uppercase tracking-wide hover:shadow-lg hover:shadow-green-500/20 flex gap-2 transition-all hover:scale-105">
                                             <CheckCircle2 className="w-4 h-4" /> ¡Cerrar Venta!
                                         </button>
                                     </>
@@ -789,6 +818,15 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                 </div>
 
             </div>
+
+
+            <VictoryModal
+                isOpen={isVictoryModalOpen}
+                onClose={() => setIsVictoryModalOpen(false)}
+                onConfirm={handleVictoryConfirm}
+                leadName={selectedLead.title || selectedLead.nombre}
+                isDark={isDark}
+            />
         </div >
     );
 }
