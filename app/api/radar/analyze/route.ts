@@ -36,7 +36,12 @@ async function performSeoAudit(url: string) {
             if (!res.ok) continue;
 
             const html = await res.text();
-            const textContent = html.replace(/<[^>]+>/g, ' ').slice(0, 500); // Reducido de 3000 a 500
+            const textContent = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gm, "")
+                .replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gm, "")
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 5000); // Aumentado de 500 a 5000
 
             // Extract contact information
             const phoneRegex = /\+?56\s*9\s*\d{4}\s*\d{4}|\+?56\s*2\s*\d{4}\s*\d{4}|(?<!\d)9\s*\d{4}\s*\d{4}(?!\d)/g;
@@ -152,7 +157,8 @@ export async function POST(req: Request) {
         if (!OPENAI_API_KEY && !GROQ_API_KEY) {
             deepAnalysis.executiveSummary = 'Error: No hay API de IA configurada (OPENAI_API_KEY o GROQ_API_KEY)';
         } else {
-            const prompt = `Analiza este negocio para HojaCero (agencia de diseño web Chile). Tu análisis debe ser ACCIONABLE: que yo pueda leerlo y saber exactamente qué hacer.
+            const prompt = `Analiza este negocio para HojaCero (agencia de diseño web premium). Tu objetivo es encontrar ANGULOS DE VENTA para ofrecer una Landing Page de Alta Conversión ($150.000 CLP).
+Sé CRÍTICO y directo. Busca lo que está MAL, viejo o feo.
 
 NEGOCIO: "${businessName}"
 TIPO: ${businessType || 'General'}
@@ -165,7 +171,7 @@ ${JSON.stringify({
                 hasTitle: audit?.hasTitle,
                 hasMetaDesc: audit?.hasMetaDesc,
                 hasViewport: audit?.hasViewport,
-                contentPreview: audit?.htmlPreview?.slice(0, 300)
+                contentPreview: audit?.htmlPreview?.slice(0, 4000)
             }, null, 2)}
 
 TECH SPECS:
@@ -176,55 +182,48 @@ ${searchContext}
 
 RESPONDE SOLO JSON:
 {
-  "seoScore": 0-100,
-  "verdict": "CONTACTAR URGENTE" | "CONTACTAR" | "REVISAR" | "DESCARTAR",
-  "executiveSummary": "2 oraciones: qué pasa con este negocio y qué oportunidad hay",
+  "seoScore": 0-100 (Bajo es mejor para nosotros),
+  "verdict": "CONTACTAR URGENTE" | "CONTACTAR" | "DESCARTAR",
+  "executiveSummary": "Resumen brutalmente honesto de por qué su web actual no vende.",
   
   "technicalIssues": [
-    {"issue": "Problema", "severity": "Alta|Media|Baja", "impact": "Por qué importa"}
+    {"issue": "Problema Técnico", "severity": "Alta", "impact": "Pierdes clientes por esto"}
   ],
   
   "designAnalysis": {
-    "isOutdated": true/false,
-    "estimatedAge": "Parece de 2015" o similar,
-    "worstProblems": ["Problema visual 1", "Problema 2"]
+    "isOutdated": true,
+    "estimatedAge": "Año estimado (ej: 2018)",
+    "worstProblems": ["Texto ilegible", "Fotos borrosas", "No adaptado a celular", "Lento"]
   },
-  
-  "buyerPersona": "Cliente ideal del negocio en 1 oración simple",
   
   "salesStrategy": {
-    "hook": "Frase de apertura ESPECÍFICA para este negocio (no genérica)",
-    "painPoints": ["Dolor real 1", "Dolor real 2", "Dolor real 3"],
-    "proposedSolution": "Servicio concreto: Landing $150 USD / Rediseño / SEO / etc",
-    "estimatedValue": "Bajo|Medio|Alto|Premium",
-    "closingAngle": "Ángulo de cierre: urgencia, competencia, pérdida de clientes, etc"
-  },
-  
-  "actionPlan": {
-    "priority": "Urgente|Esta semana|Puede esperar",
-    "recommendedChannel": "WhatsApp|Email|Llamada",
-    "bestTimeToContact": "Horario sugerido basado en tipo de negocio",
-    "nextStep": "Acción específica: enviar Demo, agendar llamada, etc"
-  },
-  
-  "competitors": ["Competidor 1", "Competidor 2"],
-  "missingKeywords": ["keyword SEO 1", "keyword 2"]
+    "hook": "Frase que le duela al dueño (ej: 'Tu competencia X se ve mejor')",
+    "painPoints": ["Estás perdiendo ventas hoy", "Tu web asusta a los clientes", "No apareces en Google"],
+    "proposedSolution": "Landing Page Factory ($150.000)",
+    "estimatedValue": "Bajo|Medio|Alto",
+    "closingAngle": "Miedo a quedar obsoleto | Ambición de crecer"
+  }
 }
 
-REGLAS:
-- Si tiene Next.js/React = Moderno, score bajo
-- Sin web = Score 90+, verdict CONTACTAR URGENTE
-- WordPress viejo/Wix = Score 60-80
-- Sé ESPECÍFICO, no genérico`;
+REGLAS DE ORO:
+1. Si no tiene web o es muy vieja: VERDICT = CONTACTAR URGENTE.
+2. Si usa Wix/Wordpress lento: VERDICT = CONTACTAR.
+3. El tono debe ser profesional pero ALARMANTE (necesitan cambiar YA).
+4. Asume que el objetivo es vender la Landing Page Factory.`;
 
             try {
-                // Usar OpenAI primero, Groq como fallback
-                const apiUrl = OPENAI_API_KEY
-                    ? 'https://api.openai.com/v1/chat/completions'
-                    : 'https://api.groq.com/openai/v1/chat/completions';
+                // PRIORIDAD: USAR GROQ (Llama 3) PARA AHORRAR COSTOS
+                // Fallback a OpenAI si Groq falla o no hay key
+                const useGroq = !!GROQ_API_KEY; // Forzar Groq si existe la key
 
-                const apiKey = OPENAI_API_KEY || GROQ_API_KEY;
-                const model = OPENAI_API_KEY ? 'gpt-4o-mini' : 'llama-3.3-70b-versatile';
+                const apiUrl = useGroq
+                    ? 'https://api.groq.com/openai/v1/chat/completions'
+                    : 'https://api.openai.com/v1/chat/completions';
+
+                const apiKey = useGroq ? GROQ_API_KEY : OPENAI_API_KEY;
+                const model = useGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
+
+                console.log(`🤖 RADAR AI: Usando modelo ${model} (Ahorro activado)`);
 
                 const aiResponse = await fetch(apiUrl, {
                     method: 'POST',
@@ -237,7 +236,7 @@ REGLAS:
                         messages: [
                             {
                                 role: 'system',
-                                content: 'Eres un consultor de ventas B2B experto en análisis de presencia digital. Respondes SOLO en JSON válido.'
+                                content: 'Eres un auditor de ventas despiadado pero preciso. Tu trabajo es encontrar defectos para vender rediseños web. Respondes SOLO JSON.'
                             },
                             { role: 'user', content: prompt }
                         ],

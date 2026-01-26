@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+*.key
 
 # debug
 npm-debug.log*
@@ -42,6 +43,7 @@ next-env.d.ts
 
 # exports (se suben a repos independientes por cliente)
 /exports/
+/playgroundn8n/
 
 
 .vercel
