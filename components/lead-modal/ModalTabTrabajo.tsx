@@ -317,28 +317,6 @@ export const ModalTabTrabajo = ({
                 {/* 2. ACTIVO / DEMO */}
                 {activeSubTab === 'activo' && (
                     <div className="space-y-6 animate-in fade-in duration-300">
-                        {/* Demo Viewer / Input */}
-                        <div className={`p-6 rounded-xl border flex flex-col items-center justify-center text-center gap-4 ${isDark ? 'border-white/10 bg-zinc-900/50' : 'border-zinc-200 bg-white'}`}>
-                            <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center">
-                                <span className="text-xl">⚡</span>
-                            </div>
-                            <div>
-                                <h3 className={`font-bold ${isDark ? 'text-white' : 'text-zinc-900'}`}>Demo Activo (Vision Preview)</h3>
-                                <div className="mt-2 flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="https://cliente-demo.hojacero.cl..."
-                                        defaultValue={selectedLead.demo_url || selectedLead.source_data?.demo_url || ''}
-                                        className={`px-3 py-2 rounded-lg text-sm w-64 ${isDark ? 'bg-black/50 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-black'}`}
-                                    />
-                                    <button className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-lg uppercase transition-colors">
-                                        Validar
-                                    </button>
-                                </div>
-                                <p className="text-xs text-zinc-500 mt-2">Pega aquí el link del demo generado manual o automáticamente.</p>
-                            </div>
-                        </div>
-
                         <StrategyDisplay
                             analysis={analysis}
                             isDark={isDark}
