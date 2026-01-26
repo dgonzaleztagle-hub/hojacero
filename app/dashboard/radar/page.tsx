@@ -8,7 +8,7 @@ import { RadarScanner } from '@/components/radar/RadarScanner';
 import { RadarResultsList } from '@/components/radar/RadarResultsList';
 import { TargetIcon } from '@/components/radar/shared';
 import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
-import { ManualEntryModal } from '@/components/radar/ManualEntryModal';
+import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
 import { getAnalysis } from '@/utils/radar-helpers';
 
 function RadarContent() {
@@ -24,7 +24,7 @@ function RadarContent() {
         selectedLead, setSelectedLead,
         handleScan,
         fetchLeadActivities, fetchNotes, fetchChatMessages,
-        userRole, setIsManualModalOpen
+        userRole
     } = radar;
 
     // 2. Access Control
@@ -69,14 +69,7 @@ function RadarContent() {
                     </div>
                 )}
 
-                <button
-                    onClick={() => setIsManualModalOpen(true)}
-                    className="bg-white text-black hover:bg-zinc-200 p-2 md:px-4 md:py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                    title="Ingresar Dato Manual"
-                >
-                    <ClipboardList className="w-4 h-4" />
-                    <span className="hidden md:inline">Ingresar Dato</span>
-                </button>
+
             </div>
 
             {/* Tabs */}
@@ -150,13 +143,7 @@ function RadarContent() {
                 <RadarLeadModal radar={radar} />
             )}
 
-            <ManualEntryModal
-                isOpen={radar.isManualModalOpen}
-                onClose={() => setIsManualModalOpen(false)}
-                onSuccess={(lead) => {
-                    router.push(`/dashboard/pipeline?leadId=${lead.id}`);
-                }}
-            />
+
         </div>
     );
 }

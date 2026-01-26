@@ -2,21 +2,24 @@
 'use client';
 
 import { Suspense, useEffect } from 'react';
-import { Loader2, KanbanSquare } from 'lucide-react';
+import { Loader2, KanbanSquare, ClipboardList } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useRadar } from '@/hooks/useRadar';
 import { PipelineBoard } from '@/components/pipeline/Board';
 import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
+import { ManualEntryModal } from '@/components/radar/ManualEntryModal';
 import { TargetIcon } from '@/components/radar/shared';
 
 function PipelineContent() {
     // 1. Initialize Hook
     const radar = useRadar();
+    const router = useRouter();
     const {
         pipelineLeads,
         fetchPipeline,
         selectedLead, setSelectedLead,
         fetchLeadActivities, fetchNotes, fetchChatMessages,
-        userRole
+        userRole, setIsManualModalOpen
     } = radar;
 
     useEffect(() => {
@@ -49,12 +52,30 @@ function PipelineContent() {
                 </div>
 
                 {pipelineLeads.length > 0 && (
-                    <div className="flex gap-3 text-xs font-mono">
+                    <div className="flex gap-3 text-xs font-mono items-center">
                         <div className="bg-zinc-900 border border-green-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
                             <span className="text-green-400 font-bold">{pipelineLeads.length}</span>
                             <span className="text-zinc-500">Oportunidades Activas</span>
                         </div>
+                        <button
+                            onClick={() => setIsManualModalOpen(true)}
+                            className="bg-white text-black hover:bg-zinc-200 p-2 md:px-4 md:py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] ml-2"
+                            title="Ingresar Dato Manual"
+                        >
+                            <ClipboardList className="w-4 h-4" />
+                            <span className="hidden md:inline">Ingresar Dato</span>
+                        </button>
                     </div>
+                )}
+                {pipelineLeads.length === 0 && (
+                    <button
+                        onClick={() => setIsManualModalOpen(true)}
+                        className="bg-white text-black hover:bg-zinc-200 p-2 md:px-4 md:py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        title="Ingresar Dato Manual"
+                    >
+                        <ClipboardList className="w-4 h-4" />
+                        <span className="hidden md:inline">Ingresar Dato</span>
+                    </button>
                 )}
             </div>
 
@@ -79,6 +100,14 @@ function PipelineContent() {
             {selectedLead && (
                 <RadarLeadModal radar={radar} />
             )}
+
+            <ManualEntryModal
+                isOpen={radar.isManualModalOpen}
+                onClose={() => setIsManualModalOpen(false)}
+                onSuccess={(lead) => {
+                    fetchPipeline(); // Refresh pipeline
+                }}
+            />
         </div>
     );
 }
