@@ -10,6 +10,7 @@ import Hero from '@/components/sections/Hero';
 import Services from '@/components/sections/Services';
 import Portfolio from '@/components/sections/Portfolio';
 import Cta from '@/components/sections/Cta';
+import { ChatWidget } from '@/components/sales-agent/ChatWidget';
 
 const FluidBackground = dynamic(() => import('@/components/canvas/FluidBackground'), {
   ssr: false,
@@ -69,6 +70,9 @@ export default function Home() {
         </div>
 
       </main>
+
+      {/* Bot solo disponible en landing */}
+      <ChatWidget />
     </SmoothScroll>
   );
 }

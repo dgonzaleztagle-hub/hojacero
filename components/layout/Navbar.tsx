@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
+import { Calendar } from 'lucide-react';
+
 const menuItems = [
     { label: 'Work', href: '#portfolio', isScroll: true },
     { label: 'Vision', href: '/vision', isScroll: false },
@@ -53,7 +55,18 @@ export default function Navbar() {
                 ))}
             </div>
 
-            {/* Mobile: Solo botón Pricing elegante */}
+            {/* Desktop: Botón Agendar */}
+            <a
+                href="https://cal.com/hojacero"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 hover:bg-white/10 transition-all text-xs font-bold tracking-[0.15em] uppercase text-white"
+            >
+                <Calendar className="w-4 h-4" />
+                Agendar
+            </a>
+
+            {/* Mobile: Pricing */}
             <Link href="/pricing" className="md:hidden">
                 <motion.div
                     className="relative px-5 py-2.5 rounded-full overflow-hidden group"

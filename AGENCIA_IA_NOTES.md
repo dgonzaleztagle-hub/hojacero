@@ -33,6 +33,64 @@ El mercado ya no busca solo "sitios web". Busca **Sistemas de Adquisición Autom
     *   Educación
     *   Automotriz
 
+### 📋 LISTA COMPLETA DE RUBROS/NICHOS (De la Diapositiva)
+
+Esta es la lista de industrias donde funciona el modelo de Funnel + Agente IA:
+
+**🏢 Servicios Profesionales:**
+- Consultoría RRHH
+- Coaching
+- Asesores financieros
+- Contadores
+- Arquitectos
+- Diseñadores de interiores
+- Agentes de seguros
+
+**🏥 Salud y Bienestar:**
+- Clínicas oftalmológicas
+- Clínicas odontológicas
+- Dermatólogos
+- Cirujanos plásticos
+- Medicina alternativa
+- Nutrición y fitness
+- Gimnasios
+- Cuidado de pacientes
+- Terapia de parejas
+- Cuidado de adultos mayores
+
+**🏠 Hogar y Servicios:**
+- Construcción
+- Reparación de computadores
+- Muebles a la medida
+- Empresas de Aseo a Domicilio
+- Empresas de Control de Olores
+- Mantención de piscinas
+- Instalación pozos sépticos
+
+**🎉 Eventos y Lifestyle:**
+- Centros de estética
+- Wedding planners y productoras de eventos
+- Floristas
+- Restaurantes
+- Co workings
+
+**📚 Educación y Desarrollo:**
+- Academias de artes marciales
+- Academias de boxeo
+- Enseñanza de idiomas
+- Marcas personales
+
+**🌍 Turismo y Animales:**
+- Empresas de Turismo y Agencias de Viajes
+- Veterinarios
+
+**💼 Otros:**
+- Bienes raíces
+- MLM (mercadeo en redes)
+- Empresas de Software
+
+> **Nota:** Esta lista no es exhaustiva. Cualquier negocio B2C o B2B que necesite generar leads y agendar citas es candidato.
+
 ---
 
 ## 💡 BRAINSTORMING ACTUALIZADO (Pivote HojaCero)

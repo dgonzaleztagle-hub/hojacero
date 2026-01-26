@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Syncopate } from "next/font/google";
 import "./globals.css";
-import { ChatWidget } from "@/components/sales-agent/ChatWidget";
+// ChatWidget ahora se importa solo en la landing page
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space",
@@ -113,7 +113,6 @@ export default function RootLayout({
         </Script>
 
         {children}
-        <ChatWidget />
       </body>
     </html>
   );
