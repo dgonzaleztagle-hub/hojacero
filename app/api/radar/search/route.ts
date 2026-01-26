@@ -127,10 +127,45 @@ export async function POST(req: Request) {
             .from('leads')
             .select('nombre, sitio_web, direccion');
 
+        // Helper to normalize content for comparison
+        const normalizeUrl = (url: string | null) => {
+            if (!url) return '';
+            return url.toLowerCase()
+                .replace(/^https?:\/\//, '')
+                .replace(/^www\./, '')
+                .replace(/\/$/, '')
+                .split('/')[0] // Keep only domain
+                .trim();
+        };
+
+        const normalizeName = (name: string) => {
+            return name.toLowerCase().trim();
+        };
+
         const newPlaces = places.filter((place: any) => {
-            if (place.website && existingLeads?.some(l => l.sitio_web === place.website)) return false;
-            if (existingLeads?.some(l => l.nombre === place.title)) return false;
-            return true;
+            const placeParams = {
+                url: normalizeUrl(place.website),
+                name: normalizeName(place.title)
+            };
+
+            // Check against existing leads
+            const isDuplicate = existingLeads?.some(existing => {
+                const existingUrl = normalizeUrl(existing.sitio_web);
+                const existingName = normalizeName(existing.nombre);
+
+                // Match by Domain (strongest signal)
+                if (placeParams.url && existingUrl && placeParams.url === existingUrl) return true;
+
+                // Match by Exact Name
+                if (placeParams.name === existingName) return true;
+
+                // Match by Fuzzy Name (if simple contains) - Optional but safer
+                if (placeParams.name.length > 5 && existingName.includes(placeParams.name)) return true;
+
+                return false;
+            });
+
+            return !isDuplicate;
         });
 
         console.log(`📡 RADAR DEBUG: Serper=${places.length}, ExistingDB=${existingLeads?.length || 0}, NewCandidates=${newPlaces.length}`);
