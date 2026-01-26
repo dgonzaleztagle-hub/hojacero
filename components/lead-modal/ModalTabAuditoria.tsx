@@ -195,18 +195,30 @@ export const ModalTabAuditoria = ({
                 </div>
             )}
 
-            {deepAnalysis.buyerPersona && (
+            {/* BUYER PERSONA & PAIN POINTS - UPDATED FOR NEW JSON STRUCTURE */}
+            {deepAnalysis.designAnalysis && (
                 <div className={`p-5 rounded-2xl border ${isDark ? 'bg-purple-500/10 border-purple-500/20' : 'bg-purple-50 border-purple-100'}`}>
                     <div className="flex items-start gap-4">
                         <div className="p-3 bg-purple-500/20 rounded-xl">
                             <Users className="w-6 h-6 text-purple-400" />
                         </div>
                         <div>
-                            <div className="text-xs text-purple-400 uppercase font-bold mb-1 tracking-wider">Buyer Persona Detectado</div>
+                            <div className="text-xs text-purple-400 uppercase font-bold mb-1 tracking-wider">Análisis de Diseño (Edad: {deepAnalysis.designAnalysis.estimatedAge || 'N/A'})</div>
                             <p className={`text-sm font-medium leading-relaxed ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
-                                "{deepAnalysis.buyerPersona}"
+                                {deepAnalysis.executiveSummary}
                             </p>
-                            {deepAnalysis.painPoints && (
+                            {/* NEW: Pain Points from salesStrategy */}
+                            {deepAnalysis.salesStrategy?.painPoints && (
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {deepAnalysis.salesStrategy.painPoints.map((pain: string, idx: number) => (
+                                        <span key={idx} className="px-3 py-1 bg-purple-500/10 rounded-lg text-xs text-purple-300 border border-purple-500/20">
+                                            😖 {pain}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            {/* BACKWARDS COMPATIBILITY: Old painPoints field */}
+                            {!deepAnalysis.salesStrategy?.painPoints && deepAnalysis.painPoints && (
                                 <div className="flex flex-wrap gap-2 mt-3">
                                     {deepAnalysis.painPoints.map((pain: string, idx: number) => (
                                         <span key={idx} className="px-3 py-1 bg-purple-500/10 rounded-lg text-xs text-purple-300 border border-purple-500/20">
@@ -235,34 +247,43 @@ export const ModalTabAuditoria = ({
                     </div>
                 </div>
                 <div className="bg-black/30 rounded-2xl p-5 border border-white/5 flex flex-col justify-center">
-                    <div className="text-xs text-zinc-500 uppercase font-bold mb-2">Estrategia de Contenido Sugerida</div>
-                    <div className="text-sm text-zinc-300 leading-relaxed font-light">
-                        {deepAnalysis.contentStrategy || 'No disponible'}
+                    <div className="text-xs text-zinc-500 uppercase font-bold mb-2">Gancho de Venta (Sales Hook)</div>
+                    <div className="text-sm text-zinc-300 leading-relaxed font-light italic">
+                        "{deepAnalysis.salesStrategy?.hook || deepAnalysis.contentStrategy || 'No disponible'}"
                     </div>
                 </div>
             </div>
 
-            {/* Backlinks & Competitors */}
+            {/* Backlinks & Competitors - UPDATED: Handle new structure */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-indigo-500/10 rounded-2xl p-5 border border-indigo-500/20">
                     <div className="text-xs text-indigo-400 uppercase font-bold mb-3 flex items-center gap-2">
-                        <Link2 className="w-4 h-4" /> Oportunidades de Backlinks
+                        <Link2 className="w-4 h-4" /> Problemas Visuales
                     </div>
                     <ul className="space-y-2">
-                        {deepAnalysis.backlinkOpportunities?.map((link: string, i: number) => (
+                        {/* Muestra worstProblems del analysis de diseño si existe */}
+                        {deepAnalysis.designAnalysis?.worstProblems?.map((prob: string, i: number) => (
                             <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
                                 <span className="text-indigo-500 mt-1">●</span>
-                                <span className="leading-snug">{link}</span>
+                                <span className="leading-snug">{prob}</span>
                             </li>
-                        )) || <li className="text-sm text-zinc-500 italic">No detectadas</li>}
+                        )) || (
+                                deepAnalysis.backlinkOpportunities?.map((link: string, i: number) => (
+                                    <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
+                                        <span className="text-indigo-500 mt-1">●</span>
+                                        <span className="leading-snug">{link}</span>
+                                    </li>
+                                ))
+                            ) || <li className="text-sm text-zinc-500 italic">No detectados</li>}
                     </ul>
                 </div>
                 <div className="bg-red-500/10 rounded-2xl p-5 border border-red-500/20">
                     <div className="text-xs text-red-400 uppercase font-bold mb-3 flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4" /> Top Competidores
+                        <ShieldAlert className="w-4 h-4" /> Competidores
                     </div>
                     <ul className="space-y-2">
-                        {deepAnalysis.topCompetitors?.map((comp: string, i: number) => (
+                        {/* Handle both new 'competitors' and old 'topCompetitors' keys */}
+                        {(deepAnalysis.competitors || deepAnalysis.topCompetitors)?.map((comp: string, i: number) => (
                             <li key={i} className="text-sm text-zinc-300 flex items-start gap-2">
                                 <span className="text-red-500 mt-1">⚔️</span>
                                 <span className="font-medium">{comp}</span>
@@ -272,39 +293,39 @@ export const ModalTabAuditoria = ({
                 </div>
             </div>
 
-            {/* Keywords */}
-            <div>
-                <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest block mb-3">Oportunidades de Keywords</span>
-                <div className="flex flex-wrap gap-2">
-                    {deepAnalysis.missingKeywords?.map((kw: string, i: number) => (
-                        <span key={i} className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-300 text-sm font-medium hover:bg-indigo-500/20 transition-colors">
-                            {kw}
-                        </span>
-                    )) || <span className="text-sm text-zinc-500 italic">No detectadas</span>}
-                </div>
-            </div>
-
-            {/* Technical Issues - Filter out stale SSL issues if we know SSL is actually OK */}
+            {/* Technical Issues - UPDATED: Handle Objects {issue, severity} */}
             {(() => {
-                const filteredIssues = (deepAnalysis.technicalIssues || []).filter((issue: string) => {
-                    // If SSL is confirmed OK, remove any SSL-related false positives
-                    if (hasSSL && /ssl|https|certificado/i.test(issue)) {
+                const rawIssues = deepAnalysis.technicalIssues || [];
+                // Filter out SSL false positives only if SSL is confirmed OK
+                const filteredIssues = rawIssues.filter((issue: any) => {
+                    const issueText = typeof issue === 'string' ? issue : issue.issue;
+                    if (hasSSL && issueText && /ssl|https|certificado/i.test(issueText)) {
                         return false;
                     }
                     return true;
                 });
+
                 return filteredIssues.length > 0 && (
                     <div className="bg-red-900/10 rounded-2xl p-5 border border-red-500/20">
                         <h5 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                             <AlertTriangle className="w-4 h-4" /> Problemas Técnicos Críticos
                         </h5>
                         <ul className="space-y-2">
-                            {filteredIssues.map((issue: string, i: number) => (
-                                <li key={i} className="flex items-start gap-3 text-sm text-red-200/80">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></span>
-                                    <span className="leading-relaxed">{issue}</span>
-                                </li>
-                            ))}
+                            {filteredIssues.map((issue: any, i: number) => {
+                                const isString = typeof issue === 'string';
+                                const text = isString ? issue : issue.issue;
+                                const impact = !isString ? issue.impact : null;
+
+                                return (
+                                    <li key={i} className="flex items-start gap-3 text-sm text-red-200/80">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 shrink-0"></span>
+                                        <div className="flex flex-col">
+                                            <span className="leading-relaxed">{text}</span>
+                                            {impact && <span className="text-xs text-red-400/60 mt-0.5">{impact}</span>}
+                                        </div>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     </div>
                 );
