@@ -18,7 +18,7 @@ export const Column = ({ id, title, count, items }: ColumnProps) => {
     });
 
     return (
-        <div className="flex flex-col w-full md:w-[260px] h-full flex-shrink-0">
+        <div className="flex flex-col w-full md:w-[215px] h-full flex-shrink-0">
             {/* Header */}
             <div className="flex items-center justify-between mb-4 px-1">
                 <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">

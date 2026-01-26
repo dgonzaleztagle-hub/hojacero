@@ -365,7 +365,7 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="flex flex-1 h-full gap-3 overflow-x-auto pb-2 items-stretch select-none scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+            <div className="flex flex-1 h-full gap-2 overflow-x-auto pb-2 items-stretch select-none scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
                 <Column id="radar" title="Radar" count={items.radar?.length || 0} items={items.radar || []} />
                 <Column id="contactado" title="Contactado" count={items.contactado?.length || 0} items={items.contactado || []} />
                 <Column id="reunion" title="Reunión" count={items.reunion?.length || 0} items={items.reunion || []} />
