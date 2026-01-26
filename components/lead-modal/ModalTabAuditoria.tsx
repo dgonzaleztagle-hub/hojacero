@@ -72,6 +72,8 @@ export const ModalTabAuditoria = ({
             {deepAnalysis.techSpecs && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-3">
                     {/* Security / SSL */}
+                    {/* Security - REMOVED PER USER REQUEST */}
+                    {/*
                     <div className={`p-5 rounded-2xl border ${hasSSL ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
                         <div className="flex items-center gap-2 mb-2">
                             <Lock className={`w-4 h-4 ${hasSSL ? 'text-green-400' : 'text-red-400'}`} />
@@ -84,6 +86,7 @@ export const ModalTabAuditoria = ({
                             {deepAnalysis.techSpecs?.security?.hsts ? '+HSTS' : 'Sin HSTS'}
                         </div>
                     </div>
+                    */}
 
                     {/* Email / DNS */}
                     <div className={`p-5 rounded-2xl border ${deepAnalysis.techSpecs.infrastructure.mxRecords ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
