@@ -649,26 +649,30 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                             setIsSaving(true);
                                             const id = selectedLead.id || selectedLead.db_id;
                                             try {
-                                                const res = await fetch('/api/radar/status', {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({
-                                                        leadId: id,
-                                                        estado: 'ready_to_contact',
-                                                        nota: reviewNote,
-                                                        revisado_por: currentUser
-                                                    })
-                                                });
-                                                if (!res.ok) throw new Error('Error saving status');
+                                                // NEW LOGIC: Direct update (Consistency with pipeline actions)
+                                                // 1. Update Lead Status & Pipeline
+                                                const { error } = await supabase.from('leads').update({
+                                                    estado: 'ready_to_contact',
+                                                    pipeline_stage: 'radar', // Ensure it appears in the pipeline
+                                                    nota_revision: reviewNote,
+                                                    revisado_por: currentUser,
+                                                    updated_at: new Date().toISOString()
+                                                }).eq('id', id);
 
-                                                // Update local state
+                                                if (error) throw error;
+
+                                                // 2. Log Activity
                                                 await logActivity(id, 'qualified', 'detected', 'ready_to_contact', reviewNote);
-                                                fetchPipeline();
-                                                removeFromLists(id);
-                                                setSelectedLead(null);
+
+                                                // 3. UI Updates
+                                                fetchPipeline(); // Refresh pipeline list
+                                                removeFromLists(id); // Remove from 'detected' list
+                                                setSelectedLead(null); // Close modal
                                                 toast.success('Lead guardado en Pipeline');
+
                                             } catch (err: any) {
-                                                toast.error('Error: ' + err.message);
+                                                console.error(err);
+                                                toast.error('Error al guardar: ' + err.message);
                                             } finally {
                                                 setIsSaving(false);
                                             }
