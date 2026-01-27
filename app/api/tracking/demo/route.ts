@@ -79,12 +79,23 @@ async function sendVisitNotification(visit: DemoVisit) {
 
 // POST: Registrar visita a demo
 export async function POST(req: NextRequest) {
+    console.log("🔍 [TRACKING] API Request Received");
     try {
+        // Validation of Env Vars
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            console.error("❌ [TRACKING] Missing SUPABASE_SERVICE_ROLE_KEY");
+            return NextResponse.json({ error: 'Server Config Error' }, { status: 500 });
+        }
+
         const supabase = getAdminClient();
+        console.log("🔍 [TRACKING] Supabase Client Initialized");
+
         const body = await req.json();
         const { prospecto, device_fingerprint, referrer } = body;
+        console.log("🔍 [TRACKING] Payload:", { prospecto, device_fingerprint });
 
         if (!prospecto) {
+            console.error("❌ [TRACKING] Missing prospecto field");
             return NextResponse.json({ error: 'Prospecto requerido' }, { status: 400 });
         }
 
@@ -95,16 +106,21 @@ export async function POST(req: NextRequest) {
 
         // Verificar si es miembro del equipo (Fingerprint o IP)
         // 1. Consultar tabla team_devices
-        const { data: teamDevice } = await supabase
+        const { data: teamDevice, error: teamError } = await supabase
             .from('team_devices')
             .select('id')
             .eq('fingerprint', device_fingerprint || '')
             .single();
 
+        if (teamError && teamError.code !== 'PGRST116') { // PGRST116 is "Row not found" (normal)
+            console.error("❌ [TRACKING] Team Device Check Error:", teamError);
+        }
+
         // 2. Verificar IPs (si tuviéramos tabla de IPs)
         // const isTeamIP = TEAM_IPS.includes(visitor_ip);
 
         const isTeamMember = !!teamDevice; // || isTeamIP;
+        console.log(`🔍 [TRACKING] Is Team Member? ${isTeamMember}`);
 
         // Buscar geolocalización (simple, basado en IP - en producción usar servicio como ipapi.co)
         let city = null;
@@ -119,6 +135,7 @@ export async function POST(req: NextRequest) {
             }
         } catch (e) {
             // Ignorar errores de geolocalización
+            console.warn("⚠️ [TRACKING] GeoIP Failed (Non-critical)");
         }
 
         const visit: DemoVisit = {
@@ -134,13 +151,17 @@ export async function POST(req: NextRequest) {
         };
 
         // Guardar en BD
+        console.log("🔍 [TRACKING] Inserting visit into DB...");
         const { error: dbError } = await supabase
             .from('demo_visits')
             .insert(visit);
 
         if (dbError) {
-            console.error('Error saving visit:', dbError);
+            console.error('❌ [TRACKING] DB Insert Error:', dbError);
+            return NextResponse.json({ error: 'DB Error', details: dbError }, { status: 500 });
         }
+
+        console.log("✅ [TRACKING] Visit Recorded Successfully");
 
         // Solo notificar si NO es miembro del equipo
         if (!isTeamMember) {
@@ -153,9 +174,9 @@ export async function POST(req: NextRequest) {
             message: isTeamMember ? 'Visita del equipo registrada' : 'Visita registrada y notificada'
         });
 
-    } catch (e) {
-        console.error('Error tracking visit:', e);
-        return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+    } catch (e: any) {
+        console.error('❌ [TRACKING] CRITICAL ERROR:', e);
+        return NextResponse.json({ error: 'Error interno', details: e.message }, { status: 500 });
     }
 }
 
