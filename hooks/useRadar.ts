@@ -150,7 +150,7 @@ export function useRadar() {
             .from('leads')
             .select('*')
             .in('estado', ['won', 'lost', 'closed_lost', 'discarded']) // Explicit states
-            .order('updated_at', { ascending: false });
+            .order('created_at', { ascending: false });
         if (data) setClosedLeads(data);
     };
 
