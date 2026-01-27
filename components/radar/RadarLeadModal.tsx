@@ -613,63 +613,67 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                             <div className="flex justify-between items-center">
                                 <span className="text-xs text-zinc-600">Zona: {location}</span>
                                 <div className="flex gap-3">
-                                    <button onClick={async () => {
-                                        setIsSaving(true);
-                                        const id = selectedLead.id || selectedLead.db_id;
-                                        try {
-                                            const res = await fetch('/api/radar/status', {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({
-                                                    leadId: id,
-                                                    estado: 'discarded',
-                                                    nota: reviewNote,
-                                                    revisado_por: currentUser
-                                                })
-                                            });
-                                            if (!res.ok) throw new Error('Error saving status');
+                                    <button
+                                        disabled={isSaving}
+                                        onClick={async () => {
+                                            setIsSaving(true);
+                                            const id = selectedLead.id || selectedLead.db_id;
+                                            try {
+                                                const res = await fetch('/api/radar/status', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({
+                                                        leadId: id,
+                                                        estado: 'discarded',
+                                                        nota: reviewNote,
+                                                        revisado_por: currentUser
+                                                    })
+                                                });
+                                                if (!res.ok) throw new Error('Error saving status');
 
-                                            // Update local state
-                                            await logActivity(id, 'discarded', 'detected', 'discarded', reviewNote);
-                                            removeFromLists(id);
-                                            setSelectedLead(null);
-                                        } catch (err: any) {
-                                            toast.error('Error: ' + err.message);
-                                        } finally {
-                                            setIsSaving(false);
-                                        }
-                                    }} className="px-5 py-3 rounded-xl font-medium text-sm bg-red-500/10 text-red-400 hover:bg-red-500/20 flex gap-2">
-                                        <Trash2 className="w-4 h-4" /> Descartar
+                                                // Update local state
+                                                await logActivity(id, 'discarded', 'detected', 'discarded', reviewNote);
+                                                removeFromLists(id);
+                                                setSelectedLead(null);
+                                            } catch (err: any) {
+                                                toast.error('Error: ' + err.message);
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }} className={`px-5 py-3 rounded-xl font-medium text-sm bg-red-500/10 text-red-400 hover:bg-red-500/20 flex gap-2 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Descartar
                                     </button>
-                                    <button onClick={async () => {
-                                        setIsSaving(true);
-                                        const id = selectedLead.id || selectedLead.db_id;
-                                        try {
-                                            const res = await fetch('/api/radar/status', {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({
-                                                    leadId: id,
-                                                    estado: 'ready_to_contact',
-                                                    nota: reviewNote,
-                                                    revisado_por: currentUser
-                                                })
-                                            });
-                                            if (!res.ok) throw new Error('Error saving status');
+                                    <button
+                                        disabled={isSaving}
+                                        onClick={async () => {
+                                            setIsSaving(true);
+                                            const id = selectedLead.id || selectedLead.db_id;
+                                            try {
+                                                const res = await fetch('/api/radar/status', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({
+                                                        leadId: id,
+                                                        estado: 'ready_to_contact',
+                                                        nota: reviewNote,
+                                                        revisado_por: currentUser
+                                                    })
+                                                });
+                                                if (!res.ok) throw new Error('Error saving status');
 
-                                            // Update local state
-                                            await logActivity(id, 'qualified', 'detected', 'ready_to_contact', reviewNote);
-                                            fetchPipeline();
-                                            removeFromLists(id);
-                                            setSelectedLead(null);
-                                            toast.success('Lead guardado en Pipeline');
-                                        } catch (err: any) {
-                                            toast.error('Error: ' + err.message);
-                                        } finally {
-                                            setIsSaving(false);
-                                        }
-                                    }} className="px-6 py-3 rounded-xl font-bold text-sm bg-green-500 text-black hover:bg-green-400 flex gap-2 shadow-lg">
-                                        <CheckCircle2 className="w-4 h-4" /> Guardar para Contacto
+                                                // Update local state
+                                                await logActivity(id, 'qualified', 'detected', 'ready_to_contact', reviewNote);
+                                                fetchPipeline();
+                                                removeFromLists(id);
+                                                setSelectedLead(null);
+                                                toast.success('Lead guardado en Pipeline');
+                                            } catch (err: any) {
+                                                toast.error('Error: ' + err.message);
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }} className={`px-6 py-3 rounded-xl font-bold text-sm bg-green-500 text-black hover:bg-green-400 flex gap-2 shadow-lg ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Guardar para Contacto
                                     </button>
                                 </div>
                             </div>
