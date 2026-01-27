@@ -6,42 +6,44 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { leadId, estado, nota, revisado_por } = body;
 
+        console.log(`[API] STATUS UPDATE for ${leadId} -> ${estado}`);
+
         if (!leadId || !estado) {
             return NextResponse.json({ error: 'Missing leadId or estado' }, { status: 400 });
         }
 
-        // Use Service Role Key to bypass RLS (safest for internal tool actions)
+        // 🛡️ SECURITY BYPASS: Use Service Role to ensure we can UPDATE leads regardless of RLS
         const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         let supabase;
 
         if (serviceRoleKey) {
             const { createClient: createAdminClient } = require('@supabase/supabase-js');
-            supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey);
+            supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey, {
+                auth: { persistSession: false }
+            });
+            console.log('✅ Using Admin Client (Service Role)');
         } else {
-            console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY missing in Status Route. Using standard client.");
+            console.warn('⚠️ No Service Role Key found. Using standard client (Subject to RLS).');
             supabase = await createClient();
         }
 
-        console.log(`📡 RADAR STATUS: Updating ${leadId} to ${estado}...`);
-
-        // Prepare update object
+        // Prepare Update Data
         const updateData: any = {
             estado,
             revisado_por: revisado_por || 'Sistema',
             updated_at: new Date().toISOString()
         };
 
-        // If moving to pipeline for first time, ensure pipeline_stage is set
+        // Logic for pipeline movement
         if (estado === 'ready_to_contact') {
-            updateData.pipeline_stage = 'radar';
+            updateData.pipeline_stage = 'radar'; // Valid ENUM confirmed
             updateData.nota_revision = nota || null;
-        }
-        // If discarding, remove from pipeline view logic if needed, but 'discarded' state usually handles it
-        else if (estado === 'discarded') {
-            updateData.pipeline_stage = null; // Optional: clear stage or set to 'discarded'
+        } else if (estado === 'discarded') {
+            updateData.pipeline_stage = null;
             updateData.nota_revision = nota || null;
         }
 
+        // Execute Update
         const { data, error } = await supabase
             .from('leads')
             .update(updateData)
@@ -49,18 +51,21 @@ export async function POST(req: Request) {
             .select();
 
         if (error) {
-            throw new Error(error.message);
+            console.error('❌ Supabase Update Error:', error);
+            return NextResponse.json({ success: false, error: error.message, details: error }, { status: 500 });
         }
 
-        // Critical Check: Ensure we actually updated a row
+        // Verify Update
         if (!data || data.length === 0) {
-            throw new Error('No se pudo guardar: El Lead no existe en la BD (ID fantasma). Intenta escanear de nuevo.');
+            console.error('❌ No rows updated. ID might be wrong or deleted.');
+            return NextResponse.json({ success: false, error: 'Lead no encontrado o no se pudo actualizar.' }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true });
+        console.log('✅ Update Successful (API):', data[0].id);
+        return NextResponse.json({ success: true, lead: data[0] });
 
     } catch (error: any) {
-        console.error('Radar Status Error:', error);
+        console.error('🔥 CRITICAL API ERROR:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

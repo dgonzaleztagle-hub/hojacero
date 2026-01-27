@@ -649,17 +649,19 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                             setIsSaving(true);
                                             const id = selectedLead.id || selectedLead.db_id;
                                             try {
-                                                // NEW LOGIC: Direct update (Consistency with pipeline actions)
-                                                // 1. Update Lead Status & Pipeline
-                                                const { error } = await supabase.from('leads').update({
-                                                    estado: 'ready_to_contact',
-                                                    pipeline_stage: 'radar', // Ensure it appears in the pipeline
-                                                    nota_revision: reviewNote,
-                                                    revisado_por: currentUser,
-                                                    updated_at: new Date().toISOString()
-                                                }).eq('id', id);
-
-                                                if (error) throw error;
+                                                console.log("Saving via API...", id);
+                                                const res = await fetch('/api/radar/status', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({
+                                                        leadId: id,
+                                                        estado: 'ready_to_contact',
+                                                        nota: reviewNote,
+                                                        revisado_por: currentUser
+                                                    })
+                                                });
+                                                const data = await res.json();
+                                                if (!res.ok || !data.success) throw new Error(data.error || 'Error saving status');
 
                                                 // 2. Log Activity
                                                 await logActivity(id, 'qualified', 'detected', 'ready_to_contact', reviewNote);
