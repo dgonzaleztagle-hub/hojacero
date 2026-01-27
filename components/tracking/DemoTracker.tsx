@@ -24,8 +24,12 @@ export function DemoTracker() {
         const prospecto = pathname.split('/prospectos/')[1]?.split('/')[0];
         if (!prospecto) return;
 
-        // Generar fingerprint simple (no invasivo)
-        const fingerprint = generateFingerprint();
+        // PRIORIDAD: ¿Es un dispositivo registrado del equipo?
+        // Usamos el mismo ID que genera /internal/device-setup
+        const teamId = localStorage.getItem('h0_device_id');
+
+        // Si no es equipo, generamos fingerprint simple
+        const fingerprint = teamId || generateFingerprint();
 
         // Enviar tracking
         fetch('/api/tracking/demo', {
