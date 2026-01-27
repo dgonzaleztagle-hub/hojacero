@@ -1,4 +1,4 @@
-# 🏭 HojaCero Factory - Generación de Demo Landing (v4.1)
+# 🏭 HojaCero Factory - Generación de Demo Landing (v5.0: The Daniel Protocol)
 
 Este workflow genera una **landing page premium** para un prospecto aplicando los protocolos de diseño **V4.0 (Skill-Driven)**.
 Para generar un **sitio multi-página completo**, usa el workflow `/factory-final`.
@@ -17,7 +17,21 @@ IF el usuario proporciona una URL:
   
 ELSE (sin URL, negocio nuevo o ficticio):
   → MODO B: SOUL INTERVIEW (hacer preguntas al usuario)
+
+**CRÍTICO:** Nunca asumir. Si no hay info, PREGUNTAR.
 ```
+
+---
+
+## 🏁 FASE 0: INICIALIZACIÓN DEL AGENTE (OBLIGATORIO)
+
+**ANTES DE CUALQUIER ANÁLISIS, CREA EL ARTEFACTO DE COREOGRAFÍA.**
+
+1.  Crea el archivo `task.md` en el directorio de artefactos (brain).
+2.  Estructúralo con las fases de este workflow (Discovery, Protocolo Daniel, Planificación, Ejecución, QA).
+3.  Marca la primera tarea: `[ ] Iniciar Factory Demo Protocol`.
+
+**Tu brújula es `task.md`. Actualízalo después de cada hito importante.**
 
 ---
 
@@ -132,11 +146,7 @@ Busca **"Mejores [Industria] en [Ubicación]"**. Tu demo debe superar a estos re
 Antes de elegir un prompt, debes definir la "Semilla de Variabilidad".
 
 1.  **LEE LA SKILL:** Usa `view_file` en `.agent/skills/creative-director-h0.md`.
-2.  **EJECUTA LA SKILL:** Sigue las instrucciones de la Skill para "tirar los dados" y elegir:
-    *   `Layout Strategy` (ej: Asimetría Radical)
-    *   `Typography Pairing` (ej: The Disruptor)
-    *   `Motion Personality` (ej: Liquid Flow)
-    *   `Color Strategy` (ej: Deep Earth)
+2.  **EJECUTA LA SKILL:** Define el **NICHO** (Serio vs Creativo) y las variables de diseño.
 3.  **REGISTRA EL BRIEF:** Incluye estas decisiones en tus `discovery_notes.md`.
 
 ---
@@ -151,20 +161,20 @@ Antes de elegir un prompt, debes definir la "Semilla de Variabilidad".
 
 ---
 
-## Fase 1: Recopilar Información del Prospecto
+## Fase 1: Protocolo Daniel (Simulación Lógica OBLIGATORIA)
 
-Antes de comenzar, necesitas:
-- **URL del sitio actual** (si existe) O **respuestas del Soul Interview**
-- **Logo** del cliente
-- **Industria** del negocio
+**ANTES DE PLANIFICAR CÓDIGO, EJECUTA ESTA SIMULACIÓN MENTAL:**
+1.  **Menú Espejo:** "¿Estoy borrando líneas de negocio del cliente? Si el sitio original tiene 'Capacitación', mi demo DEBE tener 'Capacitación'."
+2.  **Visibilidad:** "¿Si el monitor tiene mucho brillo, se lee el texto? (Texto gris sobre blanco está prohibido)".
+3.  **Fallback de Desastre:** "¿Si fallan todas las imágenes, el sitio se ve roto o se ve minimalista? (Debe tener bloques de color sólido de respaldo)".
 
-## Fase 2: Scrapear Contenido Real (Editorial Curation)
+---
 
-Usa `read_url_content` para extraer datos duros. NO inventes precios ni direcciones.
+## Fase 2: Planificación Blindada
 
-## Fase 3: Pre-filter de Contexto
-
-Analiza horarios, keywords y competencia para descartar estilos incompatibles (ej: No usar "Dark Mode" para una guardería diurna).
+Crea el `implementation_plan.md` incorporando las correcciones de la Simulación Daniel.
+- **Defensive CSS:** Define colores de alto contraste (#000000 o #0f172a, nunca #888888 para textos clave).
+- **Estructura:** Replica la navegación real del cliente (aunque sea compleja, usa submenús o top-bars).
 
 ## Fase 4: Selección de Estilo (Ruleta V4.0 + Barrio Premium)
 
@@ -228,6 +238,7 @@ Descripción específica según estilo:
 - Incluir contexto de la industria
 - Matching con la paleta de colores del estilo
 - NO stock photos genéricas
+- RESOLUCIÓN: FullHD (1920x1080) MÁXIMO. Prohibido 4k/8k (Ahorro de recursos).
 ```
 
 ### 5.2 Supporting Images (4-8)
@@ -594,9 +605,62 @@ import { GrainTexture } from '@/components/premium/GrainTexture';
 
 ---
 
-### 🔥 TENSIÓN VISUAL (Anti-Plantilla)
+### 7.1 CONTENT INTEGRITY (La Ley del Espejo - PROTOCOLO DANIEL)
 
-**El secreto de Awwwards: romper la simetría perfecta.**
+**TU OPINIÓN NO IMPORTA. LA REALIDAD DEL CLIENTE SÍ.**
+
+```
+REGLA DE NAVEGACIÓN:
+IF el sitio original tiene 8 ítems de menú → El demo TIENE 8 ítems.
+SOLUCIÓN: Usa Top Bar para secundarios + Main Nav para principales.
+JAMÁS resumas, cortes o escondas la estructura del negocio.
+
+REGLA DE VISIBILIDAD (Defensive CSS):
+1. Backgrounds: Blanco Clínico o Negro Profundo. EVITAR GRISES INTERMEDIOS.
+2. Fallbacks: <div className="bg-slate-200">...</div> detrás de cada imagen.
+3. Texto: Siempre debe leerse sin esfuerzo.
+```
+
+**REGLA DE LOGO:**
+IF no puedes vectorizar el logo real → PIDE EL ARCHIVO o usa un placeholder "LOGO [NOMBRE]" en caja sólida elegante.
+
+---
+
+### 7.2 COMPONENT MAPPING (Anti-Pereza)
+
+**PROHIBIDO usar "VelocityScroll" o "BentoGrid" por defecto. OBEDECE AL DADO.**
+
+```
+MAPA DE COMPONENTES OBLIGATORIO:
+
+SI el Motion Personality es "LIQUID FLOW":
+✅ USAR: AnimatedGradient, ClipPathReveal, MagneticCursor.
+❌ PROHIBIDO: VelocityScroll (muy rígido), BentoGrid (muy cuadrado).
+
+SI el Motion Personality es "TECH RUNNER":
+✅ USAR: VelocityScroll, TextScramble, BentoGrid (estilo terminal).
+❌ PROHIBIDO: AnimatedGradient (muy suave).
+
+SI el Motion Personality es "SOLID GROUND":
+✅ USAR: Parallax Scroll, Sticky Sections, Typography Big.
+❌ PROHIBIDO: Elementos flotantes sin peso.
+```
+
+**CASTIGO:** Si usas el mismo "truco" (componente mayoritario) en 2 demos seguidos, el protocolo falla.
+
+---
+
+### 7.3 GSD PROTOCOL (Get S**t Done)
+
+**Funcionalidad > Estética > Animación.**
+
+1.  **VISIBILIDAD PRIMERO:**
+    *   ❌ `opacity: 0` en CSS.
+    *   ✅ `opacity: 0` seteado por JS al montar. Si JS falla, el sitio SE VE.
+2.  **CONTENIDO PRIMERO:**
+    *   ❌ `overflow: hidden` en botones o cajas de texto sin probar antes.
+    *   ✅ El texto jamás se corta. Si es necesario, el botón crece.
+
 
 ```
 SEÑALES DE PLANTILLA (EVITAR):

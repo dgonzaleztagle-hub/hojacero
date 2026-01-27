@@ -92,12 +92,15 @@ export function ClipPathReveal({
         <motion.div
             ref={ref}
             className={`overflow-hidden ${className}`}
-            initial={{ clipPath: currentPath.hidden }}
-            animate={shouldAnimate ? { clipPath: currentPath.visible } : {}}
+            initial={false}
+            animate={{
+                clipPath: shouldAnimate ? currentPath.visible : currentPath.hidden,
+                opacity: 1 // Force full opacity to avoid "ghost" images if observer lags
+            }}
             transition={{
                 duration,
                 delay,
-                ease: [0.76, 0, 0.24, 1], // Premium smooth
+                ease: [0.76, 0, 0.24, 1],
             }}
         >
             {children}

@@ -13,7 +13,22 @@ Esta skill actúa como el **Director Creativo Humano** que define la dirección 
 
 ## 🎲 FASE 1: THE VARIABILITY ENGINE (Tira los dados)
 
-Antes de diseñar, el agente DEBE seleccionar **UNA** opción de cada categoría basada en un "tiro de dados" mental, pero respetando la compatibilidad con la industria del cliente.
+Antes de diseñar, el agente DEBE clasificar el proyecto en uno de dos Nichos Maestros:
+
+### 1.0 NICHE BIFURCATION (La Decisión Inicial)
+
+| Nicho | Ejemplos | Estrategia de Wow |
+|-------|----------|-------------------|
+| **SERIOUS / INSTITUTIONAL** | Abogados, Clínicas, Laboratorios, B2B Industrial | **High Fidelity Wow:** Física sutil, micro-interacciones, scroll pinning, tipografía perfecta. Cero ruido/distorsión. |
+| **CREATIVE / LIFESTYLE** | Moda, Restaurantes, Agencias, Startups B2C | **High Impact Wow:** Transiciones líquidas, grids rotos, ruido/grano, tipografía display gigante. |
+
+**REGLA:** Si es SERIOUS, **PROHIBIDO** usar texturas sucias (Grain), desenfoques excesivos o distribuciones caóticas.
+
+---
+
+## 🎲 FASE 1: THE VARIABILITY ENGINE (Tira los dados)
+
+Dentro de la categoría de Nicho seleccionada, elige las variables:
 
 ### 1.1 LAYOUT STRATEGY (La Estructura)
 *El esqueleto del sitio. No siempre puede ser Bento Grid.*
@@ -47,7 +62,7 @@ Antes de diseñar, el agente DEBE seleccionar **UNA** opción de cada categoría
 | **Snap & Punch** | Easing agresivo (Elastic), entradas rápidas, textos que golpean. | Deportes, Acción, Ofertas |
 | **Tech Glitch** | Textos que se encriptan (TextScramble), cortes rápidos, sin fade-ins suaves. | Ciberseguridad, Gaming, Dev |
 | **Theater Curtain** | Elementos que se revelan con máscaras (ClipPath), telones que suben. | Restaurantes, Teatro, Cine |
-| **Solid Ground** | Movimiento mínimo y muy pesado. Solo lo esencial. Sin adornos. | Institucional, Legal, Banco |
+| **Solid Ground (SERIOUS)** | Movimiento mínimo, pinning de secciones, parallax apenas perceptible. | Institucional, Legal, Banco, Lab |
 
 ### 1.4 COLOR ACIDITY (El Sabor)
 *Define qué tan "picante" será la paleta cromática.*
@@ -77,6 +92,15 @@ No todas las combinaciones funcionan. El agente debe aplicar **SENTIDO COMÚN**:
 ## 📜 FASE 3: BIBLIA INTEGRATION (La Ley Suprema)
 
 Una vez seleccionada la Dirección Creativa (ej: *Layout Brutalista + The Diplomat + Color Monocromo*), se debe aplicar la **BIBLIA.md** para ejecutarlo con calidad.
+
+### El "Wow Layering" (Pastel de Capas)
+
+La magia no reemplaza los cimientos. Aplica el Wow en este orden:
+
+1.  **Cimientos (Protocolo Daniel):** El sitio DEBE verse perfecto estático. Texto negro sobre blanco. Menú completo.
+2.  **Capa 1 (Física):** Hover states, Magnetic buttons.
+3.  **Capa 2 (Profundidad):** Parallax sutil en imágenes, Sombras suaves.
+4.  **Capa 3 (Cosmética - SOLO CREATIVE):** Ruido, degradados locos, distorsión. **(Prohibido en Serious)**.
 
 1.  **Si elegiste Brutalista:** Usa los componentes de la Biblia pero con bordes gruesos (`border-2 border-black`).
 2.  **Si elegiste Asimetría:** Usa el Grid Area asimétrico definido en la Biblia.
