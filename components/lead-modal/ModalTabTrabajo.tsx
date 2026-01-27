@@ -15,6 +15,7 @@ import { EmailComposer } from './trabajo/EmailComposer';
 import { AgendaPanel } from './trabajo/AgendaPanel';
 import { ChatSystem } from './trabajo/ChatSystem';
 import { ActivityList } from './trabajo/ActivityList';
+import { TrackingPanel } from './trabajo/TrackingPanel';
 
 import { getLeadData } from '@/utils/radar-helpers';
 import { ChatMessage } from '@/hooks/useRadar';
@@ -322,6 +323,12 @@ export const ModalTabTrabajo = ({
                             isDark={isDark}
                             selectedLead={selectedLead}
                             setIsReportBuilderOpen={setIsReportBuilderOpen}
+                        />
+
+                        {/* Tracking Hub */}
+                        <TrackingPanel
+                            prospecto={(selectedLead.demo_url?.split('/').pop()) || (selectedLead.url?.split('/').pop()) || selectedLead.nombre?.toLowerCase().replace(/ /g, '-')}
+                            isDark={isDark}
                         />
 
                         <ReportBuilderModal

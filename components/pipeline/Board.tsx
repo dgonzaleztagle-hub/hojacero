@@ -80,6 +80,7 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
                         (l.service_type === 'marketing' ? 'Mkt' :
                             (l.service_type === 'full' ? 'Full' : undefined)),
                     industry: l.categoria || l.rubro || 'Nicho',
+                    visits: l.visits_count || 0,
                     assignedTo: l.revisado_por || l.scanned_by || 'Sistema',
                     onClick: () => onTicketClick?.(l.id),
                     onAction: (action, id) => {

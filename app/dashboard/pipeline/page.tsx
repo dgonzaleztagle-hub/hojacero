@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Loader2, KanbanSquare, ClipboardList } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRadar } from '@/hooks/useRadar';
@@ -9,6 +9,7 @@ import { PipelineBoard } from '@/components/pipeline/Board';
 import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
 import { ManualEntryModal } from '@/components/radar/ManualEntryModal';
 import { TargetIcon } from '@/components/radar/shared';
+import { createClient } from '@/utils/supabase/client';
 
 function PipelineContent() {
     // 1. Initialize Hook
@@ -22,9 +23,34 @@ function PipelineContent() {
         userRole, setIsManualModalOpen
     } = radar;
 
+    // Local state for real-time visits
+    const [visitCounts, setVisitCounts] = useState<Record<string, number>>({});
+    const supabase = createClient();
+
     useEffect(() => {
         fetchPipeline();
+        fetchVisits();
     }, []);
+
+    const fetchVisits = async () => {
+        // Fetch all visits (optimized: just prospecto field)
+        const { data } = await supabase.from('demo_visits').select('prospecto');
+        if (data) {
+            const counts: Record<string, number> = {};
+            data.forEach((visit: any) => {
+                if (visit.prospecto) {
+                    counts[visit.prospecto] = (counts[visit.prospecto] || 0) + 1;
+                }
+            });
+            setVisitCounts(counts);
+        }
+    };
+
+    // Merge leads with live visit counts
+    const mergedLeads = pipelineLeads.map((l: any) => ({
+        ...l,
+        visits_count: l.prospecto ? (visitCounts[l.prospecto] || 0) : 0
+    }));
 
     // 2. Access Control
     if (userRole !== 'ADMIN') {
@@ -82,7 +108,7 @@ function PipelineContent() {
             {/* Pipeline Board */}
             <div className="flex-1 min-h-0 animate-in fade-in duration-500">
                 <PipelineBoard
-                    leads={pipelineLeads}
+                    leads={mergedLeads}
                     onLeadMove={fetchPipeline}
                     onTicketClick={async (id) => {
                         let found = pipelineLeads.find(l => l.id === id);

@@ -14,6 +14,7 @@ export type TicketProps = {
     tags?: string[];
     vibe?: 'Dev' | 'Mkt' | 'Full';
     lastContact?: string;
+    visits?: number;
     isStale?: boolean;
     industry?: string;
     assignedTo?: string;
@@ -21,7 +22,7 @@ export type TicketProps = {
     onAction?: (action: string, id: string) => void;
 };
 
-export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, isStale, industry, assignedTo, onClick, onAction }: TicketProps) => {
+export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, visits = 0, isStale, industry, assignedTo, onClick, onAction }: TicketProps) => {
     const {
         attributes,
         listeners,
@@ -67,6 +68,12 @@ export const Ticket = ({ id, title, company, tags = [], vibe, lastContact, isSta
                     {isStale && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" title="Sin respuesta > 3 días" />}
                     <h3 className="text-sm font-bold text-gray-200 truncate">{company}</h3>
                 </div>
+                {visits > 0 && (
+                    <div className="flex items-center gap-1 bg-blue-900/30 px-1.5 py-0.5 rounded border border-blue-500/30 text-[10px] text-blue-300 font-bold shrink-0 animate-pulse">
+                        <span>👁️</span>
+                        <span>{visits}</span>
+                    </div>
+                )}
             </div>
             <p className="text-xs text-zinc-500 truncate mb-2">{title}</p>
 
