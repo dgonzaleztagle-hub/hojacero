@@ -302,7 +302,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
         switch (name) {
             case 'diagnose_website': {
                 // Importar funciones de radar dinámicamente
-                const { scrapeContactInfo, analyzeLeadWithOpenAI } = await import('@/utils/radar');
+                const { scrapeContactInfo, analyzeLeadWithGroq } = await import('@/utils/radar');
                 const scraped = await scrapeContactInfo(args.url);
 
                 // Si es cliente HojaCero
@@ -325,7 +325,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
 
                 const mockPlace = { title: 'Sitio Analizado', website: args.url };
-                const analysis = await analyzeLeadWithOpenAI(mockPlace, scraped);
+                const analysis = await analyzeLeadWithGroq(mockPlace, scraped);
 
                 // ============================================
                 // AUTO-SAVE TO PIPELINE (Criterio Unificado)

@@ -221,7 +221,7 @@ REGLAS DE ORO:
                     : 'https://api.openai.com/v1/chat/completions';
 
                 const apiKey = useGroq ? GROQ_API_KEY : OPENAI_API_KEY;
-                const model = useGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
+                const model = useGroq ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
 
                 console.log(`🤖 RADAR AI: Usando modelo ${model} (Ahorro activado)`);
 

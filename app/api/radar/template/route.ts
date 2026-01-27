@@ -102,12 +102,15 @@ Responde SOLO el cuerpo del email (incluye el asunto en la primera línea como "
         }
 
         // API Call
-        const apiUrl = OPENAI_API_KEY
-            ? 'https://api.openai.com/v1/chat/completions'
-            : 'https://api.groq.com/openai/v1/chat/completions';
+        // PRIORIDAD: GROQ (Para ahorrar costos, templates simples no requieren GPT-4)
+        const useGroq = !!GROQ_API_KEY;
 
-        const apiKey = OPENAI_API_KEY || GROQ_API_KEY;
-        const model = OPENAI_API_KEY ? 'gpt-4o-mini' : 'llama-3.3-70b-versatile';
+        const apiUrl = useGroq
+            ? 'https://api.groq.com/openai/v1/chat/completions'
+            : 'https://api.openai.com/v1/chat/completions';
+
+        const apiKey = useGroq ? GROQ_API_KEY : OPENAI_API_KEY;
+        const model = useGroq ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
 
         const response = await fetch(apiUrl, {
             method: 'POST',
