@@ -32,18 +32,18 @@ export async function POST(req: Request) {
             updateData.nota_revision = nota || null;
         }
 
-        const { error, count } = await supabase
+        const { data, error } = await supabase
             .from('leads')
             .update(updateData)
             .eq('id', leadId)
-            .select('', { count: 'exact' });
+            .select();
 
         if (error) {
             throw new Error(error.message);
         }
 
         // Critical Check: Ensure we actually updated a row
-        if (count === 0) {
+        if (!data || data.length === 0) {
             throw new Error('No se pudo guardar: El Lead no existe en la BD (ID fantasma). Intenta escanear de nuevo.');
         }
 
