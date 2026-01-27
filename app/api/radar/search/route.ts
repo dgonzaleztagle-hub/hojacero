@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server'; // For fallback
+import { createClient as createAdminClient } from '@supabase/supabase-js'; // For admin
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -95,7 +96,21 @@ async function scrapeContactInfo(websiteUrl: string): Promise<{
 export async function POST(req: Request) {
     try {
         const { query, location, scannedBy } = await req.json();
-        const supabase = await createClient();
+
+        // Use Admin Client to ensure persistence (bypassing RLS)
+        // Ensure the environment variable matches exactly what was added to Vercel
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!serviceRoleKey) {
+            console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY missing. Falling back to request client (Persistence may fail if RLS blocks).");
+        }
+
+        let supabase;
+        if (serviceRoleKey) {
+            supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey);
+        } else {
+            supabase = await createClient();
+        }
 
         if (!query || !location) {
             return NextResponse.json({ error: 'Missing query or location' }, { status: 400 });
