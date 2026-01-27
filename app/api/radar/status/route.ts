@@ -32,24 +32,32 @@ export async function POST(req: Request) {
             updateData.nota_revision = nota || null;
         }
 
-        const { error } = await supabase
+        const { error, count } = await supabase
             .from('leads')
             .update(updateData)
-            .eq('id', leadId);
+            .eq('id', leadId)
+            .select('', { count: 'exact' });
 
         if (error) {
             throw new Error(error.message);
         }
 
-        // Log Activity Server-Side
+        // Critical Check: Ensure we actually updated a row
+        if (count === 0) {
+            throw new Error('No se pudo guardar: El Lead no existe en la BD (ID fantasma). Intenta escanear de nuevo.');
+        }
+
+        /* 
+        // TEMPORARILY DISABLED: Activity Log suspect of causing RLS/Schema blocks
         await supabase.from('lead_activity_log').insert({
             lead_id: leadId,
             usuario: revisado_por || 'Sistema',
             accion: estado === 'discarded' ? 'discarded' : 'qualified',
-            estado_anterior: 'detected', // Simplified assumption or fetch real prev state if needed
+            estado_anterior: 'detected', 
             estado_nuevo: estado,
             nota: nota || null
         });
+        */
 
         return NextResponse.json({ success: true });
 
