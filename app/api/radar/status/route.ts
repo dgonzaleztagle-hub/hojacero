@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         const updateData: any = {
             estado,
             revisado_por: revisado_por || 'Sistema',
-            updated_at: new Date().toISOString()
+            revisado_at: new Date().toISOString()
         };
 
         // Logic for pipeline movement
