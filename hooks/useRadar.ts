@@ -91,7 +91,7 @@ export function useRadar() {
         const sourceData = lead.source_data || {};
         return {
             title: lead.title || lead.nombre || 'Sin nombre',
-            address: lead.address || lead.direccion || '',
+            address: lead.address || lead.direccion || sourceData.address || '',
             phone: lead.telefono || lead.phoneNumber || sourceData.telefono || '',
             email: lead.emails?.[0] || lead.email || sourceData.emails?.[0] || sourceData.email || null,
             whatsapp: lead.whatsapp || sourceData.whatsapp || null,

@@ -311,7 +311,7 @@ IMPORTANTE:
                     // Prepare DB Object with all enriched data
                     const newLead = {
                         nombre: place.title,
-                        direccion: place.address,
+                        // direccion: place.address, // REMOVED: Column does not exist in DB
                         telefono: place.phoneNumber,
                         email: scraped.emails[0] || null,
                         sitio_web: place.website,
@@ -320,6 +320,7 @@ IMPORTANTE:
                         razon_ia: analysis.analysisReport,
                         estado: 'detected',
                         source_data: {
+                            address: place.address, // ADDED: Store address in JSON
                             // Scraped data
                             emails: scraped.emails,
                             whatsapp: scraped.whatsapp,
@@ -351,7 +352,7 @@ IMPORTANTE:
                         ...(savedLead || newLead),
                         id: savedLead?.id || `temp_${Date.now()}_${Math.random()}`,
                         title: newLead.nombre,
-                        address: newLead.direccion,
+                        address: place.address, // Ensure address is passed to UI
                         website: newLead.sitio_web,
                         rating: place.rating,
                         userRatingCount: place.userRatingCount,
