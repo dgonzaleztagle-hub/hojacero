@@ -134,23 +134,22 @@ export function useRadar() {
     };
 
     const fetchHistory = async () => {
-        // Fetch detected/discarded normally
+        // Fetch detected/discarded
         const { data } = await supabase
             .from('leads')
             .select('*')
-            .or('estado.eq.detected,estado.eq.discarded')
-            .or('pipeline_stage.is.null,pipeline_stage.neq.archived')
+            .in('estado', ['detected', 'discarded'])
+            .not('pipeline_stage', 'eq', 'archived') // Simple filter
             .order('created_at', { ascending: false });
 
         if (data) setHistoryLeads(data);
     };
 
     const fetchClosed = async () => {
-        // Inclusive view: show archived OR completed business
         const { data } = await supabase
             .from('leads')
             .select('*')
-            .or('pipeline_stage.eq.archived,estado.eq.won,estado.eq.lost,estado.eq.closed_lost,estado.eq.discarded')
+            .in('estado', ['won', 'lost', 'closed_lost', 'discarded']) // Explicit states
             .order('updated_at', { ascending: false });
         if (data) setClosedLeads(data);
     };
@@ -159,7 +158,7 @@ export function useRadar() {
         const { data } = await supabase.from('leads')
             .select('*')
             .in('estado', ['ready_to_contact', 'in_contact', 'proposal_sent', 'won', 'lost'])
-            .or('pipeline_stage.is.null,pipeline_stage.neq.archived')
+            .not('pipeline_stage', 'eq', 'archived') // Simple filter to exclude archived
             .order('pipeline_order', { ascending: true })
             .order('created_at', { ascending: false });
         if (data) setPipelineLeads(data);
