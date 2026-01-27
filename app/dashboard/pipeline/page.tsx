@@ -33,24 +33,35 @@ function PipelineContent() {
     }, []);
 
     const fetchVisits = async () => {
-        // Fetch all visits (optimized: just prospecto field)
-        const { data } = await supabase.from('demo_visits').select('prospecto');
-        if (data) {
-            const counts: Record<string, number> = {};
-            data.forEach((visit: any) => {
-                if (visit.prospecto) {
-                    counts[visit.prospecto] = (counts[visit.prospecto] || 0) + 1;
-                }
-            });
-            setVisitCounts(counts);
+        try {
+            const res = await fetch('/api/tracking/stats');
+            const data = await res.json();
+            if (data.success) {
+                setVisitCounts(data.counts);
+            }
+        } catch (error) {
+            console.error("Error fetching visit stats:", error);
         }
     };
 
-    // Merge leads with live visit counts
-    const mergedLeads = pipelineLeads.map((l: any) => ({
-        ...l,
-        visits_count: l.prospecto ? (visitCounts[l.prospecto] || 0) : 0
-    }));
+    // Merge leads with live visit counts AND Robust Matching
+    const mergedLeads = pipelineLeads.map((l: any) => {
+        // 1. Try direct prospecto field
+        let key = l.prospecto;
+        // 2. Try extracting from demo_url (e.g. .../prospectos/biocrom)
+        if (!key && l.demo_url) {
+            key = l.demo_url.split('/prospectos/')[1]?.split('/')[0];
+        }
+        // 3. Last resort: slugify name (fallback)
+        if (!key && l.nombre) {
+            key = l.nombre.toLowerCase().replace(/ /g, '-');
+        }
+
+        return {
+            ...l,
+            visits_count: key ? (visitCounts[key] || 0) : 0
+        };
+    });
 
     // 2. Access Control
     if (userRole !== 'ADMIN') {
