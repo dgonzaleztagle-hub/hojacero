@@ -32,14 +32,8 @@ export const Column = ({ id, title, count, items }: ColumnProps) => {
             {/* Droppable Area */}
             <div
                 ref={setNodeRef}
-                className="flex-1 bg-[#0A0A0A] rounded-xl p-1.5 border border-[#1A1A1A] overflow-y-auto min-h-[150px] scrollbar-none"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                className="flex-1 bg-[#0A0A0A] rounded-xl p-1.5 border border-[#1A1A1A] overflow-y-auto min-h-[150px] scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent"
             >
-                <style jsx>{`
-                    div::-webkit-scrollbar {
-                        display: none;
-                    }
-                `}</style>
                 <SortableContext
                     id={id}
                     items={items.map((item) => item.id)}
