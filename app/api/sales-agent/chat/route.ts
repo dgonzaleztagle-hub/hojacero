@@ -7,6 +7,9 @@ import { createClient } from '@supabase/supabase-js';
 // Modelo: gpt-4o-mini (OpenAI)
 // ===========================================
 
+const TIMEZONE_OFFSET = '-03:00'; // Chile Time
+const TIMEZONE_NAME = 'America/Santiago';
+
 // Helper to get admin client (lazy init)
 function getAdminClient() {
     return createClient(
@@ -439,8 +442,8 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
 
             case 'check_availability': {
                 const dateParam = args.date;
-                const dayStart = `${dateParam}T00:00:00`;
-                const dayEnd = `${dateParam}T23:59:59`;
+                const dayStart = `${dateParam}T00:00:00${TIMEZONE_OFFSET}`;
+                const dayEnd = `${dateParam}T23:59:59${TIMEZONE_OFFSET}`;
 
                 const { data: events } = await supabaseAdmin
                     .from('agenda_events')
@@ -455,7 +458,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 const booked = events?.map(e => ({ s: new Date(e.start_time).getTime(), e: new Date(e.end_time).getTime() })) || [];
 
                 for (let h = WORK_START; h < WORK_END; h++) {
-                    const slotTime = new Date(`${dateParam}T${h.toString().padStart(2, '0')}:00:00`).getTime();
+                    const slotTime = new Date(`${dateParam}T${h.toString().padStart(2, '0')}:00:00${TIMEZONE_OFFSET}`).getTime();
                     const isBusy = booked.some(b => slotTime >= b.s && slotTime < b.e);
                     if (!isBusy) availableSlots.push(`${h}:00`);
                 }
@@ -476,7 +479,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 }
 
                 // Crear fechas con timezone Chile (UTC-3)
-                const startDateTime = new Date(`${args.date}T${normalizedTime}:00-03:00`);
+                const startDateTime = new Date(`${args.date}T${normalizedTime}:00${TIMEZONE_OFFSET}`);
                 const endDateTime = new Date(startDateTime.getTime() + 30 * 60000);
 
                 console.log('[book_meeting] args:', { date: args.date, start_time: args.start_time, normalized: normalizedTime, startDateTime: startDateTime.toISOString() });
@@ -484,8 +487,8 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                 // ========================================
                 // VALIDAR DISPONIBILIDAD ANTES DE AGENDAR
                 // ========================================
-                const dayStart = `${args.date}T00:00:00`;
-                const dayEnd = `${args.date}T23:59:59`;
+                const dayStart = `${args.date}T00:00:00${TIMEZONE_OFFSET}`;
+                const dayEnd = `${args.date}T23:59:59${TIMEZONE_OFFSET}`;
 
                 const { data: existingEvents } = await supabaseAdmin
                     .from('agenda_events')
@@ -510,7 +513,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     const availableSlots: string[] = [];
 
                     for (let h = WORK_START; h < WORK_END; h++) {
-                        const slotTime = new Date(`${args.date}T${h.toString().padStart(2, '0')}:00:00-03:00`).getTime();
+                        const slotTime = new Date(`${args.date}T${h.toString().padStart(2, '0')}:00:00${TIMEZONE_OFFSET}`).getTime();
                         const isBusy = booked.some(b => slotTime >= b.s && slotTime < b.e);
                         if (!isBusy) availableSlots.push(`${h}:00`);
                     }
@@ -553,8 +556,8 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
             }
 
             case 'cancel_meeting': {
-                const dayStart = `${args.date}T00:00:00`;
-                const dayEnd = `${args.date}T23:59:59`;
+                const dayStart = `${args.date}T00:00:00${TIMEZONE_OFFSET}`;
+                const dayEnd = `${args.date}T23:59:59${TIMEZONE_OFFSET}`;
 
                 // Buscar reunión del usuario en esa fecha
                 const { data: meetings, error: searchError } = await supabaseAdmin

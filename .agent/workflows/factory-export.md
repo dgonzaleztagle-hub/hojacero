@@ -20,6 +20,20 @@ Antes de ejecutar:
 
 ---
 
+## Fase 0: Pre-Flight Check (Factory Auditor)
+
+**No envíes basura.** Antes de exportar, corre una última auditoría rápida.
+
+1.  **INVOCA AL AUDITOR:** `view_file .agent/skills/factory_auditor/SKILL.md`
+2.  **CHECK RÁPIDO:**
+    *   ¿Quedaron `console.log` sucios?
+    *   ¿Hay claves hardcodeadas?
+    *   ¿El `style_lock.md` está marcado como completo?
+
+Si el Auditor da luz verde 🟢, procede.
+
+---
+
 ## Paso 1: Definir Cliente
 
 Reemplaza `CLIENTE` con el nombre de la carpeta del prospecto:

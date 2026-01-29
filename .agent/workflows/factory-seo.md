@@ -55,9 +55,19 @@ New-Item -ItemType Directory -Force -Path "d:\clientes\[nombre-slug]\backups"
 
 ---
 
-## Fase 1: Recopilar Datos para SEO
+## Fase 1: The Oracle (Authority Strategy)
 
-Lee los siguientes archivos:
+**No adivines las keywords. Investígalas.**
+
+1.  **INVOCA AL ORÁCULO:** `view_file .agent/skills/seo_strategist/SKILL.md`
+2.  **EJECUTA DEEP RESEARCH:**
+    *   Usa `search_web` para encontrar "Preguntas Frecuentes Reales" sobre el nicho en la ubicación del cliente.
+    *   Identifica competidores locales en Google Maps.
+3.  **DEFINE SCHEMAN & META:**
+    *   Genera la estrategia de JSON-LD específica (no genérica).
+    *   Redacta Meta Titles/Descriptions optimizados para CTR y AEO.
+
+Lee los siguientes archivos para contexto:
 - `discovery_notes.md` → Nombre, descripción, keywords, dirección, teléfono
 - `style_lock.md` → Para verificar estado
 - Todas las páginas existentes → Para generar sitemap

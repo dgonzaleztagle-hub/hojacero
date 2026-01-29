@@ -11,6 +11,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid updates format' }, { status: 400 });
     }
 
+    // [SECURITY] Codex Fix: Validate user session explicitly
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         // Perform updates in parallel or sequence
         // Parallel is faster, but order doesn't matter since they are keyed by ID and have explicit order values

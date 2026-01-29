@@ -140,14 +140,23 @@ Busca **"Mejores [Industria] en [Ubicación]"**. Tu demo debe superar a estos re
 
 ---
 
-## 🎲 Fase 0.5: The Creative Director (NUEVO V4.0)
+## 🎨 Fase 0.5: The Soul Injection (Creative Director Protocol)
 
-**ESTO ES CRÍTICO PARA EVITAR PLANTILLAS:**
-Antes de elegir un prompt, debes definir la "Semilla de Variabilidad".
+**CRÍTICO:** Antes de escribir una línea de código, debes definir el ALMA del sitio.
+Ya no aceptamos "notas". Ahora exigimos un **Contrato de Diseño**.
 
-1.  **LEE LA SKILL:** Usa `view_file` en `.agent/skills/creative-director-h0.md`.
-2.  **EJECUTA LA SKILL:** Define el **NICHO** (Serio vs Creativo) y las variables de diseño.
-3.  **REGISTRA EL BRIEF:** Incluye estas decisiones en tus `discovery_notes.md`.
+1.  **INVOCA AL DIRECTOR:** `view_file .agent/skills/creative_director/SKILL.md`
+2.  **LEE EL TEMPLATE:** `view_file templates/BRAND_SOUL_TEMPLATE.md`
+3.  **GENERA EL ARTEFACTO:** Crea `d:\proyectos\hojacero\prospectos\[cliente]\BRAND_SOUL.md`.
+    *   Debes llenar el "Genetic Code" (Porcentajes).
+    *   Debes definir códigos HEX exactos y Fuentes.
+    *   Debes firmar los "Structural Mandates".
+
+4.  **VALIDACIÓN (El Checkpoint):**
+    *   Pregunta al usuario (o a Codex): *"He definido el BRAND SOUL. ¿Apruebas esta identidad visual?"*
+    *   **NO AVANCES** hasta tener un "SÍ".
+
+**DIFERENCIADOR:** Esto asegura que el sitio no sea una plantilla, sino una pieza a medida desde el minuto 0.
 
 ---
 

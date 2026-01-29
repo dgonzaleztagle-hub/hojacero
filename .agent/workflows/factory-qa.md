@@ -14,43 +14,44 @@ Ejecutar DESPUÉS de `/factory-final` y ANTES de entregar al cliente.
 No eres el constructor, eres el CRÍTICO.
 - Tu misión no es arreglar, es **señalar fallos**.
 - Si el sitio parece una plantilla de $50, **RECHÁZALO**.
-- Si el sitio no te hace decir "WOW" en el móvil, **RECHÁZALO**.
+- Si el código tiene vulnerabilidades o "olores", **RECHÁZALO**.
+
+## Fase 0: Invocación de Skills (El Tribunal)
+Antes de empezar, carga los protocolos de las 3 personalidades:
+1. `view_file .agent/skills/factory_auditor/SKILL.md` (El Fiscal Técnico)
+2. `view_file .agent/skills/creative_director/SKILL.md` (El Director de Arte)
+3. `view_file prospects/[cliente]/BRAND_SOUL.md` (La Ley del Proyecto)
 
 ---
 
-## Fase 1: Auditoría de "Tensión Visual"
+## Fase 1: Auditoría Técnica (Factory Auditor)
 
-Analiza el layout de la página principal (`page.tsx`):
-
-1. **¿Hay simetría aburrida?**
-   - Si ves un grid de 3 columnas repetido → ❌ FALLO
-   - Si todo el texto está centrado → ❌ FALLO
-   - Si las secciones tienen la misma altura → ❌ FALLO
-
-2. **¿Hay elementos "fuera de lugar" (intencionalmente)?**
-   - Busca elementos con `margin-top` negativo o `absolute` positioning superpuesto.
-   - Si todo respeta un grid rígido → ❌ FALLO (Demasiado seguro)
-
-3. **Veredicto Visual:**
-   - Si detectas "sintomas de plantilla", genera un reporte de **REDDISEÑO URGENTE**.
+Ejecuta el rol de **Factory Auditor** (ver SKILL.md).
+**Objetivo:** Seguridad y Limpieza.
+- **Input:** `app/`, `utils/`
+- **Output:** Reporte de Auditoría Técnica (Pass/Fail).
+- **CRÍTICO:** Si falla Seguridad, **STOP**. No pases a diseño.
 
 ---
 
-## Fase 2: Auditoría de "Motion Branding"
+## Fase 2: Auditoría de Diseño (Creative Director)
 
-Revisa el código en busca de interactividad:
+Ejecuta el rol de **Creative Director** (ver SKILL.md).
+**Objetivo:** Validar contra `BRAND_SOUL.md`.
 
-1. **¿Hay `data-scroll-speed`?**
-   - Busca parallax en imágenes.
-   - Si las imágenes son estáticas → ❌ FALLO
+1. **Check de Identidad (Spec-First):**
+   - Compara `BRAND_SOUL.md` (Paleta, Fuentes) vs Código (`globals.css`, `tailwind.config`, Componentes).
+   - ¿Coincide el Hex Code? ¿Coincide la Fuente?
 
-2. **¿Hay `KineticText` o `TextGenerate`?**
-   - El H1 debe tener animación de entrada.
-   - Si el H1 es texto plano estático → ❌ FALLO
+2. **Check de "Tensión Visual":**
+   - Usa el `DESIGN_GATE_CHECKLIST.md` (Mentalmente).
+   - ¿Hay simetría aburrida? ¿Hay "efecto plantilla"?
 
-3. **¿Hay `MagneticCursor`?**
-   - Verifica si los botones importantes están envueltos.
-   - Si los CTAs son simples `divs` con hover de color → ❌ FALLO
+3. **Check de Motion:**
+   - Verifica que existan animaciones de entrada y micro-interacciones.
+
+**Veredicto Visual:**
+- Si detectas "sintomas de plantilla" o desviación del Soul, **RECHAZAR**.
 
 ---
 

@@ -72,7 +72,20 @@ Busca los archivos de ADN del proyecto:
 
 ---
 
-## Fase 0.5: Content Handshake (Anti-Agujero Negro)
+## Fase 0.5: The Architect (Consistency Guard)
+
+**ANTES DE COPIAR CÓDIGO, ASEGURA LA CONSISTENCIA.**
+
+1.  **INVOCA AL ARQUITECTO:** `view_file .agent/skills/factory_lead/SKILL.md`
+2.  **AUDIT PROACTIVO:**
+    *   Revisa `style_lock.md` vs el plan de las nuevas páginas.
+    *   Asegura que no estemos reinventando la rueda (Header, Footer, Botones).
+3.  **VALIDACIÓN:**
+    *   Si el plan incluyó "Nuevo Header para Servicios", el Arquitecto debe aprobarlo o rechazarlo por inconsistencia.
+
+---
+
+## Fase 0.6: Content Handshake (Anti-Agujero Negro)
 
 **ANTES** de construir componentes, valida el contenido real.
 1. Crea/Actualiza `content_map.md` con los textos extraídos para cada sección.

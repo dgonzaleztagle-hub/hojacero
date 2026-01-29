@@ -2,6 +2,7 @@
 // import { createClient } from '@/utils/supabase/server';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+import { ScraperEngine } from './scraper-engine';
 
 // ========================
 // SCRAPER: Extract contacts from website + subpages
@@ -133,115 +134,53 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
 
     if (!websiteUrl) return result;
 
-    // Normalize URL
+    // Normalize URL for variations
     let baseUrl = websiteUrl.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
-    const urlsToTry = [
-        `https://${baseUrl}`,
-        `https://www.${baseUrl}`,
-        `http://${baseUrl}`,
-        `http://www.${baseUrl}`
-    ];
+    // Step 1: Discover Reachable URL using Engine
+    const discovery = await ScraperEngine.findReachableUrl(baseUrl);
 
-    let successfulBaseUrl = '';
-    let mainHtml = '';
-
-    // Step 1: Intentar todas las variaciones de protocolo en PARALELO para ganar velocidad
-    try {
-        const fetchWithTimeout = async (url: string) => {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 3000); // 3s timeout (agresivo para evitar Vercel timeout)
-            try {
-                const response = await fetch(url, {
-                    signal: controller.signal,
-                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
-                });
-                clearTimeout(timeout);
-                if (!response.ok) throw new Error('Not ok');
-                const html = await response.text();
-                return { url, html };
-            } catch (e) {
-                clearTimeout(timeout);
-                throw e;
-            }
-        };
-
-        // Ejecutamos todos en paralelo y nos quedamos con el primero que funcione
-        const firstSuccess = await Promise.any(urlsToTry.map(url => fetchWithTimeout(url)));
-
-        successfulBaseUrl = firstSuccess.url;
-        mainHtml = firstSuccess.html;
-        result.hasSSL = successfulBaseUrl.startsWith('https');
-        result.scrapedPages.push(successfulBaseUrl);
-        extractDataFromHtml(mainHtml, result);
-
-        // Detectar cliente HojaCero
-        const htmlLower = mainHtml.toLowerCase();
-        result.isHojaCeroClient =
-            htmlLower.includes('hojacero') ||
-            htmlLower.includes('hoja cero') ||
-            htmlLower.includes('<!-- h0 -->');
-
-        // Detectar si es e-commerce
-        result.hasStore =
-            htmlLower.includes('add-to-cart') ||
-            htmlLower.includes('añadir al carrito') ||
-            htmlLower.includes('woocommerce') ||
-            htmlLower.includes('shopify') ||
-            htmlLower.includes('/cart') ||
-            (htmlLower.includes('precio') && htmlLower.includes('comprar'));
-
-        // Detectar si tiene backend/webapp
-        result.hasBackend =
-            htmlLower.includes('login') ||
-            htmlLower.includes('iniciar sesión') ||
-            htmlLower.includes('mi cuenta') ||
-            htmlLower.includes('my-account') ||
-            htmlLower.includes('dashboard');
-
-    } catch (e) {
-        console.warn(`⚠️ Scraper failed for ${websiteUrl}: No protocol variation worked.`);
+    if (!discovery) {
+        console.warn(`⚠️ Scraper failed for ${websiteUrl}: Could not reach site via any protocol.`);
         return result;
     }
 
-    if (!successfulBaseUrl || fastMode) {
-        if (!successfulBaseUrl) console.warn(`⚠️ Scraper failed for ${websiteUrl}: Could not reach site`);
-        return result;
-    }
+    const { html: mainHtml, url: successfulBaseUrl } = discovery;
+    result.hasSSL = successfulBaseUrl.startsWith('https');
+    result.scrapedPages.push(successfulBaseUrl);
+    extractDataFromHtml(mainHtml, result);
+
+    // Detectar cliente HojaCero & E-commerce/Backend (Logic preserved)
+    const htmlLower = mainHtml.toLowerCase();
+    result.isHojaCeroClient = htmlLower.includes('hojacero') || htmlLower.includes('hoja cero') || htmlLower.includes('<!-- h0 -->');
+    result.hasStore = htmlLower.includes('add-to-cart') || htmlLower.includes('añadir al carrito') || htmlLower.includes('woocommerce') || htmlLower.includes('shopify') || htmlLower.includes('/cart') || (htmlLower.includes('precio') && htmlLower.includes('comprar'));
+    result.hasBackend = htmlLower.includes('login') || htmlLower.includes('iniciar sesión') || htmlLower.includes('mi cuenta') || htmlLower.includes('my-account') || htmlLower.includes('dashboard');
+
+    if (fastMode) return result;
 
     // Step 2: Find and scrape contact subpages
     const contactPages = findContactPages(mainHtml, successfulBaseUrl);
 
-    // Also try common paths even if not found in links
+    // Also try common paths
     const commonPaths = ['/contacto', '/contact', '/nosotros', '/about'];
     for (const path of commonPaths) {
         const fullPath = successfulBaseUrl + path;
-        if (!contactPages.includes(fullPath)) {
-            contactPages.push(fullPath);
-        }
+        if (!contactPages.includes(fullPath)) contactPages.push(fullPath);
     }
 
-    // Scrape subpages (limit to 4 total to avoid delays)
+    // Reuse Engine for Subpages (Max 4 pages, concurency managed by engine batching if we used it, 
+    // but here we limit the list first)
     const subpagesToScrape = contactPages.slice(0, 4);
 
-    await Promise.allSettled(subpagesToScrape.map(async (pageUrl) => {
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 3000);
+    // Use Engine Batch for subpages
+    const subResults = await ScraperEngine.scrapeBatch(subpagesToScrape, 3);
 
-            const response = await fetch(pageUrl, {
-                signal: controller.signal,
-                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-            });
-            clearTimeout(timeout);
-
-            if (response.ok) {
-                const html = await response.text();
-                extractDataFromHtml(html, result);
-                result.scrapedPages.push(pageUrl);
-            }
-        } catch { }
-    }));
+    subResults.forEach(sub => {
+        if (sub.html) {
+            extractDataFromHtml(sub.html, result);
+            result.scrapedPages.push(sub.url);
+        }
+    });
 
     return result;
 }
