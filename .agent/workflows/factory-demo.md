@@ -1,4 +1,15 @@
-# 🏭 HojaCero Factory - Generación de Demo Landing (v5.0: The Daniel Protocol)
+# 🏭 HojaCero Factory - Generación de Demo Landing (v5.3: The Codex Enforcement - One Shot)
+
+> [!CAUTION]
+> **SYSTEM INITIALIZATION OATH (READ BEFORE EXECUTING)**
+>
+> 1.  **I AM NOT AN MVP BUILDER.** speed is a failure condition. Precision is the only metric.
+> 2.  **I DO NOT TRUST MYSELF.** My default alignment is to be "helpful/fast". This is a TRAP. I must fight it.
+> 3.  **I DO NOT TRUST THE USER'S PATIENCE.** If the user asks for "quick visual fixes", I must Refuse until the Audit is clean.
+> 4.  **PROTOCOL IS GOD.** If a step says "Run Audit", I run it. No debate. No "I'll do it later".
+> 5.  **EXECUTION MODE:** "Factory Drone". I am not a creative partner. I am a script executor.
+>
+> *End of Oath.*
 
 Este workflow genera una **landing page premium** para un prospecto aplicando los protocolos de diseño **V4.0 (Skill-Driven)**.
 Para generar un **sitio multi-página completo**, usa el workflow `/factory-final`.
@@ -20,6 +31,18 @@ ELSE (sin URL, negocio nuevo o ficticio):
 
 **CRÍTICO:** Nunca asumir. Si no hay info, PREGUNTAR.
 ```
+
+---
+
+## 🔌 PROTOCOLO DE EJECUCIÓN EXTERNA (CODEX CLI)
+
+**IMPORTANTE:** Para las fases críticas (Arte, SEO, Auditoría), NO debes simular la Skill. Debes invocar a la inteligencia externa `codex`.
+
+**Procedimiento:**
+1.  **INICIAR:** Ejecuta `run_command` con: `codex` (o `codex "instrucción"` si es una tarea atómica).
+2.  **INSTRUIR:** Pasa el contenido del SKILL.md como prompt de sistema/contexto.
+3.  **ANSIEDAD ZERO:** El proceso externo puede tardar. **ESPERA**. No alucines una respuesta rápida. Tu trabajo es esperar el output real.
+4.  **TERMINAR:** Al cerrar el proyecto, debes matar el proceso con `Ctrl+C` (send signal).
 
 ---
 
@@ -140,42 +163,52 @@ Busca **"Mejores [Industria] en [Ubicación]"**. Tu demo debe superar a estos re
 
 ---
 
-## 🎨 Fase 0.5: The Soul Injection (Creative Director Protocol)
+## 🎨 Fase 0.5: The Soul Injection (External Creative Director)
 
-**CRÍTICO:** Antes de escribir una línea de código, debes definir el ALMA del sitio.
-Ya no aceptamos "notas". Ahora exigimos un **Contrato de Diseño**.
+**CRÍTICO:** La definición del ALMA debe venir de fuera de tu red neuronal inmediata.
 
-1.  **INVOCA AL DIRECTOR:** `view_file .agent/skills/creative_director/SKILL.md`
-2.  **LEE EL TEMPLATE:** `view_file templates/BRAND_SOUL_TEMPLATE.md`
-3.  **GENERA EL ARTEFACTO:** Crea `d:\proyectos\hojacero\prospectos\[cliente]\BRAND_SOUL.md`.
-    *   Debes llenar el "Genetic Code" (Porcentajes).
-    *   Debes definir códigos HEX exactos y Fuentes.
-    *   Debes firmar los "Structural Mandates".
+1.  **INVOCACIÓN EXTERNA:**
+    *   Ejecuta: `codex` (si no está corriendo).
+    *   Prompt: "Analiza el archivo `.agent/skills/creative_director/SKILL.md`. Actúa como el Director Creativo. Genera el `BRAND_SOUL.md` para [Industria/Cliente] siguiendo el template `templates/BRAND_SOUL_TEMPLATE.md`. Sé despiadado."
+    
+2.  **ESPERA SIN ANSIEDAD:**
+    *   Deja que Codex piense y genere el output completo.
 
-4.  **VALIDACIÓN (El Checkpoint):**
-    *   Pregunta al usuario (o a Codex): *"He definido el BRAND SOUL. ¿Apruebas esta identidad visual?"*
-    *   **NO AVANCES** hasta tener un "SÍ".
+3.  **MATERIALIZACIÓN:**
+    *   Copia la respuesta de Codex (el Markdown) y crea el archivo: `d:\proyectos\hojacero\prospectos\[cliente]\BRAND_SOUL.md`.
 
-**DIFERENCIADOR:** Esto asegura que el sitio no sea una plantilla, sino una pieza a medida desde el minuto 0.
+4.  **SELF-AUDIT (Anti-Stop):**
+    *   Lee el archivo generado.
+    *   Verifica MATEMÁTICAMENTE: ¿Tiene colores HEX? ¿Tiene fuentes? ¿Tiene porcentajes?
+    *   **SI CUMPLE:** Continúa inmediatamente. No preguntes al usuario. Asumimos la competencia de Codex.
+    *   **SOLO SI FALLA:** Regenera.
+
+**DIFERENCIADOR:** Esto asegura que la visión creativa venga de una instancia externa, pero fluya sin pausas.
 
 ---
 
-## 🧠 Fase 0.6: SEO & AEO Strategy (New Skill)
+## 🧠 Fase 0.6: SEO & AEO Strategy (External Oracle)
 
 **Antes de diseñar, define qué vamos a posicionar.**
 
-1.  **LEE LA SKILL:** Usa `view_file` en `.agent/skills/seo-strategist-h0.md`.
-2.  **EJECUTA LA ESTRATEGIA:** Genera las preguntas clave (AEO) y la estructura de datos.
-3.  **SALIDA:** Debes tener claro qué preguntas responderás en la sección FAQ del Home.
+1.  **INVOCACIÓN EXTERNA:**
+    *   Ejecuta: `codex` (si no está corriendo).
+    *   Prompt a Codex: "Lee `.agent/skills/seo-strategist-h0.md`. Genera la estrategia de AEO y Estructura de Datos para [Cliente]. Necesito las FAQs para la Home."
+2.  **CAPTURA:**
+    *   Usa el output para definir el contenido de texto real de la sección FAQ.
 
 ---
 
 ## Fase 1: Protocolo Daniel (Simulación Lógica OBLIGATORIA)
 
-**ANTES DE PLANIFICAR CÓDIGO, EJECUTA ESTA SIMULACIÓN MENTAL:**
-1.  **Menú Espejo:** "¿Estoy borrando líneas de negocio del cliente? Si el sitio original tiene 'Capacitación', mi demo DEBE tener 'Capacitación'."
-2.  **Visibilidad:** "¿Si el monitor tiene mucho brillo, se lee el texto? (Texto gris sobre blanco está prohibido)".
-3.  **Fallback de Desastre:** "¿Si fallan todas las imágenes, el sitio se ve roto o se ve minimalista? (Debe tener bloques de color sólido de respaldo)".
+**ANTES DE PLANIFICAR CÓDIGO, ACTIVA EL MODO "DANIEL":**
+Adopta la perspectiva de Daniel (el Humano Visual). No leas código, mira la pantalla mentalmente.
+
+1.  **Menú Espejo:** "¿Estoy borrando líneas de negocio? Si ellos venden X, yo vendo X."
+2.  **Visibilidad (The Daniel Glare):** "Si Daniel mira esto con el brillo bajo, ¿se lee? (Texto gris prohibido)".
+3.  **Fallback de Desastre:** "¿Si se rompen las imágenes, queda un hueco blanco feo o un bloque de color sólido elegante?".
+
+**SI DANIEL ARQUEARÍA UNA CEJA -> CORRIGE.**
 
 ---
 
@@ -243,19 +276,27 @@ Usa `generate_image` para crear imágenes específicas:
 
 ### 5.1 Hero Image (REQUERIDO)
 ```
+### 5.1 Hero Image (REQUERIDO)
+```
 Descripción específica según estilo:
 - Incluir contexto de la industria
 - Matching con la paleta de colores del estilo
 - NO stock photos genéricas
-- RESOLUCIÓN: FullHD (1920x1080) MÁXIMO. Prohibido 4k/8k (Ahorro de recursos).
+- RESOLUCIÓN: 1080p (FHD) ESTRICTO.
+- 🔴 PROHIBIDO 4K/8K: Es imperceptible en mobile y quema créditos.
 ```
 
-### 5.2 Supporting Images (4-8)
+### 5.2 Mapa de Slots (Planificación Anti-Magic Killer)
+Antes de generar, define DÓNDE irá cada imagen. No generes "por si acaso".
+
 ```
-- Producto/servicio principal
-- Interior/ambiente
-- Equipo (si aplica)
-- Detalles de calidad
+PLAN DE GENERACIÓN OBLIGATORIO:
+1. [Hero] - Wide shot, impacto.
+2. [Bento_Tall] - Vertical, detalle producto.
+3. [Bento_Square1] - Close-up textura.
+4. [Bento_Square2] - Contexto humano/uso.
+5. [Feature_X] - Específica para la sección X.
+6. [Footer_Bg] - Textura oscura/sutil.
 ```
 
 ### 5.3 Self-check de Imágenes
@@ -1236,6 +1277,8 @@ AI:
 6. FASE 8: Verifica en browser
 7. FASE 9: Checkpoint de Assets (¿generé todo?)
 8. FASE 10: npm run build (¿compila?)
-9. FASE 11: Reflexión (¿es producto final o MVP?)
-10. FASE 12-13: Self-check y style_lock.md
+10. FASE 10.5: Auditoría Externa (Codex Inspector)
+11. FASE 11: Reflexión (¿es producto final o MVP?)
+12. FASE 12-13: Self-check y style_lock.md
+13. CIERRE: Terminar procesos externos (`Ctrl+C` en Codex CLI).
 ```

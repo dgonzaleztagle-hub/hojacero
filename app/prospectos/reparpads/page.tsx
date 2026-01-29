@@ -7,6 +7,7 @@ import { MagneticCursor } from '@/components/premium/MagneticCursor';
 import { AnimatedGradient } from '@/components/premium/AnimatedGradient';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useState } from 'react';
 
 export default function ReparpadsPage() {
     return (
@@ -17,26 +18,28 @@ export default function ReparpadsPage() {
                 <AnimatedGradient colors={['#050505', '#022c22', '#050505']} speed={3} blur={100} />
 
                 {/* HUD Elements */}
-                {/* HUD Elements */}
-                <div className="absolute top-6 left-6 z-50">
+                <div className="absolute top-4 left-4 md:top-6 md:left-6 z-50">
                     <Image
                         src="/prospectos/reparpads/logo_v2.png"
                         alt="Reparpads Logo"
                         width={220}
                         height={220}
-                        className="object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                        className="object-contain drop-shadow-[0_0_15px_rgba(16,185,129,0.4)] w-[120px] md:w-[220px]"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        priority
+                        style={{ height: 'auto' }}
                     />
                 </div>
-                <div className="absolute top-10 right-10 font-orbitron text-xs text-[#10B981] tracking-[0.3em] opacity-60">
+                <div className="absolute top-6 right-6 md:top-10 md:right-10 font-orbitron text-[10px] md:text-xs text-[#10B981] tracking-[0.3em] opacity-60">
                     LOC: LA FLORIDA
                 </div>
 
-                <div className="z-10 text-center max-w-4xl px-4">
+                <div className="z-10 text-center max-w-4xl px-4 mt-24 md:mt-0">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="mb-4 inline-block px-3 py-1 border border-[#10B981]/50 rounded-full bg-[#10B981]/10 text-[#10B981] text-sm font-bold tracking-widest uppercase font-rajdhani"
+                        className="mb-4 inline-block px-3 py-1 border border-[#10B981]/50 rounded-full bg-[#10B981]/10 text-[#10B981] text-xs md:text-sm font-bold tracking-widest uppercase font-rajdhani"
                     >
                         Servicio Técnico Especializado
                     </motion.div>
@@ -59,9 +62,13 @@ export default function ReparpadsPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 1.5 }}
-                        className="text-gray-400 mt-8 max-w-lg mx-auto font-rajdhani text-lg leading-relaxed"
+                        className="text-gray-400 mt-8 max-w-2xl mx-auto font-rajdhani text-lg leading-relaxed text-balance"
                     >
-                        Resucitamos tu hardware electrónico. Mantenimiento, cambio de sensores y reparación de módulos. No lo botes, actualízalo.
+                        ¿Tus pads fallan? En Reparpads lo solucionamos. <br />
+                        Somos especialistas en reparación de bombos, hi-hats, pads, cajas doble zona, crash, ride, toms y salidas de audio de módulos.
+                        <span className="block mt-4 text-[#F59E0B] font-bold italic">
+                            “El ritmo no se detiene, nosotros lo reparamos”
+                        </span>
                     </motion.p>
                 </div>
 
@@ -114,18 +121,28 @@ export default function ReparpadsPage() {
                             EL <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#10B981] to-[#F59E0B]">SERVICIO OFICIAL</span>.
                         </h3>
                         <p className="font-rajdhani text-gray-400 text-xl mb-8">
-                            Sabemos que tienes tocatas el fin de semana. Por eso nuestros tiempos de respuesta son de "Guerra". Diagnóstico preciso, solución definitiva.
+                            Sabemos que tu ritmo no para y nosotros por ti tampoco. <br />
+                            <span className="text-[#10B981] font-bold">¡Tu batería lista en tiempo récord!</span>
                         </p>
 
                         <ul className="space-y-4 font-rajdhani text-lg text-white">
                             <li className="flex items-center gap-3">
-                                <span className="text-[#10B981]">➜</span> Diagnóstico en 24hrs
+                                <span className="text-[#10B981]">➜</span> Diagnóstico Rápido
                             </li>
                             <li className="flex items-center gap-3">
-                                <span className="text-[#10B981]">➜</span> Piezas reforzadas (Mejor que original)
+                                <span className="text-[#10B981]">➜</span> Asesoramiento en todo momento
                             </li>
                             <li className="flex items-center gap-3">
-                                <span className="text-[#10B981]">➜</span> Garantía de por vida en soldaduras
+                                <span className="text-[#10B981]">➜</span> Garantía de 2 meses en todos los trabajos
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <span className="text-[#10B981]">➜</span> Valores accesibles y Flexibilidad de horarios
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <span className="text-[#10B981]">➜</span> Recepción y envíos a regiones
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <span className="text-[#10B981]">➜</span> Rapidez y Confiabilidad
                             </li>
                         </ul>
 
@@ -147,6 +164,7 @@ export default function ReparpadsPage() {
                             alt="Drum Pad Schematic"
                             fill
                             className="object-cover opacity-60"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
 
                         {/* HUD Overlay */}
@@ -159,6 +177,9 @@ export default function ReparpadsPage() {
                     </div>
                 </div>
             </section>
+
+            {/* --- GALLERY: DATABASE ACCESS --- */}
+            <GallerySection />
 
             {/* --- FOOTER: SYSTEM SHUTDOWN --- */}
             <footer className="bg-black py-12 border-t border-[#10B981]/20">
@@ -197,7 +218,7 @@ const items = [
         description: "Reemplazo de sensores piezoeléctricos gastados por versiones de alta sensibilidad.",
         header: (
             <div className="relative w-full h-full min-h-[6rem] rounded-xl overflow-hidden border border-[#10B981]/20 group">
-                <Image src="/prospectos/reparpads/macro.png" alt="Soldering" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+                <Image src="/prospectos/reparpads/macro.png" alt="Soldering" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             </div>
         ),
         icon: <span className="text-2xl">⚡</span>,
@@ -207,7 +228,7 @@ const items = [
         description: "Reparación de pantallas LCD, botones pegados y potenciómetros con ruido.",
         header: (
             <div className="relative w-full h-full min-h-[6rem] rounded-xl overflow-hidden border border-[#F59E0B]/20 group">
-                <Image src="/prospectos/reparpads/waveform.png" alt="Oscilloscope" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+                <Image src="/prospectos/reparpads/waveform.png" alt="Oscilloscope" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             </div>
         ),
         icon: <span className="text-2xl">🎛️</span>,
@@ -217,7 +238,7 @@ const items = [
         description: "Re-cableado interno y reforzamiento de jacks 1/4 para evitar falsos contactos.",
         header: (
             <div className="relative w-full h-full min-h-[6rem] rounded-xl overflow-hidden border border-blue-500/20 group">
-                <Image src="/prospectos/reparpads/cables.png" alt="Cable Management" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+                <Image src="/prospectos/reparpads/cables.png" alt="Cable Management" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             </div>
         ),
         icon: <span className="text-2xl">🔌</span>,
@@ -227,7 +248,7 @@ const items = [
         description: "Desarme completo, limpieza de sulfato y lubricación de partes móviles. Tu batería queda como nueva.",
         header: (
             <div className="relative w-full h-full min-h-[6rem] rounded-xl overflow-hidden border border-purple-500/20 group">
-                <Image src="/prospectos/reparpads/drum_pad_medium.png" alt="Drum Pad Cleaning" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+                <Image src="/prospectos/reparpads/drum_pad_medium.png" alt="Drum Pad Cleaning" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             </div>
         ),
         icon: <span className="text-2xl">✨</span>,
@@ -237,11 +258,116 @@ const items = [
         description: "Trabajamos con todas las marcas principales del mercado.",
         header: (
             <div className="relative w-full h-full min-h-[6rem] rounded-xl overflow-hidden border border-white/10 group">
-                <Image src="/prospectos/reparpads/gear.png" alt="Pro Audio Gear" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+                <Image src="/prospectos/reparpads/gear.png" alt="Pro Audio Gear" fill className="object-cover opacity-60 transition-opacity duration-300 group-hover:opacity-100" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             </div>
         ),
         icon: <span className="text-2xl">🛡️</span>,
     },
 ];
+
+function GallerySection() {
+    const [activeTab, setActiveTab] = useState<'RAW' | 'PROCESS' | 'FINISH'>('RAW');
+
+    const galleryData: Record<string, string[]> = {
+        RAW: Array.from({ length: 8 }, (_, i) => `/prospectos/reparpads/gallery/raw_${i + 1}.jpg`),
+        PROCESS: Array.from({ length: 8 }, (_, i) => `/prospectos/reparpads/gallery/process_${i + 1}.jpg`),
+        FINISH: Array.from({ length: 8 }, (_, i) => `/prospectos/reparpads/gallery/finish_${i + 1}.jpg`)
+    };
+
+    return (
+        <section className="py-24 bg-[#0a0a0a] border-t border-[#10B981]/10 relative overflow-hidden">
+            {/* Background Noise */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #10B981 0, #10B981 1px, transparent 0, transparent 50%)', backgroundSize: '10px 10px' }}></div>
+
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
+                    <div>
+                        <div className="font-rajdhani text-[#F59E0B] text-lg font-bold mb-2 tracking-widest">
+                            // EVIDENCE_LOG
+                        </div>
+                        <h2 className="font-orbitron text-4xl md:text-5xl text-white">
+                            ARCHIVO <span className="text-[#10B981]">VISUAL</span>
+                        </h2>
+                    </div>
+
+                    {/* Industrial Tabs */}
+                    <div className="flex bg-[#111] border border-[#10B981]/20 p-1 rounded-lg">
+                        {[
+                            { id: 'RAW', label: 'INGRESO' },
+                            { id: 'PROCESS', label: 'PROCESO' },
+                            { id: 'FINISH', label: 'ENTREGAS' }
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`px-6 py-2 rounded-md font-rajdhani font-bold text-sm tracking-widest transition-all ${activeTab === tab.id
+                                    ? 'bg-[#10B981] text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                                    : 'text-gray-500 hover:text-white'
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Gallery Grid */}
+                <div className="min-h-[600px] grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Array.from({ length: 8 }).map((_, i) => {
+                        const imgSrc = galleryData[activeTab]?.[i];
+                        return (
+                            <div
+                                key={i}
+                                className={`relative group overflow-hidden border border-[#10B981]/10 bg-[#050505] ${
+                                    // Make some items span larger to create "Masonry" vibe
+                                    (i === 0 || i === 7) ? 'md:col-span-2 md:row-span-2 aspect-video' : 'aspect-square'
+                                    }`}
+                            >
+                                {imgSrc ? (
+                                    <div className="absolute inset-0">
+                                        <Image
+                                            src={imgSrc}
+                                            alt={`Evidence ${activeTab} ${i}`}
+                                            fill
+                                            className="object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 grayscale group-hover:grayscale-0"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        />
+                                    </div>
+                                ) : (
+                                    /* Placeholder Visual */
+                                    <div className="absolute inset-0 flex items-center justify-center bg-[#111] group-hover:bg-[#151515] transition-colors">
+                                        <span className="font-orbitron text-[#10B981]/20 text-4xl group-hover:text-[#10B981]/40 transition-colors">
+                                            {activeTab}_{i + 1}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* HUD Overlay */}
+                                <div className="absolute inset-0 p-4 flex flex-col justify-between opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div className="flex justify-between items-start">
+                                        <span className="text-[8px] text-[#10B981] border border-[#10B981] px-1 font-mono bg-black/80">
+                                            IMG_{1000 + (i * 127)}
+                                        </span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[10px] text-white bg-black/80 px-2 font-mono">
+                                            {activeTab === 'RAW' ? 'DAÑO SEVERO' : activeTab === 'PROCESS' ? 'EN REPARACIÓN' : 'RESTORED'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="mt-8 flex justify-end">
+                    <span className="font-mono text-xs text-[#10B981] animate-pulse">
+                        _TOTAL_ASSETS: 24 // LOADING_COMPLETE
+                    </span>
+                </div>
+            </div>
+        </section>
+    );
+}
 
 

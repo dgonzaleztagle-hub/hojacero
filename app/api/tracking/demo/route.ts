@@ -26,6 +26,17 @@ interface DemoVisit {
 }
 
 async function sendVisitNotification(visit: DemoVisit) {
+    if (!process.env.RESEND_API_KEY) {
+        console.warn('⚠️ Missing RESEND_API_KEY. Skipping email notification.');
+        return false;
+    }
+
+    // Only try to send if we have a real key (simple check to avoid default 're_123' error)
+    if (process.env.RESEND_API_KEY === 're_123') {
+        console.warn('⚠️ Using placeholder RESEND_API_KEY. Skipping email notification.');
+        return false;
+    }
+
     const prospectoName = visit.prospecto.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
     try {
