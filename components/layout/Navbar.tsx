@@ -25,11 +25,9 @@ export default function Navbar() {
     return (
         <nav className="fixed top-0 w-full z-50 p-6 flex justify-between items-center mix-blend-difference animate-in fade-in duration-1000">
             <Link href="/" className="flex items-center gap-4 group">
-                <img
-                    src="/logo-h0-hybrid.png"
-                    alt="HojaCero Logo"
-                    className="h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-105"
-                />
+                <span className="font-display font-bold tracking-[0.3em] text-sm text-white transition-opacity group-hover:opacity-70">
+                    HOJA CERO_
+                </span>
             </Link>
 
             {/* Desktop Menu */}
