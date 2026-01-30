@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Instagram, Phone, ChevronRight, Menu as MenuIcon, X, Flame, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Clock, MapPin, Instagram, Phone, ChevronRight, Menu as MenuIcon, X, Flame, ShoppingBag, ArrowRight, Gamepad2 } from 'lucide-react';
+import GermainGame from './GermainGame';
 
 const BURGERS = [
     { name: "Chesse Burger", desc: "DOBLE SMASH, DOBLE CHEDDAR Y SALSA DE LA CASA", price: 7000, tag: "Nuestra Mafia" },
@@ -465,6 +466,9 @@ export default function DondeGermainPage() {
                     GERMAIN
                 </div>
             </section>
+
+            {/* --- GAME SECTION --- */}
+            <GermainGame />
 
             {/* --- CALL TO ACTION (LOUD) --- */}
             <section className="bg-[#FFCC00] py-40 text-center px-6 border-t-8 border-black border-dotted">

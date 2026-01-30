@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GERMAIN-MAN: High Score Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yellow: #FFCC00;
+            --black: #000000;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--yellow);
+            font-family: 'Archivo', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        #game-container {
+            position: relative;
+            border: 4px solid var(--yellow);
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+            background: #050505;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0;
+            font-style: italic;
+            text-shadow: 4px 4px 0px #333;
+        }
+
+        .score-board {
+            position: absolute;
+            top: -40px;
+            width: 100%;
+            display: flex;
+            justify-content: middle;
+            font-size: 1.2rem;
+        }
+
+        .btn {
+            background: var(--yellow);
+            color: var(--black);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 6px 6px 0px #555;
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 3px 3px 0px #555;
+        }
+
+        #win-modal {
+            background: var(--yellow);
+            color: var(--black);
+            padding: 30px;
+            border: 6px solid var(--black);
+            text-align: center;
+            box-shadow: 15px 15px 0px rgba(255, 204, 0, 0.2);
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 3px solid var(--black);
+            font-family: inherit;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <div class="score-board">SCORE: <span id="score">0</span></div>
+
+        <canvas id="gameCanvas" width="360" height="500"></canvas>
+
+        <!-- START SCREEN -->
+        <div id="start-screen" class="ui-layer">
+            <h1>GERMAIN-MAN</h1>
+            <p style="color: white; font-size: 0.8rem; margin-top: 10px;">¡Come papas, evita las ensaladas!</p>
+            <button class="btn" onclick="startGame()">¡JUGAR!</button>
+        </div>
+
+        <!-- WIN MODAL -->
+        <div id="win-screen" class="ui-layer hidden">
+            <div id="win-modal">
+                <h2 style="font-size: 2rem; margin: 0;">¡NUEVO RÉCORD!</h2>
+                <p style="font-size: 0.9rem; margin-bottom: 15px;">SI ERES EL HIGHSCORE DE LA SEMANA <br> VEN A COBRAR
+                    TU BEBIDA POR LA COMPRA <br> DE CUALQUIER EMPANADA O HAMBURGUESA</p>
+                <input type="text" id="user-phone" placeholder="TU WHATSAPP (+569...)">
+                <button class="btn" onclick="saveRecord()" style="background: black; color: white;">GUARDAR Y
+                    COBRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+
+        let score = 0;
+        let gameActive = false;
+        let animationId;
+
+        // Entidades
+        const player = {
+            x: 180,
+            y: 430,
+            size: 20,
+            speed: 5,
+            mouthOpen: 0
+        };
+
+        let items = [];
+        let enemies = [];
+        const FOOD_TYPES = ['🍔', '🥟', '🍟'];
+        const BAD_TYPES = ['🥗', '🥦', '🍅'];
+
+        function spawnItem() {
+            items.push({
+                x: Math.random() * (canvas.width - 30) + 15,
+                y: -30,
+                speed: 3 + Math.random() * 3,
+                emoji: FOOD_TYPES[Math.floor(Math.random() * FOOD_TYPES.length)]
+            });
+        }
+
+        function spawnEnemy() {
+            enemies.push({
+                x: Math.random() * (canvas.width - 30) + 15,
+                y: -30,
+                speed: 4 + Math.random() * 3,
+                emoji: BAD_TYPES[Math.floor(Math.random() * BAD_TYPES.length)]
+            });
+        }
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            // Rotar 90 grados hacia arriba (-PI/2)
+            ctx.rotate(-Math.PI / 2);
+
+            ctx.fillStyle = '#FFCC00';
+            ctx.beginPath();
+            let mouthSize = 0.2 * Math.PI * player.mouthOpen;
+            ctx.arc(0, 0, player.size, mouthSize, 2 * Math.PI - mouthSize);
+            ctx.lineTo(0, 0);
+            ctx.fill();
+
+            // Ojo del Pac-man
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(player.size * 0.3, -player.size * 0.5, 4, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Animación de la boca
+            player.mouthOpen = Math.abs(Math.sin(Date.now() / 150));
+
+            // Elementos Buenos
+            for (let i = items.length - 1; i >= 0; i--) {
+                items[i].y += items[i].speed;
+                ctx.font = '28px serif';
+                ctx.fillText(items[i].emoji, items[i].x - 14, items[i].y + 14);
+
+                let dx = player.x - items[i].x;
+                let dy = player.y - items[i].y;
+                if (Math.sqrt(dx * dx + dy * dy) < player.size + 15) {
+                    items.splice(i, 1);
+                    score += 150;
+                    scoreElement.innerText = score;
+                } else if (items[i].y > canvas.height) {
+                    items.splice(i, 1);
+                }
+            }
+
+            // Elementos Malos (Ensaladas)
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].y += enemies[i].speed;
+                ctx.font = '28px serif';
+                ctx.fillText(enemies[i].emoji, enemies[i].x - 14, enemies[i].y + 14);
+
+                let dx = player.x - enemies[i].x;
+                let dy = player.y - enemies[i].y;
+                if (Math.sqrt(dx * dx + dy * dy) < player.size + 10) {
+                    gameOver();
+                } else if (enemies[i].y > canvas.height) {
+                    enemies.splice(i, 1);
+                }
+            }
+
+            drawPlayer();
+
+            if (Math.random() < 0.04) spawnItem();
+            if (Math.random() < 0.015 + (score / 100000)) spawnEnemy();
+
+            animationId = requestAnimationFrame(update);
+        }
+
+        // Controls
+        window.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            player.x = e.clientX - rect.left;
+            // Clamp
+            if (player.x < player.size) player.x = player.size;
+            if (player.x > canvas.width - player.size) player.x = canvas.width - player.size;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            player.x = e.touches[0].clientX - rect.left;
+            if (player.x < player.size) player.x = player.size;
+            if (player.x > canvas.width - player.size) player.x = canvas.width - player.size;
+            e.preventDefault();
+        }, { passive: false });
+
+        // START MODAL
+        function startGame() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('win-screen').classList.add('hidden');
+            score = 0;
+            scoreElement.innerText = score;
+            items = [];
+            enemies = [];
+            gameActive = true;
+            update();
+        }
+
+        function gameOver() {
+            gameActive = false;
+            cancelAnimationFrame(animationId);
+            if (score >= 1000) {
+                document.getElementById('win-screen').classList.remove('hidden');
+            } else {
+                alert("¿ESO ES TODO? ¡COME MÁS BURGERS! \nScore: " + score);
+                document.getElementById('start-screen').classList.remove('hidden');
+            }
+        }
+
+        function saveRecord() {
+            const phone = document.getElementById('user-phone').value;
+            if (phone.length < 8) {
+                alert("Ingresa un WhatsApp válido para enviar tu cupón");
+                return;
+            }
+            alert("¡RÉCORD REGISTRADO! Si mantienes el Highscore de la semana, reclama tu bebida con tu compra en el local. WhatsApp: " + phone);
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('win-screen').classList.add('hidden');
+        }
+
+    </script>
+</body>
+
+</html>
