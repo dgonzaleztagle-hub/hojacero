@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-import { Calendar } from 'lucide-react';
+
 
 const menuItems = [
     { label: 'Work', href: '#portfolio', isScroll: true },
@@ -24,10 +24,13 @@ export default function Navbar() {
 
     return (
         <nav className="fixed top-0 w-full z-50 p-6 flex justify-between items-center mix-blend-difference animate-in fade-in duration-1000">
-            <div className="flex items-center gap-4">
-                <div className="w-8 h-8 rounded-full border border-current animate-spin-slow" aria-hidden="true"></div>
-                <span className="font-display font-bold tracking-widest text-sm text-white">HOJA CERO</span>
-            </div>
+            <Link href="/" className="flex items-center gap-4 group">
+                <img
+                    src="/logo-h0-hybrid.png"
+                    alt="HojaCero Logo"
+                    className="h-12 w-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                />
+            </Link>
 
             {/* Desktop Menu */}
             <div className="hidden md:flex gap-12 text-xs font-bold tracking-[0.2em] uppercase text-white">
@@ -55,16 +58,7 @@ export default function Navbar() {
                 ))}
             </div>
 
-            {/* Desktop: Botón Agendar */}
-            <a
-                href="https://cal.com/hojacero"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 hover:bg-white/10 transition-all text-xs font-bold tracking-[0.15em] uppercase text-white"
-            >
-                <Calendar className="w-4 h-4" />
-                Agendar
-            </a>
+
 
             {/* Mobile: Pricing */}
             <Link href="/pricing" className="md:hidden">

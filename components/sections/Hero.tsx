@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -37,7 +38,8 @@ export default function Hero() {
     return (
         <section ref={containerRef} className="h-screen w-full flex flex-col justify-center items-center relative overflow-hidden mix-blend-difference z-10">
             <div className="relative z-10 text-center flex flex-col items-center">
-                {/* TÍTULO PRINCIPAL - Static */}
+                {/* TÍTULO PRINCIPAL - Ahora con Imagen Híbrida */}
+                {/* 
                 <h1 className="leading-[0.8]">
                     <span className="block text-[15vw] uppercase font-bold font-display tracking-tighter">
                         HOJA
@@ -45,12 +47,26 @@ export default function Hero() {
                     <span className="block text-[15vw] uppercase font-bold font-display tracking-tighter text-outline-accent hover:text-accent transition-colors duration-500 cursor-none">
                         CERO_
                     </span>
-                </h1>
+                </h1> 
+                */}
 
-                {/* SLOGAN - Architects of Digital Experiences */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="relative px-6"
+                >
+                    <img
+                        src="/logo-h0-hybrid-no-text.png"
+                        alt="HojaCero Architects"
+                        className="w-[85vw] md:w-[65vw] max-w-5xl h-auto object-contain drop-shadow-[0_0_60px_rgba(0,183,255,0.2)]"
+                    />
+                </motion.div>
+
+                {/* SLOGAN - Architects of Digital Experiences - Ajustado para que respire con el logo */}
                 <div
                     ref={subtitleRef}
-                    className="mt-12 cursor-help relative h-8 md:h-12 w-full flex justify-center group"
+                    className="mt-6 md:mt-10 cursor-help relative h-8 md:h-12 w-full flex justify-center group"
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
                 >
