@@ -220,7 +220,7 @@ export default function GermainGame() {
                             >
                                 <h4 className="text-4xl font-black italic uppercase mb-2">¡NUEVO RÉCORD!</h4>
                                 <p className="text-xs font-black uppercase italic mb-6 leading-tight max-w-[280px]">
-                                    SI ERES EL HIGHSCORE DE LA SEMANA VEN A COBRAR TU BEBIDA POR LA COMPRA DE CUALQUIER EMPANADA O HAMBURGUESA
+                                    SI ERES EL HIGHSCORE DE LA SEMANA, <br /> VEN A COBRAR TU BEBIDA
                                 </p>
                                 <input
                                     type="text"
