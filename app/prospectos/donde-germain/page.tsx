@@ -200,16 +200,35 @@ export default function DondeGermainPage() {
                                     <p className="font-bold text-sm leading-tight">Todas las Burgers vienen con papas fritas incluidas. No nos hacemos responsables por la adicción que causan.</p>
                                 </div>
                                 <motion.div
-                                    whileHover={{ rotate: 1, scale: 1.02 }}
-                                    className="relative aspect-[4/3] rounded-[30px] overflow-hidden border-4 border-black shadow-[6px_6px_0px_#000]"
+                                    onClick={() => setCategory(category === 'burger' ? 'empanada' : 'burger')}
+                                    whileHover={{ rotate: 2, scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="relative aspect-[4/3] rounded-[30px] overflow-hidden border-4 border-black shadow-[10px_10px_0px_#000] cursor-pointer group"
                                 >
                                     <img
-                                        src="/prospectos/donde-germain/burger.png"
-                                        alt="La Bacon Burger"
-                                        className="w-full h-full object-cover"
+                                        src={`/prospectos/donde-germain/${category === 'burger' ? 'empanadas.png' : 'burger.png'}`}
+                                        alt="Switch Category"
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
+
+                                    {/* --- COMIC SPEECH BUBBLE (VIÑETA) --- */}
+                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors flex items-center justify-center p-4">
+                                        <motion.div
+                                            initial={{ rotate: -5 }}
+                                            animate={{ rotate: [-5, 5, -5] }}
+                                            transition={{ repeat: Infinity, duration: 4 }}
+                                            className="bg-[#FFCC00] border-4 border-black p-4 shadow-[6px_6px_0px_#000] -rotate-3"
+                                        >
+                                            <p className="font-black italic uppercase leading-none text-center">
+                                                {category === 'burger' ? '¿Y una' : '¿Prefieres'} <br />
+                                                <span className="text-2xl">{category === 'burger' ? 'Empanadita?' : 'una Smash?'}</span> <br />
+                                                <span className="text-[10px] mt-1 block bg-black text-[#FFCC00] px-2 py-0.5">TOCA AQUÍ</span>
+                                            </p>
+                                        </motion.div>
+                                    </div>
+
                                     <div className="absolute top-3 left-3 bg-black text-[#FFCC00] px-3 py-1 text-[10px] font-black uppercase italic rounded-full">
-                                        LA BACON REAL
+                                        CAMBIO DE PLANES
                                     </div>
                                 </motion.div>
                             </div>
