@@ -206,7 +206,7 @@ export default function DondeGermainPage() {
                                     className="relative aspect-[4/3] rounded-[30px] overflow-hidden border-4 border-black shadow-[10px_10px_0px_#000] cursor-pointer group"
                                 >
                                     <img
-                                        src={`/prospectos/donde-germain/${category === 'burger' ? 'empanada-hot.png' : 'burger.png'}`}
+                                        src={`/prospectos/donde-germain/${category === 'burger' ? 'empanada-hot.jpg' : 'burger.png'}`}
                                         alt="Switch Category"
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
