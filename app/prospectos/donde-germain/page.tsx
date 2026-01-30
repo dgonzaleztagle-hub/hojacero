@@ -106,7 +106,7 @@ export default function DondeGermainPage() {
                     playsInline
                     className="absolute inset-0 w-full h-full object-cover opacity-70 grayscale-[30%]"
                 >
-                    <source src="/prospectos/donde-germain/hero.mp4" type="video/mp4" />
+                    <source src="/prospectos/donde-germain/hero.mp4?v=2" type="video/mp4" />
                 </video>
 
                 {/* Cinematic Gradient */}
