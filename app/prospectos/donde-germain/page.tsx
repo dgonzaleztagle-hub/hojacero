@@ -80,7 +80,7 @@ export default function DondeGermainPage() {
 
                     <nav className="hidden md:flex gap-8 items-center font-black uppercase italic text-sm">
                         <a href="#menu" className="text-white/80 hover:text-white hover:line-through decoration-[#FFCC00] decoration-4 transition-colors">La Carta</a>
-                        <a href="#ubicacion" className="text-white/80 hover:text-white hover:line-through decoration-[#FFCC00] decoration-4 transition-colors">Quilicura</a>
+                        <a href="#ubicacion" className="text-white/80 hover:text-white hover:line-through decoration-[#FFCC00] decoration-4 transition-colors">Lampa</a>
                         <motion.a
                             href="https://wa.me/message/ZTMGHN4TWIBDN1"
                             whileHover={{ scale: 1.05 }}
@@ -363,7 +363,7 @@ export default function DondeGermainPage() {
                                     </div>
                                     <div>
                                         <p className="text-xs font-black uppercase opacity-60">Dirección Mística</p>
-                                        <p className="text-4xl font-black italic">Los Halcones 1280, Quilicura.</p>
+                                        <p className="text-4xl font-black italic">Los Halcones 1280, Lampa.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-6 group">
