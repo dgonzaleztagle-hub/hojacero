@@ -46,6 +46,26 @@ ELSE (sin URL, negocio nuevo o ficticio):
 
 ---
 
+## 🧠 FASE -1: CARGAR EL OJO DE H0 (OBLIGATORIO)
+
+**ANTES DE CUALQUIER EJECUCIÓN, LEE:**
+`d:\proyectos\hojacero\BIBLIA.md`
+
+**¿Por qué?**
+- Define las **6 Funciones Universales** que TODO sitio debe cumplir
+- Explica el **Grano de Verdad** (activo técnico específico vs generalidades)
+- Establece el **Protocolo Mirror** (respetar estructura, elevar estética)
+- Te da el criterio para evitar "negro con morado cuadrado"
+
+**Self-Check Obligatorio:**
+- [ ] Puedo nombrar las 6 Funciones de memoria
+- [ ] Entiendo qué es un "Grano de Verdad" con un ejemplo
+- [ ] Sé cuándo EXPANDIR el sitio (Regla de Expansión)
+
+**SI NO PASAS EL SELF-CHECK → RE-LEE BIBLIA.md**
+
+---
+
 ## 🏁 FASE 0: INICIALIZACIÓN DEL AGENTE (OBLIGATORIO)
 
 **ANTES DE CUALQUIER ANÁLISIS, CREA EL ARTEFACTO DE COREOGRAFÍA.**
@@ -61,6 +81,20 @@ ELSE (sin URL, negocio nuevo o ficticio):
 ## 📋 MODO B: SOUL INTERVIEW (Creación desde Cero)
 
 **Si NO hay URL para scrapear, el agente DEBE hacer estas preguntas al usuario.**
+
+⚠️ **RECORDATORIO:** Estas preguntas mapean a las **6 Funciones Universales** (BIBLIA.md):
+- BLOQUE 1 (Identidad) → FUNCIÓN 2: OFERTA
+- BLOQUE 2 (Credibilidad) → FUNCIÓN 3: CREDIBILIDAD
+- BLOQUE 3 (Diferenciación) → FUNCIÓN 4: DIFERENCIACIÓN
+- BLOQUE 5 (Validación) → FUNCIÓN 5: VALIDACIÓN
+- BLOQUE 6 (Percepción) → FUNCIÓN 1: CAPTURA (cómo se perciben define el Hero)
+- BLOQUE 7 (Assets) → INPUT para generación
+
+**REGLA DE EXPANSIÓN (BIBLIA.md):**
+SI las respuestas revelan información que cumple una FUNCIÓN pero NO está en el prompt base:
+→ AGREGAR sección dedicada
+→ MANTENER el vibe/paleta del prompt seleccionado
+
 No continuar hasta tener respuestas a las preguntas CRÍTICAS (marcadas con 🔴).
 
 **DIFERENCIADOR HOJACERO:** Este cuestionario es más profundo que cualquier "website builder". Lovable y similares preguntan lo mínimo y entregan plantillas. Nosotros preguntamos las 6 FUNCIONES y entregamos sin iteraciones.
@@ -217,6 +251,30 @@ Adopta la perspectiva de Daniel (el Humano Visual). No leas código, mira la pan
 Crea el `implementation_plan.md` incorporando las correcciones de la Simulación Daniel.
 - **Defensive CSS:** Define colores de alto contraste (#000000 o #0f172a, nunca #888888 para textos clave).
 - **Estructura:** Replica la navegación real del cliente (aunque sea compleja, usa submenús o top-bars).
+
+### 2.1 Validación de las 6 Funciones (BIBLIA Checkpoint)
+
+**ANTES de escribir código, verificar que el plan cumple las 6 Funciones Universales:**
+
+```markdown
+## Checklist Funcional (BIBLIA.md):
+
+- [ ] **FUNCIÓN 1: CAPTURA** → ¿Tengo un Hero con hook visual + headline impactante?
+- [ ] **FUNCIÓN 2: OFERTA** → ¿Está claro QUÉ venden/hacen? (Servicios, Productos, Menú)
+- [ ] **FUNCIÓN 3: CREDIBILIDAD** → ¿Por qué confiar? (Años, Certificaciones, Fundador, Tech)
+      Manifestación según industria (ver BIBLIA Tabla línea 41-59)
+- [ ] **FUNCIÓN 4: DIFERENCIACIÓN** → ¿Por qué elegirlos vs competencia? (Proceso, Método, Resultado)
+      Manifestación según industria (ver BIBLIA Tabla línea 51-59)
+- [ ] **FUNCIÓN 5: VALIDACIÓN** → ¿Prueba social? (Testimonios, Reviews, Casos, Logos clientes)
+- [ ] **FUNCIÓN 6: CONVERSIÓN** → ¿CTA claro? (Reserva, Contacto, Cotización)
+
+**SI ALGUNA FUNCIÓN FALTA:**
+- Revisar Soul Interview o Discovery Notes
+- SI hay info disponible → AGREGAR sección
+- SI no hay info → USAR manifestación mínima (ej: si no hay testimonios, usar promesa del fundador)
+```
+
+**SOLO DESPUÉS de este checkpoint → Continuar a Fase 4 (Selección de Estilo)**
 
 ## Fase 4: Selección de Estilo (Ruleta V4.0 + Barrio Premium)
 
