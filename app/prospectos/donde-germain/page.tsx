@@ -57,6 +57,7 @@ const BEBIDAS = [
 export default function DondeGermainPage() {
     const [isOpen, setIsOpen] = useState(false);
     const [mobileMenu, setMobileMenu] = useState(false);
+    const [category, setCategory] = useState<'burger' | 'empanada'>('burger');
 
     useEffect(() => {
         // Basic schedule check - keeping it simple for now
@@ -99,19 +100,43 @@ export default function DondeGermainPage() {
 
             {/* --- HERO SECTION --- */}
             <section className="relative h-screen flex flex-col justify-end p-6 md:p-20 overflow-hidden bg-black">
-                <video
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover opacity-70 grayscale-[30%]"
-                >
-                    <source src="/prospectos/donde-germain/hero.mp4?v=2" type="video/mp4" />
-                </video>
+                <AnimatePresence mode="wait">
+                    <motion.video
+                        key={category}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.7 }}
+                        exit={{ opacity: 0 }}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover grayscale-[30%]"
+                    >
+                        <source src={`/prospectos/donde-germain/${category === 'burger' ? 'hero.mp4' : 'hero1.mp4'}?v=2`} type="video/mp4" />
+                    </motion.video>
+                </AnimatePresence>
 
                 {/* Cinematic Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-transparent hidden md:block" />
+
+                {/* --- SELECTION OVERLAY (THE "SWITCH") --- */}
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 z-30 flex gap-4 bg-black/40 backdrop-blur-xl p-2 rounded-full border border-white/10 shadow-2xl scale-75 md:scale-100">
+                    <button
+                        onClick={() => setCategory('burger')}
+                        className={`px-8 py-3 rounded-full font-black italic uppercase transition-all flex flex-col items-center gap-1 ${category === 'burger' ? 'bg-[#FFCC00] text-black scale-110 shadow-[0_0_20px_rgba(255,204,0,0.4)]' : 'text-white/40 hover:text-white'}`}
+                    >
+                        <span>HAMBURGUESAS</span>
+                        {category !== 'burger' && <span className="text-[10px] animate-bounce text-[#FFCC00]">Toca aquí</span>}
+                    </button>
+                    <button
+                        onClick={() => setCategory('empanada')}
+                        className={`px-8 py-3 rounded-full font-black italic uppercase transition-all flex flex-col items-center gap-1 ${category === 'empanada' ? 'bg-[#FFCC00] text-black scale-110 shadow-[0_0_20px_rgba(255,204,0,0.4)]' : 'text-white/40 hover:text-white'}`}
+                    >
+                        <span>EMPANADAS</span>
+                        {category !== 'empanada' && <span className="text-[10px] animate-bounce text-[#FFCC00]">Toca aquí</span>}
+                    </button>
+                </div>
 
                 <div className="relative z-10 w-full max-w-7xl mx-auto">
                     <motion.div
@@ -123,12 +148,12 @@ export default function DondeGermainPage() {
                             {isOpen ? 'Abierto Ahora' : 'Cerrado por el momento'}
                         </div>
                         <h1 className="text-6xl md:text-[10vw] font-black uppercase italic tracking-tighter leading-[0.8] mb-8 text-white drop-shadow-2xl">
-                            REYES <br /> <span className="text-[#FFCC00]">DEL SABOR</span>
+                            {category === 'burger' ? 'REYES DEL' : 'TESOROS DEL'} <br /> <span className="text-[#FFCC00]">{category === 'burger' ? 'SABOR' : 'HORNO'}</span>
                         </h1>
                         <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
                             <p className="text-xl md:text-3xl font-black text-white/80 max-w-xl italic leading-none">
-                                DOBLE CARNE. <span className="text-[#FFCC00]">DOBLE QUESO.</span> <br />
-                                SIN EXCUSAS.
+                                {category === 'burger' ? 'DOBLE CARNE. DOBLE QUESO.' : 'MASA CRUNCHY. MUCHO PINO.'} <br />
+                                <span className="text-[#FFCC00]">SIN EXCUSAS.</span>
                             </p>
                             <motion.a
                                 href="#menu"
@@ -193,83 +218,102 @@ export default function DondeGermainPage() {
                         {/* THE CONTENT */}
                         <div className="lg:col-span-8 space-y-24">
 
-                            {/* BURGERS */}
-                            <div>
-                                <h3 className="text-4xl font-black uppercase italic mb-12 flex items-center gap-4">
-                                    <span className="w-12 h-12 bg-black text-[#FFCC00] flex items-center justify-center rounded-full text-lg">01</span>
-                                    Empire Smash
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    {BURGERS.map((b, i) => (
-                                        <motion.div
-                                            key={i}
-                                            whileHover={{ scale: 1.02 }}
-                                            className="group bg-black/5 hover:bg-black p-8 rounded-[40px] transition-all duration-300 border-2 border-transparent hover:border-black"
-                                        >
-                                            <div className="flex justify-between items-start mb-4">
-                                                <span className="text-xs font-black bg-black text-[#FFCC00] px-2 py-1 rounded hidden group-hover:block">TOP VENTAS</span>
-                                                <span className="text-3xl font-black italic group-hover:text-[#FFCC00]">${b.price.toLocaleString()}</span>
-                                            </div>
-                                            <h4 className="text-3xl font-black uppercase italic mb-2 tracking-tighter group-hover:text-white">
-                                                {b.name.replace('Chesse', 'Cheese')}
-                                            </h4>
-                                            <p className="text-sm font-bold opacity-60 group-hover:text-[#FFCC00] leading-tight mb-8">{b.desc}</p>
-                                            <div className="w-10 h-10 bg-black group-hover:bg-[#FFCC00] rounded-full flex items-center justify-center text-[#FFCC00] group-hover:text-black transition-colors">
-                                                <ShoppingBag size={20} />
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* EMPANADAS */}
-                            <div className="bg-black text-[#FFCC00] p-12 rounded-[60px] relative overflow-hidden border-4 border-black">
-                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFCC00]/10 rounded-full blur-3xl" />
-
-                                <h3 className="text-5xl font-black uppercase italic mb-12 flex items-center gap-4 text-white">
-                                    <span className="w-12 h-12 bg-[#FFCC00] text-black flex items-center justify-center rounded-full text-lg italic">02</span>
-                                    Tesoros de Masa
-                                </h3>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-12">
-                                    <div className="relative aspect-[4/3] rounded-[40px] overflow-hidden border-4 border-[#FFCC00] shadow-[10px_10px_0px_rgba(255,204,0,0.2)]">
-                                        <img
-                                            src="/prospectos/donde-germain/empanadas.png"
-                                            alt="Nuestras Empanadas"
-                                            className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-700"
-                                        />
-                                    </div>
-                                    <p className="text-[#FFCC00] font-black italic text-2xl leading-none uppercase">
-                                        MASA CRUNCHY. <br /> RELLENO BRUTAL. <br /> <span className="text-white text-lg">HECHAS A MANO CADA DÍA.</span>
-                                    </p>
-                                </div>
-
-                                <div className="space-y-12">
-                                    <div>
-                                        <h4 className="text-white/60 font-black uppercase tracking-widest text-xs mb-6 italic">Empanadas Fritas (Fuego Eterno)</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
-                                            {EMPANADAS_FRITAS.map((e, i) => (
-                                                <div key={i} className="flex justify-between items-center group cursor-default">
-                                                    <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
-                                                    <span className="text-xl font-black italic opacity-60 group-hover:opacity-100 text-[#FFCC00]">${e.price.toLocaleString()}</span>
-                                                </div>
+                            {/* BURGERS (Filtrado) */}
+                            <AnimatePresence mode="wait">
+                                {category === 'burger' && (
+                                    <motion.div
+                                        key="burgers"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                    >
+                                        <h3 className="text-4xl font-black uppercase italic mb-12 flex items-center gap-4">
+                                            <span className="w-12 h-12 bg-black text-[#FFCC00] flex items-center justify-center rounded-full text-lg">01</span>
+                                            Empire Smash
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            {BURGERS.map((b, i) => (
+                                                <motion.div
+                                                    key={i}
+                                                    whileHover={{ scale: 1.02 }}
+                                                    className="group bg-black/5 hover:bg-black p-8 rounded-[40px] transition-all duration-300 border-2 border-transparent hover:border-black"
+                                                >
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <span className="text-xs font-black bg-black text-[#FFCC00] px-2 py-1 rounded hidden group-hover:block">TOP VENTAS</span>
+                                                        <span className="text-3xl font-black italic group-hover:text-[#FFCC00]">${b.price.toLocaleString()}</span>
+                                                    </div>
+                                                    <h4 className="text-3xl font-black uppercase italic mb-2 tracking-tighter group-hover:text-white">
+                                                        {b.name.replace('Chesse', 'Cheese')}
+                                                    </h4>
+                                                    <p className="text-sm font-bold opacity-60 group-hover:text-[#FFCC00] leading-tight mb-8">{b.desc}</p>
+                                                    <div className="w-10 h-10 bg-black group-hover:bg-[#FFCC00] rounded-full flex items-center justify-center text-[#FFCC00] group-hover:text-black transition-colors">
+                                                        <ShoppingBag size={20} />
+                                                    </div>
+                                                </motion.div>
                                             ))}
                                         </div>
-                                    </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                                    <div className="pt-12 border-t border-white/10">
-                                        <h4 className="text-white/60 font-black uppercase tracking-widest text-xs mb-6 italic">De Horno (Tradición Brutal)</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
-                                            {EMPANADAS_HORNO.map((e, i) => (
-                                                <div key={i} className="flex justify-between items-center group cursor-default">
-                                                    <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
-                                                    <span className="text-xl font-black italic opacity-60 group-hover:opacity-100 text-[#FFCC00]">${e.price.toLocaleString()}</span>
-                                                </div>
-                                            ))}
+                            {/* EMPANADAS (Filtrado) */}
+                            <AnimatePresence mode="wait">
+                                {category === 'empanada' && (
+                                    <motion.div
+                                        key="empanadas"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        className="bg-black text-[#FFCC00] p-12 rounded-[60px] relative overflow-hidden border-4 border-black"
+                                    >
+                                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFCC00]/10 rounded-full blur-3xl" />
+
+                                        <h3 className="text-5xl font-black uppercase italic mb-12 flex items-center gap-4 text-white">
+                                            <span className="w-12 h-12 bg-[#FFCC00] text-black flex items-center justify-center rounded-full text-lg italic">02</span>
+                                            Tesoros de Masa
+                                        </h3>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-12">
+                                            <div className="relative aspect-[4/3] rounded-[40px] overflow-hidden border-4 border-[#FFCC00] shadow-[10px_10px_0px_rgba(255,204,0,0.2)]">
+                                                <img
+                                                    src="/prospectos/donde-germain/empanadas.png"
+                                                    alt="Nuestras Empanadas"
+                                                    className="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-700"
+                                                />
+                                            </div>
+                                            <p className="text-[#FFCC00] font-black italic text-2xl leading-none uppercase">
+                                                MASA CRUNCHY. <br /> RELLENO BRUTAL. <br /> <span className="text-white text-lg">HECHAS A MANO CADA DÍA.</span>
+                                            </p>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
+
+                                        <div className="space-y-12">
+                                            <div>
+                                                <h4 className="text-white/60 font-black uppercase tracking-widest text-xs mb-6 italic">Empanadas Fritas (Fuego Eterno)</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                                                    {EMPANADAS_FRITAS.map((e, i) => (
+                                                        <div key={i} className="flex justify-between items-center group cursor-default">
+                                                            <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
+                                                            <span className="text-xl font-black italic opacity-60 group-hover:opacity-100 text-[#FFCC00]">${e.price.toLocaleString()}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-12 border-t border-white/10">
+                                                <h4 className="text-white/60 font-black uppercase tracking-widest text-xs mb-6 italic">De Horno (Tradición Brutal)</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                                                    {EMPANADAS_HORNO.map((e, i) => (
+                                                        <div key={i} className="flex justify-between items-center group cursor-default">
+                                                            <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
+                                                            <span className="text-xl font-black italic opacity-60 group-hover:opacity-100 text-[#FFCC00]">${e.price.toLocaleString()}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             {/* EXTRAS */}
                             <div className="flex flex-col md:flex-row gap-6">
