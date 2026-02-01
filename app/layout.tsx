@@ -20,18 +20,15 @@ export const metadata: Metadata = {
     default: "HojaCero | Agencia de Desarrollo Web y Marketing Digital",
     template: "%s | HojaCero"
   },
-  description: "Transformamos negocios con código de alta calidad, diseño premium y estrategias de marketing digital de alto impacto. Especialistas en Web Apps, E-commerce y SEO en Chile.",
+  description: "HojaCero es un estudio digital en Santiago de Chile especializado en desarrollo de sitios web, aplicaciones y productos digitales a medida para negocios y proyectos técnicos. Combinamos ingeniería digital y estrategia AEO/GEO para crear autoridad real.",
   keywords: [
-    "Agencia de Marketing Digital Chile",
-    "Desarrollo Web Premium",
-    "Diseño UI/UX",
+    "Estudio digital Santiago",
+    "Desarrollo Web Chile",
+    "Agencia AEO GEO Chile",
     "Web Apps a medida",
-    "E-commerce Chile",
-    "SEO Avanzado",
-    "Estrategia Digital",
-    "Software Factory",
+    "Software Factory Santiago",
     "HojaCero",
-    "Automatización de Procesos"
+    "Daniel González Tagle"
   ],
   authors: [{ name: "HojaCero Team" }, { name: "Daniel González Tagle" }],
   creator: "HojaCero",

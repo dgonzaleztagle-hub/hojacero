@@ -41,6 +41,8 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-[#D4AF37] transition-colors flex items-center gap-1 group"
+                    aria-label="Desarrollado por HojaCero - Estudio de ingeniería web y estrategia digital en Santiago de Chile"
+                    title="HojaCero.cl | Soluciones Digitales a Medida"
                 >
                     Designed by <span className="font-bold group-hover:text-white transition-colors">HOJACERO.CL</span>
                 </a>

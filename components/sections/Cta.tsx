@@ -83,8 +83,13 @@ export default function Cta() {
                     </a>
                 </div>
 
-                <div className="absolute bottom-12 w-full left-0 px-8 flex justify-between text-xs font-mono uppercase tracking-widest text-gray-400">
-                    <span>© 2026 HOJACERO</span>
+                <div className="absolute bottom-12 w-full left-0 px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] font-mono uppercase tracking-widest text-gray-400">
+                    <div className="flex flex-col items-center md:items-start">
+                        <span>© 2026 HOJACERO</span>
+                        <span className="mt-1 normal-case opacity-60 max-w-[400px] text-center md:text-left leading-relaxed">
+                            Estudio digital en Santiago de Chile. Desarrollo web, aplicaciones y soluciones digitales a medida para negocios y proyectos técnicos.
+                        </span>
+                    </div>
                     <Link href="/pricing" className="hover:text-black transition-colors">Pricing</Link>
                     <span>SANTIAGO / WORLDWIDE</span>
                 </div>

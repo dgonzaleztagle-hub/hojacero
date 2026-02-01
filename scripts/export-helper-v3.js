@@ -101,7 +101,8 @@ const missingFiles = new Set();     // Archivos no encontrados
 // Dependencias base siempre necesarias
 const baseDeps = [
     'next', 'react', 'react-dom', 'typescript',
-    '@types/node', '@types/react', '@types/react-dom'
+    '@types/node', '@types/react', '@types/react-dom',
+    'framer-motion', 'clsx', 'tailwind-merge', 'lucide-react', 'splitting'
 ];
 baseDeps.forEach(d => npmDeps.add(d));
 
@@ -183,20 +184,23 @@ function analyzeFile(filePath) {
     while ((match = importRegex.exec(content)) !== null) {
         const importPath = match[1];
         const resolved = resolveImportPath(importPath, filePath);
+        handleResolvedImport(resolved, importPath, filePath);
+    }
 
-        if (resolved === null) {
-            // No se encontró el archivo
-            if (!importPath.startsWith('next/') &&
-                !importPath.startsWith('react') &&
-                !importPath.includes('node_modules')) {
-                // log(`   ⚠️ No encontrado: ${importPath} (desde ${path.basename(filePath)})`, c.dim);
-            }
-        } else if (resolved.startsWith('npm:')) {
-            // Es un paquete npm
+    // Buscar imports dinámicos: await import('Y') o import('Y')
+    const dynamicImportRegex = /import\(['"]([^'"]+)['"]\)/g;
+    while ((match = dynamicImportRegex.exec(content)) !== null) {
+        const importPath = match[1];
+        const resolved = resolveImportPath(importPath, filePath);
+        handleResolvedImport(resolved, importPath, filePath);
+    }
+
+    function handleResolvedImport(resolved, importPath, fromFile) {
+        if (resolved === null) return;
+
+        if (resolved.startsWith('npm:')) {
             const pkgName = resolved.replace('npm:', '').split('/')[0];
             const scopedCheck = resolved.replace('npm:', '');
-
-            // Verificar si es paquete con scope (@org/pkg)
             if (scopedCheck.startsWith('@')) {
                 const scopedPkg = scopedCheck.split('/').slice(0, 2).join('/');
                 npmDeps.add(scopedPkg);
@@ -204,7 +208,6 @@ function analyzeFile(filePath) {
                 npmDeps.add(pkgName);
             }
         } else {
-            // Es un archivo local, analizarlo recursivamente
             analyzeFile(resolved);
         }
     }
@@ -436,8 +439,9 @@ finalDevDeps['@types/node'] = rootPackageJson.devDependencies?.['@types/node'] |
 finalDevDeps['@types/react'] = rootPackageJson.devDependencies?.['@types/react'] || '^18.0.0';
 finalDevDeps['@types/react-dom'] = rootPackageJson.devDependencies?.['@types/react-dom'] || '^18.0.0';
 
-// Tailwind
-finalDevDeps['tailwindcss'] = '^3.4.17';
+// Tailwind v4
+finalDevDeps['tailwindcss'] = '^4.0.0';
+finalDevDeps['@tailwindcss/postcss'] = '^4.0.0';
 finalDevDeps['postcss'] = '^8.4.32';
 finalDevDeps['autoprefixer'] = '^10.4.16';
 
@@ -505,27 +509,20 @@ module.exports = nextConfig;
 fs.writeFileSync(path.join(targetDir, 'next.config.js'), nextConfig);
 log(`✅ next.config.js creado`, c.green);
 
-// tailwind.config.js
+// tailwind.config.js (Opcional en v4, pero útil para ciertos plugins)
 const tailwindConfig = `/** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: [
-        "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-        "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-        "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    ],
-    theme: {
-        extend: {},
-    },
+    content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+    theme: { extend: {} },
     plugins: [],
 };
 `;
 fs.writeFileSync(path.join(targetDir, 'tailwind.config.js'), tailwindConfig);
 
-// postcss.config.js
+// postcss.config.js (CRÍTICO para v4)
 const postcssConfig = `module.exports = {
     plugins: {
-        tailwindcss: {},
-        autoprefixer: {},
+        "@tailwindcss/postcss": {},
     },
 };
 `;
