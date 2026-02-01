@@ -32,34 +32,43 @@ export default function HorasExtrasPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#FFF5F7] text-[#D81B60] font-sans selection:bg-[#FFB7C5] selection:text-white p-4 md:p-8">
+        <div className="h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-[#FFF5F7] text-[#D81B60] font-sans selection:bg-[#FFB7C5] selection:text-white p-4 md:p-8 touch-pan-y">
             {/* Header */}
-            <header className="max-w-md mx-auto text-center mb-8">
+            <header className="max-w-md mx-auto text-center mb-6 relative">
+                {/* DEV SHORTCUT: Play Button */}
+                <button
+                    onClick={() => setIsPlaying(true)}
+                    className="absolute right-0 top-0 p-2 bg-white/50 rounded-full hover:bg-white text-[#FF69B4] active:scale-95 transition-all"
+                    title="Modo Juego Rápido"
+                >
+                    <Gamepad2 className="w-5 h-5" />
+                </button>
+
                 <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="inline-block p-3 bg-white rounded-full shadow-lg mb-4"
+                    className="inline-block p-3 bg-white rounded-full shadow-lg mb-2"
                 >
                     <Heart className="w-8 h-8 text-[#FF69B4] fill-[#FF69B4]" />
                 </motion.div>
                 <h1 className="text-3xl font-bold tracking-tight text-[#880E4F]">Mis Horitas Extras</h1>
-                <p className="text-[#AD1457] mt-2 opacity-80">Juntos construimos nuestro futuro ❤️</p>
+                <p className="text-[#AD1457] mt-1 opacity-80 text-sm">Juntos construimos nuestro futuro ❤️</p>
             </header>
 
-            <main className="max-w-md mx-auto space-y-6">
-                {/* Stats Card */}
-                <section className="bg-white rounded-[2.5rem] p-8 shadow-xl border-4 border-[#FFB7C5] relative overflow-hidden">
+            <main className="max-w-md mx-auto space-y-4 pb-12">
+                {/* Stats Card - Compacted */}
+                <section className="bg-white rounded-[2rem] p-5 shadow-xl border-4 border-[#FFB7C5] relative overflow-hidden">
                     <div className="absolute -top-4 -right-4 opacity-5">
                         <Clock className="w-32 h-32" />
                     </div>
                     <div className="relative z-10 flex flex-col items-center text-center">
-                        <h2 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Pendientes por cobrar</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 opacity-40">Pendientes por cobrar</h2>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-7xl font-black text-[#C2185B] leading-none">{pendingHours}</span>
-                            <span className="text-2xl font-bold opacity-60">horas</span>
+                            <span className="text-6xl font-black text-[#C2185B] leading-none">{pendingHours}</span>
+                            <span className="text-xl font-bold opacity-60">horas</span>
                         </div>
-                        <div className="mt-6 inline-flex items-center gap-2 bg-[#FFF5F7] py-2 px-6 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                            <div className="w-2 h-2 rounded-full bg-[#FF69B4] animate-pulse" />
+                        <div className="mt-4 inline-flex items-center gap-2 bg-[#FFF5F7] py-1.5 px-4 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#FF69B4] animate-pulse" />
                             Ciclo: 15 al 15
                         </div>
                     </div>

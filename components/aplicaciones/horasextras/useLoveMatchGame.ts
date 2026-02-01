@@ -88,6 +88,23 @@ export function useLoveMatchGame() {
                 }
             }
         }
+
+        // Square (2x2) - Now ENABLED as a valid match type
+        for (let r = 0; r < GRID_SIZE - 1; r++) {
+            for (let c = 0; c < GRID_SIZE - 1; c++) {
+                const type = currentGrid[r][c].type;
+                if (type !== "empty" &&
+                    type === currentGrid[r][c + 1].type &&
+                    type === currentGrid[r + 1][c].type &&
+                    type === currentGrid[r + 1][c + 1].type) {
+
+                    toRemove.add(`${r},${c}`);
+                    toRemove.add(`${r},${c + 1}`);
+                    toRemove.add(`${r + 1},${c}`);
+                    toRemove.add(`${r + 1},${c + 1}`);
+                }
+            }
+        }
         return Array.from(toRemove).map(coord => {
             const [r, c] = coord.split(",").map(Number);
             return { r, c };

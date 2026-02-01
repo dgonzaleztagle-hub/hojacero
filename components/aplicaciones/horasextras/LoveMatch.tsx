@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Trophy, Home, Heart, Zap, Bomb } from "lucide-react";
 import { useLoveMatchGame, GRID_SIZE, TARGET_SCORE } from "./useLoveMatchGame";
@@ -25,27 +25,27 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
     }, [initGrid]);
 
     return (
-        // OUTER CONTAINER: 100dvh strict, no overflow allowed
-        <div className="fixed inset-0 z-[60] bg-[#FFF5F7] flex flex-col items-center overflow-hidden h-[100dvh] w-screen touch-none">
+        // CONTENEDOR PRINCIPAL: Permite scroll si es necesario, Z-Index alto para tapar UI base
+        <div className="fixed inset-0 z-[100] bg-[#FFF5F7] flex flex-col overflow-y-auto h-[100dvh] w-screen touch-pan-y">
 
-            {/* HUD HEADER - Fixed Height Section */}
-            <div className="flex-none w-full max-w-md px-4 py-2 flex flex-col gap-2 z-10">
+            {/* HUD HEADER */}
+            <div className="flex-none p-4 max-w-md mx-auto w-full flex flex-col gap-2 z-10">
                 <div className="flex justify-between items-center">
-                    {/* Target */}
+                    {/* Marcador Meta */}
                     <div className="flex flex-col">
                         <span className="text-[10px] uppercase font-black opacity-40">Meta</span>
                         <span className="text-xl font-black text-[#D81B60]">{TARGET_SCORE}</span>
                     </div>
 
-                    {/* Close */}
+                    {/* CLOSE Button */}
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center text-[#D81B60] active:scale-95 transition-transform"
+                        className="w-12 h-12 bg-white rounded-full shadow-md flex items-center justify-center text-[#D81B60] active:scale-95 transition-transform"
                     >
-                        <Home className="w-5 h-5" />
+                        <Home className="w-6 h-6" />
                     </button>
 
-                    {/* Moves */}
+                    {/* Turnos */}
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] uppercase font-black opacity-40">Turnos</span>
                         <span className={`text-2xl font-black leading-none ${moves < 5 ? 'text-red-500 animate-pulse' : 'text-[#D81B60]'}`}>
@@ -55,7 +55,7 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                 </div>
 
                 {/* Progress Bar */}
-                <div className="w-full h-3 bg-white rounded-full shadow-inner overflow-hidden border border-white relative">
+                <div className="w-full h-4 bg-white rounded-full shadow-inner overflow-hidden border-2 border-white relative">
                     <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min((score / TARGET_SCORE) * 100, 100)}%` }}
@@ -66,29 +66,18 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                 </div>
             </div>
 
-            {/* GAME AREA - The Flexible Space */}
-            {/* min-h-0 is CRITICAL for flex items to shrink below content size */}
-            <main className="flex-1 w-full flex items-center justify-center p-4 min-h-0 relative">
+            {/* ÁREA DE JUEGO */}
+            {/* Usamos flex-grow para ocupar espacio vertical disponible, pero JAMÁS colapsamos. */}
+            {/* 'my-auto' centra el tablero si sobra espacio. */}
+            {/* 'pb-8' da espacio para scrolear al final. */}
+            <main className="flex-grow flex flex-col items-center justify-start md:justify-center p-4 min-h-0 w-full">
 
-                {/* BOARD CONTAINER: Adapts to whichever dim is smaller (W or H) */}
+                {/* TABLERO */}
                 <motion.div
                     animate={shouldShake ? { x: [-5, 5, -5, 5, 0], y: [-2, 2, -2, 2, 0] } : {}}
                     transition={{ duration: 0.3 }}
-                    className="relative bg-white/40 p-3 rounded-[2rem] shadow-xl border-x-4 border-b-4 border-white/80 backdrop-blur-sm"
-                    style={{
-                        // CRITICAL LAYOUT MATH:
-                        // Try to be as big as possible (100%), but DO NOT exceed width OR height availability.
-                        // Keeping aspect ratio 1/1 ensures it's a square.
-                        // 'object-contain' equivalent for a div.
-                        height: "auto",
-                        width: "auto",
-                        maxHeight: "100%",
-                        maxWidth: "100%",
-                        aspectRatio: "1/1",
-                        display: "flex", // Ensure grid container fills it
-                    }}
+                    className="relative bg-white/40 p-3 rounded-[2rem] shadow-xl border-x-4 border-b-4 border-white/80 backdrop-blur-sm w-full max-w-[400px] aspect-square mx-auto touch-none"
                 >
-                    {/* THE GRID */}
                     <div
                         className="grid gap-1 p-1 w-full h-full"
                         style={{
@@ -124,7 +113,7 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                             </AnimatePresence>
                         </div>
 
-                        {/* Combo Text Overlay */}
+                        {/* COMBO TEXT */}
                         <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center pointer-events-none">
                             <AnimatePresence>
                                 {comboText && (
@@ -136,13 +125,8 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                                             rotate: 0
                                         }}
                                         exit={{ opacity: 0, scale: 2.5, filter: "blur(10px)" }}
-                                        transition={{
-                                            duration: 0.4,
-                                            scale: { duration: 0.4, ease: "backOut" },
-                                            opacity: { duration: 0.2 },
-                                            rotate: { type: "spring", stiffness: 300 }
-                                        }}
-                                        className="text-4xl md:text-5xl font-black text-[#FF1493] drop-shadow-[0_0_20px_rgba(255,105,180,0.8)] text-center px-4 py-2 bg-white/40 backdrop-blur-sm rounded-3xl border-4 border-white whitespace-nowrap"
+                                        transition={{ textShadow: "0px 0px 8px rgb(255,255,255)" }}
+                                        className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-2xl border-4 border-[#FF1493] text-4xl md:text-5xl font-black text-[#FF1493] shadow-2xl whitespace-nowrap z-50"
                                     >
                                         {comboText}
                                     </motion.div>
@@ -150,7 +134,7 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                             </AnimatePresence>
                         </div>
 
-                        {/* Grid Items */}
+                        {/* CELLS */}
                         {grid.map((row, r) =>
                             row.map((item, c) => (
                                 <motion.div
@@ -223,12 +207,49 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                         )}
                     </div>
                 </motion.div>
-            </main>
 
-            {/* FOOTER - Minimal */}
-            <div className="flex-none pb-safe text-center py-2 text-[#D81B60]/40 text-[10px] uppercase font-bold tracking-widest">
-                HojaCero Games
-            </div>
+                {/* POWER-UP GUIDE */}
+                <div className="mt-6 max-w-[320px] w-full bg-white/40 p-4 rounded-2xl backdrop-blur-sm shadow-sm border border-white/60 mx-auto">
+                    <h3 className="text-[10px] font-black uppercase text-[#D81B60]/50 mb-3 text-center tracking-widest">
+                        <Sparkles className="w-3 h-3 inline-block mr-1 -mt-0.5" />
+                        Guía de Poderes
+                        <Sparkles className="w-3 h-3 inline-block ml-1 -mt-0.5" />
+                    </h3>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Bomba Legend */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white rounded-xl shadow-sm flex items-center justify-center relative shrink-0">
+                                <Heart className="w-5 h-5 text-[#FF6B6B]" fill="#FF6B6B" />
+                                <div className="absolute -bottom-1 -right-1 bg-black text-white rounded-full p-0.5 shadow-sm">
+                                    <Bomb size={8} />
+                                </div>
+                            </div>
+                            <div className="text-[10px] text-[#C2185B] leading-tight">
+                                <strong className="block font-black text-xs mb-0.5">Bomba 3x3</strong>
+                                <span className="opacity-70">Junta 4 iguales</span>
+                            </div>
+                        </div>
+
+                        {/* Super Legend */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-tr from-purple-400 via-pink-400 to-yellow-400 rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                                <Zap className="w-5 h-5 text-white" fill="white" />
+                            </div>
+                            <div className="text-[10px] text-[#C2185B] leading-tight">
+                                <strong className="block font-black text-xs mb-0.5">Super Rayo</strong>
+                                <span className="opacity-70">Junta 5 iguales</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-[#D81B60]/10 text-center">
+                        <p className="text-[10px] text-[#AD1457] italic font-medium">
+                            💡 Tip: ¡Intenta mezclar dos poderes! 💥
+                        </p>
+                    </div>
+                </div>
+            </main>
 
             {/* RESULT MODAL */}
             <AnimatePresence>
@@ -236,7 +257,7 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="fixed inset-0 bg-[#C2185B]/60 backdrop-blur-md z-[70] flex items-center justify-center p-6"
+                        className="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-[#C2185B]/80 backdrop-blur-md"
                     >
                         <motion.div
                             initial={{ scale: 0.8, y: 20 }}
