@@ -125,7 +125,8 @@ export default function LoveMatch({ onClose }: { onClose: () => void }) {
                                             rotate: 0
                                         }}
                                         exit={{ opacity: 0, scale: 2.5, filter: "blur(10px)" }}
-                                        transition={{ textShadow: "0px 0px 8px rgb(255,255,255)" }}
+                                        transition={{ duration: 0.4, ease: "backOut" }}
+                                        style={{ textShadow: "0px 0px 8px rgb(255,255,255)" }}
                                         className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-2xl border-4 border-[#FF1493] text-4xl md:text-5xl font-black text-[#FF1493] shadow-2xl whitespace-nowrap z-50"
                                     >
                                         {comboText}
