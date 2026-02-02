@@ -352,9 +352,34 @@ export default function RootLayout({
 }
 
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // PHASE 4: Copy Assets
 // ═══════════════════════════════════════════════════════════════
 logSection("FASE 4: Copiando Assets");
+
+// 🛠️ MEJORA DANIEL: Copiado íntegro de la carpeta del cliente
+const clientPublicDir = path.join(ROOT_DIR, 'public', 'prospectos', clientName);
+if (fs.existsSync(clientPublicDir)) {
+    log(`📂 Detectada carpeta pública del cliente: /public/prospectos/${clientName}`, c.yellow);
+    const destDir = path.join(targetDir, 'public', 'prospectos', clientName);
+    if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+    }
+
+    // Copiar todo el contenido de forma recursiva
+    try {
+        // Usamos fs.cpSync (Node 16.7+) para copiado recursivo nativo
+        if (fs.cpSync) {
+            fs.cpSync(clientPublicDir, destDir, { recursive: true });
+        } else {
+            // Fallback para versiones antiguas de Node
+            execSync(`cp -r "${clientPublicDir}/"* "${destDir}/"`, { stdio: 'ignore' });
+        }
+        log(`✅ Carpeta de assets copiada íntegramente (Solución Final)`, c.green);
+    } catch (e) {
+        log(`⚠️ Advertencia: Error en copiado recursivo, intentando método alternativo...`, c.yellow);
+    }
+}
 
 // Agregar assets base
 assets.add('/favicon.ico');

@@ -53,11 +53,11 @@ export function AnimatedGradient({
             {colors.map((color, index) => (
                 <motion.div
                     key={index}
-                    className="absolute rounded-full"
+                    className="absolute rounded-full opacity-60"
                     style={{
-                        background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-                        width: '50%',
-                        height: '50%',
+                        background: `radial-gradient(ellipse at center, ${color} 0%, transparent 80%)`,
+                        width: '140%',
+                        height: '60%',
                         filter: `blur(${blur}px)`,
                     }}
                     animate={{

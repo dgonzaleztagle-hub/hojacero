@@ -2,8 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Instagram, Phone, ChevronRight, Menu as MenuIcon, X, Flame, ShoppingBag, ArrowRight, Gamepad2 } from 'lucide-react';
+import { Clock, MapPin, Instagram, Phone, ChevronRight, Menu as MenuIcon, X, Flame, ShoppingBag, ArrowRight, Gamepad2, Plus, Minus, Trash2, Check } from 'lucide-react';
 import GermainGame from './GermainGame';
+import { createClient } from '@/utils/supabase/client';
+import Link from 'next/link';
+
+interface MenuItem {
+    name: string;
+    price: number;
+    desc?: string;
+    category: string;
+}
+
+interface CartItem extends MenuItem {
+    quantity: number;
+}
 
 const BURGERS = [
     { name: "Chesse Burger", desc: "DOBLE SMASH, DOBLE CHEDDAR Y SALSA DE LA CASA", price: 7000, tag: "Nuestra Mafia" },
@@ -59,12 +72,90 @@ export default function DondeGermainPage() {
     const [isOpen, setIsOpen] = useState(false);
     const [mobileMenu, setMobileMenu] = useState(false);
     const [category, setCategory] = useState<'burger' | 'empanada'>('burger');
+    const [cart, setCart] = useState<CartItem[]>([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+    // Checkout Form State
+    const [customerName, setCustomerName] = useState('');
+    const [customerWhatsApp, setCustomerWhatsApp] = useState('');
+    const [deliveryType, setDeliveryType] = useState<'local' | 'llevar' | 'mesa'>('local');
+    const [tableNumber, setTableNumber] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [orderResult, setOrderResult] = useState<{ code: string } | null>(null);
+    const [isLocalOpen, setIsLocalOpen] = useState(false);
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
+    const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+    const addToCart = (item: any, cat: string) => {
+        if (!isLocalOpen) return;
+        setCart(prev => {
+            const existing = prev.find(i => i.name === item.name);
+            if (existing) {
+                return prev.map(i => i.name === item.name ? { ...i, quantity: i.quantity + 1 } : i);
+            }
+            return [...prev, { ...item, category: cat, quantity: 1 }];
+        });
+    };
+
+    const updateQuantity = (name: string, delta: number) => {
+        setCart(prev => prev.map(item => {
+            if (item.name === name) {
+                const newQty = Math.max(0, item.quantity + delta);
+                return { ...item, quantity: newQty };
+            }
+            return item;
+        }).filter(item => item.quantity > 0));
+    };
+
+    const removeFromCart = (name: string) => {
+        setCart(prev => prev.filter(item => item.name !== name));
+    };
+
+    useEffect(() => {
+        const supabase = createClient();
+
+        // Check if local is open (active session)
+        const checkSession = async () => {
+            const { data } = await supabase
+                .from('germain_sessions')
+                .select('id')
+                .eq('status', 'open')
+                .maybeSingle();
+
+            setIsLocalOpen(!!data);
+            setActiveSessionId(data?.id || null);
+        };
+
+        checkSession();
+
+        // Realtime sync for session
+        const channel = supabase.channel('session_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'germain_sessions' }, () => checkSession())
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, []);
 
     useEffect(() => {
         // Basic schedule check - keeping it simple for now
         const now = new Date();
-        const currentHour = now.getHours();
-        setIsOpen(currentHour >= 13 && currentHour <= 22);
+        const hour = now.getHours();
+        const isOpen = hour >= 18 || hour <= 1; // 18:00 to 01:00
+        setIsOpen(isOpen);
+
+        // Service Worker Registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
     }, []);
 
     return (
@@ -83,14 +174,16 @@ export default function DondeGermainPage() {
                     <nav className="hidden md:flex gap-8 items-center font-black uppercase italic text-sm">
                         <a href="#menu" className="text-white/80 hover:text-white hover:line-through decoration-[#FFCC00] decoration-4 transition-colors">La Carta</a>
                         <a href="#ubicacion" className="text-white/80 hover:text-white hover:line-through decoration-[#FFCC00] decoration-4 transition-colors">Lampa</a>
-                        <motion.a
-                            href="https://wa.me/message/ZTMGHN4TWIBDN1"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="bg-black text-[#FFCC00] px-6 py-2 rounded-full"
-                        >
-                            HACER PEDIDO
-                        </motion.a>
+                        {isLocalOpen && (
+                            <motion.a
+                                href="https://wa.me/message/ZTMGHN4TWIBDN1"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="bg-black text-[#FFCC00] px-6 py-2 rounded-full"
+                            >
+                                HACER PEDIDO
+                            </motion.a>
+                        )}
                     </nav>
 
                     <button className="md:hidden" onClick={() => setMobileMenu(true)}>
@@ -146,7 +239,7 @@ export default function DondeGermainPage() {
                         transition={{ duration: 0.8 }}
                     >
                         <div className="mb-4 inline-flex items-center gap-2 bg-[#FFCC00] px-4 py-1 rounded-sm text-xs font-black uppercase italic tracking-widest text-black">
-                            {isOpen ? 'Abierto Ahora' : 'Cerrado por el momento'}
+                            {isLocalOpen ? '🟢 Abierto Ahora' : '⚪ Modo Catálogo'}
                         </div>
                         <h1 className="text-6xl md:text-[10vw] font-black uppercase italic tracking-tighter leading-[0.8] mb-8 text-white drop-shadow-2xl">
                             {category === 'burger' ? 'REYES DEL' : 'TESOROS DEL'} <br /> <span className="text-[#FFCC00]">{category === 'burger' ? 'SABOR' : 'HORNO'}</span>
@@ -161,7 +254,7 @@ export default function DondeGermainPage() {
                                 whileHover={{ rotate: [-1, 1, -1] }}
                                 className="bg-[#FFCC00] text-black px-12 py-6 rounded-2xl text-2xl font-black italic uppercase flex items-center gap-3 shadow-[10px_10px_0px_#000]"
                             >
-                                TENGO HAMBRE <ArrowRight size={28} />
+                                {isLocalOpen ? 'TENGO HAMBRE' : 'VER CARTA'} <ArrowRight size={28} />
                             </motion.a>
                         </div>
                     </motion.div>
@@ -266,9 +359,14 @@ export default function DondeGermainPage() {
                                                         {b.name.replace('Chesse', 'Cheese')}
                                                     </h4>
                                                     <p className="text-sm font-bold opacity-60 group-hover:text-[#FFCC00] leading-tight mb-8">{b.desc}</p>
-                                                    <div className="w-10 h-10 bg-black group-hover:bg-[#FFCC00] rounded-full flex items-center justify-center text-[#FFCC00] group-hover:text-black transition-colors">
-                                                        <ShoppingBag size={20} />
-                                                    </div>
+                                                    {isLocalOpen && (
+                                                        <button
+                                                            onClick={() => addToCart(b, 'burger')}
+                                                            className="w-10 h-10 bg-black group-hover:bg-[#FFCC00] rounded-full flex items-center justify-center text-[#FFCC00] group-hover:text-black transition-colors"
+                                                        >
+                                                            <ShoppingBag size={20} />
+                                                        </button>
+                                                    )}
                                                 </motion.div>
                                             ))}
                                         </div>
@@ -311,8 +409,15 @@ export default function DondeGermainPage() {
                                                 <h4 className="text-white/60 font-black uppercase tracking-widest text-xs mb-6 italic">Empanadas Fritas (Fuego Eterno)</h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                                                     {EMPANADAS_FRITAS.map((e, i) => (
-                                                        <div key={i} className="flex justify-between items-center group cursor-default">
-                                                            <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
+                                                        <div
+                                                            key={i}
+                                                            className={`flex justify-between items-center group ${isLocalOpen ? 'cursor-pointer' : 'cursor-default'}`}
+                                                            onClick={() => isLocalOpen && addToCart(e, 'empanada_frita')}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
+                                                                {isLocalOpen && <Plus size={16} className="opacity-0 group-hover:opacity-100 text-[#FFCC00] transition-opacity" />}
+                                                            </div>
                                                             <span className="text-xl font-black italic opacity-60 group-hover:opacity-100 text-[#FFCC00]">${e.price.toLocaleString()}</span>
                                                         </div>
                                                     ))}
@@ -323,8 +428,15 @@ export default function DondeGermainPage() {
                                                 <h4 className="text-white/60 font-black uppercase tracking-widest text-xs mb-6 italic">De Horno (Tradición Brutal)</h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                                                     {EMPANADAS_HORNO.map((e, i) => (
-                                                        <div key={i} className="flex justify-between items-center group cursor-default">
-                                                            <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
+                                                        <div
+                                                            key={i}
+                                                            className={`flex justify-between items-center group ${isLocalOpen ? 'cursor-pointer' : 'cursor-default'}`}
+                                                            onClick={() => isLocalOpen && addToCart(e, 'empanada_horno')}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xl font-black uppercase italic group-hover:translate-x-2 transition-transform text-white group-hover:text-[#FFCC00]">{e.name}</span>
+                                                                {isLocalOpen && <Plus size={16} className="opacity-0 group-hover:opacity-100 text-[#FFCC00] transition-opacity" />}
+                                                            </div>
                                                             <span className="text-xl font-black italic opacity-60 group-hover:opacity-100 text-[#FFCC00]">${e.price.toLocaleString()}</span>
                                                         </div>
                                                     ))}
@@ -376,12 +488,19 @@ export default function DondeGermainPage() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {PROMOS.map((p, i) => (
-                                        <div key={i} className="border-b-2 border-black pb-4 hover:translate-x-2 transition-transform cursor-pointer">
+                                        <div
+                                            key={i}
+                                            onClick={() => isLocalOpen && addToCart(p, 'combo')}
+                                            className={`border-b-2 border-black pb-4 hover:translate-x-2 transition-transform group ${isLocalOpen ? 'cursor-pointer' : 'cursor-default'}`}
+                                        >
                                             <div className="flex justify-between items-start mb-1">
-                                                <h4 className="text-xl font-black uppercase italic">{p.name}</h4>
-                                                <span className="text-xl font-black italic">${p.price.toLocaleString()}</span>
+                                                <h4 className="text-xl font-black uppercase italic group-hover:text-white transition-colors">{p.name}</h4>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl font-black italic">${p.price.toLocaleString()}</span>
+                                                    {isLocalOpen && <Plus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />}
+                                                </div>
                                             </div>
-                                            <p className="text-xs font-bold uppercase opacity-70 leading-tight">{p.desc}</p>
+                                            <p className="text-xs font-bold uppercase opacity-70 leading-tight group-hover:opacity-100">{p.desc}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -395,10 +514,17 @@ export default function DondeGermainPage() {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                                     {BEBIDAS.map((b, i) => (
-                                        <div key={i} className="flex justify-between items-center group cursor-pointer">
+                                        <div
+                                            key={i}
+                                            onClick={() => isLocalOpen && addToCart(b, 'bebida')}
+                                            className={`flex justify-between items-center group ${isLocalOpen ? 'cursor-pointer' : 'cursor-default'}`}
+                                        >
                                             <span className="text-lg font-black uppercase italic group-hover:text-[#FFCC00] transition-colors">{b.name}</span>
                                             <div className="flex-1 border-b border-dotted border-white/20 mx-4" />
-                                            <span className="text-lg font-black italic text-[#FFCC00]">${b.price.toLocaleString()}</span>
+                                            <div className="flex items-center gap-2 text-[#FFCC00]">
+                                                <span className="text-lg font-black italic">${b.price.toLocaleString()}</span>
+                                                {isLocalOpen && <Plus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -502,17 +628,330 @@ export default function DondeGermainPage() {
                 </a>
             </footer>
 
-            {/* --- CSS ANIMATIONS --- */}
-            <style jsx global>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          animation: marquee 20s linear infinite;
-        }
-      `}</style>
+            {/* --- CART FLOATING BUTTON --- */}
+            <AnimatePresence>
+                {cartCount > 0 && isLocalOpen && (
+                    <motion.button
+                        initial={{ scale: 0, y: 100 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0, y: 100 }}
+                        onClick={() => setIsCartOpen(true)}
+                        className="fixed bottom-8 right-8 z-[60] bg-black text-[#FFCC00] p-6 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] border-4 border-[#FFCC00] flex items-center gap-4 group hover:scale-110 transition-transform"
+                    >
+                        <div className="relative">
+                            <ShoppingBag size={32} />
+                            <motion.span
+                                key={cartCount}
+                                initial={{ scale: 1.5 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-black"
+                            >
+                                {cartCount}
+                            </motion.span>
+                        </div>
+                        <div className="text-left leading-none uppercase italic font-black">
+                            <p className="text-[10px] opacity-60">Tu Pedido</p>
+                            <p className="text-xl">${cartTotal.toLocaleString()}</p>
+                        </div>
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
+            {/* --- CART DRAWER --- */}
+            <AnimatePresence>
+                {isCartOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsCartOpen(false)}
+                            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100]"
+                        />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed top-0 right-0 h-full w-full max-w-md bg-[#FFCC00] z-[110] shadow-2xl p-8 overflow-y-auto border-l-8 border-black"
+                        >
+                            <div className="flex justify-between items-center mb-12">
+                                <h3 className="text-4xl font-black uppercase italic tracking-tighter text-black">TU <br /> PEDIDO</h3>
+                                <button onClick={() => setIsCartOpen(false)} className="bg-black text-[#FFCC00] p-2 rounded-xl">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6 mb-12">
+                                {cart.map((item, i) => (
+                                    <div key={i} className="bg-black text-white p-4 rounded-2xl flex items-center justify-between group">
+                                        <div className="flex-1">
+                                            <p className="font-black italic uppercase leading-tight">{item.name}</p>
+                                            <p className="text-[#FFCC00] font-black italic text-xs">${item.price.toLocaleString()}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <button onClick={() => updateQuantity(item.name, -1)} className="bg-[#FFCC00] text-black p-1 rounded-lg">
+                                                <Minus size={16} />
+                                            </button>
+                                            <span className="font-black italic min-w-[1.5rem] text-center">{item.quantity}</span>
+                                            <button onClick={() => updateQuantity(item.name, 1)} className="bg-[#FFCC00] text-black p-1 rounded-lg">
+                                                <Plus size={16} />
+                                            </button>
+                                            <button onClick={() => removeFromCart(item.name)} className="text-red-500 ml-2">
+                                                <Trash2 size={20} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="border-t-4 border-black border-dotted pt-8 space-y-4 text-black">
+                                <div className="flex justify-between items-end">
+                                    <p className="font-black italic uppercase opacity-60">Subtotal</p>
+                                    <p className="text-2xl font-black italic">${cartTotal.toLocaleString()}</p>
+                                </div>
+                                <div className="flex justify-between items-end">
+                                    <p className="font-black italic uppercase opacity-60">Envío</p>
+                                    <p className="text-xl font-black italic">GRATIS*</p>
+                                </div>
+                                <div className="pt-4">
+                                    <div className="flex justify-between items-end mb-8">
+                                        <p className="text-2xl font-black italic uppercase">TOTAL</p>
+                                        <p className="text-5xl font-black italic tracking-tighter">${cartTotal.toLocaleString()}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setIsCartOpen(false);
+                                            setIsCheckoutOpen(true);
+                                        }}
+                                        className="w-full bg-black text-[#FFCC00] py-6 rounded-2xl text-2xl font-black italic uppercase shadow-[0_10px_0_#444] active:shadow-none active:translate-y-2 transition-all"
+                                    >
+                                        FINALIZAR PEDIDO
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* --- CHECKOUT MODAL --- */}
+            <AnimatePresence>
+                {isCheckoutOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !isSubmitting && setIsCheckoutOpen(false)}
+                            className="fixed inset-0 bg-black/90 backdrop-blur-md z-[120]"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-[#FFCC00] z-[130] p-10 rounded-[40px] border-8 border-black shadow-[20px_20px_0_#000] overflow-y-auto max-h-[90vh]"
+                        >
+                            <div className="flex justify-between items-start mb-8 text-black">
+                                <h3 className="text-5xl font-black uppercase italic tracking-tighter leading-none">DATOS DEL <br /> TICKET</h3>
+                                <button onClick={() => setIsCheckoutOpen(false)} className="bg-black text-[#FFCC00] p-2 rounded-xl">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                if (isSubmitting) return;
+                                setIsSubmitting(true);
+
+                                try {
+                                    const supabase = createClient();
+                                    const orderCode = `GER-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+                                    const { data: order, error: orderError } = await supabase
+                                        .from('germain_orders')
+                                        .insert({
+                                            client_name: customerName,
+                                            client_whatsapp: customerWhatsApp,
+                                            delivery_type: deliveryType,
+                                            table_number: deliveryType === 'mesa' ? tableNumber : null,
+                                            total_amount: cartTotal,
+                                            order_code: orderCode,
+                                            status: 'pendiente',
+                                            session_id: activeSessionId
+                                        })
+                                        .select()
+                                        .single();
+
+                                    if (orderError) throw orderError;
+
+                                    const orderItems = cart.map(item => ({
+                                        order_id: order.id,
+                                        product_id: null,
+                                        product_name: item.name,
+                                        quantity: item.quantity,
+                                        unit_price: item.price
+                                    }));
+
+                                    const { error: itemsError } = await supabase
+                                        .from('germain_order_items')
+                                        .insert(orderItems);
+
+                                    if (itemsError) throw itemsError;
+
+                                    const itemsText = cart.map(item => `• ${item.quantity}x ${item.name}`).join('\n');
+                                    const message = `*NUEVO PEDIDO GERMAIN (${orderCode})*\n\n*Cliente:* ${customerName}\n*Tipo:* ${deliveryType.toUpperCase()} ${tableNumber ? `(Mesa ${tableNumber})` : ''}\n\n*Detalle:*\n${itemsText}\n\n*Total:* $${cartTotal.toLocaleString()}\n\n---\n_Enviado desde dondegermain.cl_`;
+
+                                    const whatsappUrl = `https://wa.me/56930219505?text=${encodeURIComponent(message)}`;
+
+                                    setCart([]);
+                                    setIsCheckoutOpen(false);
+                                    setOrderResult({ code: orderCode });
+                                    window.open(whatsappUrl, '_blank');
+
+                                } catch (err) {
+                                    console.error("Error:", err);
+                                    alert("Hubo un error al procesar tu pedido.");
+                                } finally {
+                                    setIsSubmitting(false);
+                                }
+                            }} className="space-y-6 text-black">
+                                <div>
+                                    <label className="block font-black italic uppercase text-sm mb-2">Tu Nombre</label>
+                                    <input
+                                        required
+                                        value={customerName}
+                                        onChange={e => setCustomerName(e.target.value)}
+                                        className="w-full bg-white border-4 border-black p-4 rounded-2xl font-bold italic focus:outline-none text-black"
+                                        placeholder="EJ: DANIEL TAGLE"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block font-black italic uppercase text-sm mb-2">WhatsApp</label>
+                                    <input
+                                        required
+                                        type="tel"
+                                        value={customerWhatsApp}
+                                        onChange={e => setCustomerWhatsApp(e.target.value)}
+                                        className="w-full bg-white border-4 border-black p-4 rounded-2xl font-bold italic focus:outline-none text-black"
+                                        placeholder="EJ: +569..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2">
+                                    {['local', 'llevar', 'mesa'].map(type => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => setDeliveryType(type as any)}
+                                            className={`p-3 rounded-xl border-4 border-black font-black italic text-xs transition-all ${deliveryType === type ? 'bg-black text-[#FFCC00]' : 'bg-white text-black'}`}
+                                        >
+                                            {type.toUpperCase()}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {deliveryType === 'mesa' && (
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mt-4">
+                                        <label className="block font-black italic uppercase text-sm mb-2 text-black">Número de Mesa</label>
+                                        <input
+                                            required
+                                            value={tableNumber}
+                                            onChange={e => setTableNumber(e.target.value)}
+                                            className="w-full bg-white border-4 border-black p-4 rounded-2xl font-bold italic focus:outline-none text-black"
+                                            placeholder="EJ: 5"
+                                        />
+                                    </motion.div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting || cart.length === 0}
+                                    className="w-full bg-black text-[#FFCC00] py-6 rounded-2xl text-2xl font-black italic uppercase shadow-[0_10px_0_#444] active:shadow-none active:translate-y-2 mt-8 disabled:opacity-50 flex items-center justify-center gap-3 transition-all"
+                                >
+                                    {isSubmitting ? (
+                                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
+                                            <ShoppingBag size={24} />
+                                        </motion.div>
+                                    ) : (
+                                        <>ENVIAR A COCINA <ChevronRight size={24} /></>
+                                    )}
+                                </button>
+                            </form>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* --- CLOSED NOTIFICATION BANNER --- */}
+            <AnimatePresence>
+                {!isLocalOpen && (
+                    <motion.div
+                        initial={{ y: 100 }}
+                        animate={{ y: 0 }}
+                        exit={{ y: 100 }}
+                        className="fixed bottom-0 left-0 w-full bg-black text-[#FFCC00] z-[200] p-4 flex flex-col md:flex-row items-center justify-center gap-4 text-center border-t-4 border-[#FFCC00]"
+                    >
+                        <div className="flex items-center gap-2 font-black italic uppercase text-sm">
+                            <Clock size={18} className="animate-pulse" />
+                            <span>LOCAL CERRADO • SOLO VISUALIZACIÓN</span>
+                        </div>
+                        <p className="text-[10px] font-bold opacity-60 uppercase">Vuelve de Martes a Domingo (18:00 - 01:00) para hacer tu pedido.</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+
+            {/* --- SUCCESS MODAL --- */}
+            <AnimatePresence>
+                {orderResult && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200]"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.5, opacity: 0 }}
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm text-center z-[210] p-6"
+                        >
+                            <div className="w-24 h-24 bg-[#FFCC00] rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(255,204,0,0.4)]">
+                                <Check size={48} className="text-black" strokeWidth={4} />
+                            </div>
+                            <h3 className="text-5xl font-black uppercase italic italic text-white mb-4 leading-none tracking-tighter">TICKET <br /> GENERADO</h3>
+                            <p className="text-[#FFCC00] font-black italic mb-12 opacity-60">TU CÓDIGO: {orderResult.code}</p>
+
+                            <div className="space-y-4">
+                                <Link
+                                    href={`/prospectos/donde-germain/track/${orderResult.code}`}
+                                    className="block bg-[#FFCC00] text-black py-6 rounded-2xl text-2xl font-black italic uppercase shadow-[0_10px_0_#000] active:shadow-none active:translate-y-2 transition-all"
+                                >
+                                    SEGUIR MI PEDIDO
+                                </Link>
+                                <button
+                                    onClick={() => setOrderResult(null)}
+                                    className="text-white/40 font-black italic uppercase text-sm hover:text-white transition-colors"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            <style jsx global>{`
+                @keyframes marquee {
+                  0% { transform: translateX(0); }
+                  100% { transform: translateX(-50%); }
+                }
+                .animate-marquee {
+                  animation: marquee 20s linear infinite;
+                }
+            `}</style>
         </div>
     );
 }

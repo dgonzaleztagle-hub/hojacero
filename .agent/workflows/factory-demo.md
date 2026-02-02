@@ -368,7 +368,13 @@ Antes de usar, pregunta:
 ```bash
 mkdir "d:\proyectos\hojacero\public\prospectos\[nombre-prospecto]"
 mkdir "d:\proyectos\hojacero\app\prospectos\[nombre-prospecto]"
-# Copiar logo e imágenes generadas
+
+# 🔴 REGLA DE ORO DE ASSETS (Daniel):
+# Todos los assets (logos, imágenes, galerías) DEBEN vivir en public/prospectos/[nombre-prospecto]/
+# El script de exportación copiará esta carpeta ÍNTEGRA.
+# Queda PROHIBIDO usar subcarpetas fuera de esta ruta para assets de prospectos.
+# Esto asegura que las cargas dinámicas (loops de fotos) no se rompan en el standalone.
+
 ```
 
 ---

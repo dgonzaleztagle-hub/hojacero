@@ -1,21 +1,28 @@
 {
-    "name": "HorasExtras Love",
-    "short_name": "HorasExtras",
-    "description": "Control de horas extra con amor",
-    "start_url": "/aplicaciones/horasextras",
+    "name": "Donde Germain Pro",
+    "short_name": "Germain",
+    "description": "La Mafia del Sabor - Pedidos Online",
+    "start_url": "/prospectos/donde-germain",
     "display": "standalone",
-    "background_color": "#FFF5F7",
-    "theme_color": "#D81B60",
+    "background_color": "#FFCC00",
+    "theme_color": "#000000",
     "icons": [
         {
-            "src": "/icon-192x192.png",
+            "src": "/germain_pwa_icon.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/icon-512x512.png",
+            "src": "/germain_pwa_icon.png",
             "sizes": "512x512",
             "type": "image/png"
+        },
+        {
+            "src": "/germain_pwa_icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
-    ]
+    ],
+    "orientation": "portrait"
 }
