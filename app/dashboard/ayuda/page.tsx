@@ -439,17 +439,17 @@ export default function BibliaH0Page() {
                                     <button
                                         key={w.id}
                                         onClick={() => setSelectedWorkflowId(w.id)}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group ${selectedWorkflowId === w.id
-                                            ? 'bg-white/10 border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.02)]'
+                                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all group ${selectedWorkflowId === w.id
+                                            ? 'bg-white/10 border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
                                             : 'hover:bg-white/5 border border-transparent'
                                             }`}
                                     >
-                                        <w.icon size={16} className={selectedWorkflowId === w.id ? 'text-cyan-400' : 'text-zinc-500 group-hover:text-zinc-300'} />
+                                        <w.icon size={18} className={selectedWorkflowId === w.id ? 'text-cyan-400' : 'text-zinc-500 group-hover:text-zinc-300'} />
                                         <div className="flex-1 min-w-0">
-                                            <div className="text-[11px] font-bold truncate tracking-tight">{w.title}</div>
-                                            <div className="text-[9px] font-mono text-zinc-600 truncate">{w.slash}</div>
+                                            <div className="text-[13px] font-black tracking-tight leading-none mb-1">{w.title}</div>
+                                            <div className="text-[11px] font-mono text-zinc-500 truncate">{w.slash}</div>
                                         </div>
-                                        {selectedWorkflowId === w.id && <ChevronRight size={14} className="text-cyan-400" />}
+                                        {selectedWorkflowId === w.id && <ChevronRight size={16} className="text-cyan-400" />}
                                     </button>
                                 ))}
                             </div>
@@ -485,7 +485,7 @@ export default function BibliaH0Page() {
                         <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-3">
                             <Target size={14} /> Estrategia Comercial
                         </h3>
-                        <p className="text-xl leading-relaxed text-zinc-300 font-medium">
+                        <p className="text-xl leading-relaxed text-zinc-100 font-bold tracking-tight">
                             {currentWorkflow.strategy}
                         </p>
                     </section>
@@ -495,11 +495,11 @@ export default function BibliaH0Page() {
                         <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-3">
                             <Terminal size={14} /> Protocolo de Inyección
                         </h3>
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {currentWorkflow.steps.map((step, i) => (
-                                <div key={i} className="flex gap-6 group">
-                                    <span className="text-cyan-500 font-mono text-xs mt-1">0{i + 1}.</span>
-                                    <div className="flex-1 pb-4 border-b border-white/5 group-last:border-none text-sm text-zinc-400 font-medium leading-relaxed">
+                                <div key={i} className="flex gap-8 group">
+                                    <span className="text-cyan-500 font-mono text-sm mt-1.5 font-black">0{i + 1}.</span>
+                                    <div className="flex-1 pb-6 border-b border-white/5 group-last:border-none text-lg text-zinc-200 font-medium leading-[1.6]">
                                         {step}
                                     </div>
                                 </div>
@@ -513,11 +513,11 @@ export default function BibliaH0Page() {
                         <h4 className="text-amber-500 text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-3 relative z-10">
                             <Shield size={14} /> Reglas de Oro (Inviolables)
                         </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
                             {currentWorkflow.rules.map((rule, i) => (
-                                <div key={i} className="space-y-2">
-                                    <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-                                    <p className="text-xs text-zinc-400 font-medium leading-relaxed tracking-tight">
+                                <div key={i} className="flex items-start gap-4">
+                                    <div className="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0" />
+                                    <p className="text-base text-zinc-300 font-bold leading-relaxed tracking-tight">
                                         {rule}
                                     </p>
                                 </div>
