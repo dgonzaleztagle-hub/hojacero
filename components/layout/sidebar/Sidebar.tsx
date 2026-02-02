@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard, Rocket, BookOpen, Calendar } from 'lucide-react';
+import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard, Rocket, BookOpen, Calendar, Megaphone } from 'lucide-react';
 
 // ... (lines 5-34)
 
@@ -60,6 +60,7 @@ export default function Sidebar() {
         { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
+        { label: 'ADS FACTORY', href: '/dashboard/ads-factory', icon: Megaphone, isBeta: true },
         { label: 'BIBLIA H0', href: '/dashboard/ayuda', icon: BookOpen },
         { label: 'ACADEMY', href: '/dashboard/academy', icon: Cpu },
     ];
