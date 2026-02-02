@@ -533,17 +533,19 @@ export default function BibliaH0Page() {
 
             {/* COLUMN 3: METADATOS TÉCNICOS (350px) */}
             <aside className="w-[350px] border-l border-white/5 bg-[#080808] p-8 hidden xl:flex flex-col gap-10">
-                <div className="space-y-6">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Huella Técnica</h3>
+                <div className="space-y-10">
+                    <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-400 border-b border-white/5 pb-4">
+                        Huella Técnica
+                    </h3>
 
                     {/* Database */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-zinc-100">
                             <Database size={14} className="text-cyan-400" /> Supabase Impact
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2.5">
                             {currentWorkflow.impact.db.map(db => (
-                                <span key={db} className="px-2.5 py-1.5 bg-white/5 border border-white/10 rounded-lg font-mono text-[9px] text-zinc-400">
+                                <span key={db} className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl font-mono text-[11px] text-cyan-50/70">
                                     {db}
                                 </span>
                             ))}
@@ -551,14 +553,14 @@ export default function BibliaH0Page() {
                     </div>
 
                     {/* Files */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-zinc-100">
                             <Code size={14} className="text-cyan-400" /> Nuclear Files
                         </div>
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2.5">
                             {currentWorkflow.impact.files.map(file => (
-                                <div key={file} className="px-3 py-2 bg-zinc-950 border border-white/5 rounded-xl font-mono text-[9px] text-zinc-500 flex items-center gap-2">
-                                    <div className="w-1 h-1 bg-zinc-700 rounded-full" />
+                                <div key={file} className="px-4 py-3 bg-zinc-950 border border-white/10 rounded-2xl font-mono text-[11px] text-zinc-100 flex items-center gap-3 shadow-inner">
+                                    <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
                                     {file}
                                 </div>
                             ))}
@@ -566,15 +568,17 @@ export default function BibliaH0Page() {
                     </div>
 
                     {/* Core Systems */}
-                    <div className="space-y-4 pt-4 border-t border-white/5">
-                        <div className="flex items-center gap-2 text-xs font-bold text-zinc-300">
+                    <div className="space-y-5 pt-4 border-t border-white/5">
+                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-zinc-100">
                             <Zap size={14} className="text-amber-500" /> Core Engine
                         </div>
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 gap-4">
                             {currentWorkflow.impact.core.map(sys => (
-                                <div key={sys} className="p-4 bg-zinc-900/50 border border-white/5 rounded-2xl">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-200 mb-1">{sys}</div>
-                                    <div className="text-[9px] text-zinc-500 font-medium">Protocolo activo en modo /slash</div>
+                                <div key={sys} className="p-5 bg-zinc-900/50 border border-white/10 rounded-[2rem]">
+                                    <div className="text-[11px] font-black uppercase tracking-widest text-white mb-2">{sys}</div>
+                                    <div className="text-[10px] text-zinc-400 font-medium leading-relaxed">
+                                        Protocolo activo vinculado al motor central de Hoja Cero.
+                                    </div>
                                 </div>
                             ))}
                         </div>
