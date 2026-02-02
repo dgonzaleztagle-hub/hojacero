@@ -60,8 +60,8 @@ export default function Sidebar() {
         { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
-        { label: 'AYUDA', href: '/dashboard/ayuda', icon: HelpCircle },
-        { label: 'ACADEMY', href: '/dashboard/academy', icon: BookOpen },
+        { label: 'BIBLIA H0', href: '/dashboard/ayuda', icon: BookOpen },
+        { label: 'ACADEMY', href: '/dashboard/academy', icon: Cpu },
     ];
 
     // Theme-aware colors

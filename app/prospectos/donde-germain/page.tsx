@@ -800,7 +800,8 @@ export default function DondeGermainPage() {
                                     if (itemsError) throw itemsError;
 
                                     const itemsText = cart.map(item => `• ${item.quantity}x ${item.name}`).join('\n');
-                                    const message = `*NUEVO PEDIDO GERMAIN (${orderCode})*\n\n*Cliente:* ${customerName}\n*Tipo:* ${deliveryType.toUpperCase()} ${tableNumber ? `(Mesa ${tableNumber})` : ''}\n\n*Detalle:*\n${itemsText}\n\n*Total:* $${cartTotal.toLocaleString()}\n\n---\n_Enviado desde dondegermain.cl_`;
+                                    const trackingUrl = `${window.location.origin}/prospectos/donde-germain/track/${orderCode}`;
+                                    const message = `*NUEVO PEDIDO GERMAIN (${orderCode})*\n\n*Cliente:* ${customerName}\n*Tipo:* ${deliveryType.toUpperCase()} ${tableNumber ? `(Mesa ${tableNumber})` : ''}\n\n*Detalle:*\n${itemsText}\n\n*Total:* $${cartTotal.toLocaleString()}\n\n*Sigue tu pedido aquí:* \n${trackingUrl}\n\n---\n_Enviado desde dondegermain.cl_`;
 
                                     const whatsappUrl = `https://wa.me/56930219505?text=${encodeURIComponent(message)}`;
 
