@@ -64,9 +64,9 @@ export default function AdsFactoryPage() {
                             </div>
 
                             <h3 className="text-xl font-bold mb-2 text-white">{lp.title}</h3>
-                            <p className="text-xs font-mono text-cyan-500 mb-6 group-hover:underline cursor-pointer">
+                            <Link href={`/lp/${lp.slug}`} target="_blank" className="text-xs font-mono text-cyan-500 mb-6 group-hover:underline cursor-pointer">
                                 /{lp.slug}
-                            </p>
+                            </Link>
 
                             <div className="grid grid-cols-2 gap-4 pb-6 border-b border-white/5 mb-6">
                                 <div>
