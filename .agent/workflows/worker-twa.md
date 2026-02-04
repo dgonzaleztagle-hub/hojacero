@@ -1,85 +1,69 @@
 ---
-description: Genera una APK (TWA) desde cualquier PWA de HojaCero
+description: Genera una APK (TWA) desde cualquier PWA de HojaCero con Score 40+ garantizado.
 ---
 
-# 🤖 Worker TWA: De PWA a APK en 3 Pasos
+# 🤖 Worker TWA: Protocolo de Alta Fidelidad (PWA a APK)
 
-Este workflow convierte cualquier PWA de HojaCero en una APK instalable para Android usando **Trusted Web Activities (TWA)**.
-
----
-
-## ✅ Pre-requisitos (Auto-Check)
-
-Antes de generar la APK, verifica que el sitio tenga:
-
-1. **manifest.json** en `/public/` con:
-   - `name`, `short_name`, `description`
-   - `start_url` (ruta del prospecto)
-   - `display: "standalone"`
-   - `icons` con tamaños 192x192 y 512x512
-   - `theme_color` y `background_color`
-
-2. **Service Worker** (`sw.js`) en `/public/`
-
-3. **Metadata PWA** en el `layout.tsx`:
-   ```tsx
-   manifest: "/manifest.json",
-   themeColor: "#000000",
-   appleWebApp: { capable: true }
-   ```
+Este workflow convierte cualquier prospecto en una App nativa Android de alto rendimiento usando **Trusted Web Activities (TWA)**.
 
 ---
 
-## 🛠️ Método 1: PWA Builder (Recomendado - Sin instalación)
+## 🛠️ Paso 1: Infraestructura PWA (Isolación)
 
-### Paso 1: Validar el PWA
-```bash
-# Abrir el sitio en producción
-https://hojacero.cl/prospectos/[nombre-proyecto]
-```
+Para maximizar el score y evitar colisiones, la PWA debe vivir dentro de la carpeta del prospecto:
 
-### Paso 2: Generar APK
-1. Ir a: https://www.pwabuilder.com/
-2. Pegar la URL del prospecto
-3. Click en "Package for Stores" → Android
-4. Descargar el `.apk` generado
+1.  **Archivos en `/public/prospectos/[nombre]/`:**
+    - `manifest.json`: Definición de la App.
+    - `sw.js`: Service Worker resiliente.
+    - `offline.html`: Landing de emergencia sin internet.
 
-**Ventajas:**
-- ✅ No requiere JDK ni Android Studio
-- ✅ Genera APK firmada lista para Play Store
-- ✅ Incluye asset links automáticos
+2.  **Imágenes Exactas (Usar `scripts/resize-pwa-images.js`):**
+    - Iconos PNG: `512x512`, `192x192`, `96x96`.
+    - Screenshots: `1280x720` (Desktop), `720x1280` (Mobile).
+
+3.  **Registro en `layout.tsx`:**
+    ```tsx
+    manifest: "/prospectos/[nombre]/manifest.json",
+    // Inyectar el componente <ServiceWorkerRegistrar />
+    ```
 
 ---
 
-## 🛠️ Método 2: Bubblewrap CLI (Avanzado - Requiere JDK 17)
+## 🛡️ Paso 2: Configuración "Immortal" (Middleware & SW)
+
+1.  **Middleware Bypass:** Asegurar que `middleware.ts` no intercepte los archivos `.js` o `.json`:
+    ```typescript
+    matcher: ['/((?!.*manifest\\.json|.*sw\\.js|...))']
+    ```
+
+2.  **Lógica Resiliente en `sw.js`:**
+    Usa `Promise.allSettled` en el evento `install` para asegurar que el Service Worker se active aunque falte algún asset menor.
+
+---
+
+## 📦 Paso 3: Generación (PWA Builder)
+
+1.  Envía la URL completa: `https://hojacero.cl/prospectos/[nombre]/`
+2.  **Objetivo Score:** 40/44 (Los últimos 4 puntos suelen ser IDs de Apple o Ratings IARC que no afectan el APK core).
+3.  Descarga el **Android Package (APK)**.
+
+---
+
+## ⚡ Automatización: Script de Redimensionamiento
 
 // turbo
 ```bash
-# Solo si tienes JDK 17 instalado
-npx @bubblewrap/cli init --manifest https://hojacero.cl/manifest.json
-npx @bubblewrap/cli build
+# Ejecuta el motor Sharp para preparar las imágenes
+node scripts/resize-pwa-images.js
 ```
 
-**Nota:** Este método requiere configuración manual de JDK. Usar solo si PWA Builder no funciona.
-
 ---
 
-## 📦 Entregables
-
-Al finalizar, tendrás:
-- ✅ `app-release-signed.apk` (listo para instalar en Android)
-- ✅ `assetlinks.json` (para verificación de dominio)
-- ✅ Instrucciones para subir a Play Store (si aplica)
+## 🎖️ Calidad HojaCero
+- ✅ **Cero Rojos:** No se permiten errores críticos en PWA Builder.
+- ✅ **Offline Real:** La App debe mostrar el menú/contenido incluso en modo avión.
+- ✅ **Iconos Maskable:** El logo no debe verse cortado en teléfonos Samsung/Pixel.
 
 ---
-
-## 🎯 Casos de Uso
-
-- **Donde Germain:** App de pedidos offline-first
-- **Reparpads:** Catálogo instalable para técnicos
-- **Cualquier prospecto:** Convertir landing en app nativa
-
----
-
-> [!TIP]
-> **Para automatizar:** Podríamos crear un endpoint `/api/generate-twa` que llame a PWA Builder API y devuelva la APK directamente desde el Dashboard.
+> [!IMPORTANT]
+> Para activar **Push Notifications**, se requiere la inyección del SDK de Firebase Cloud Messaging (FCM) y la configuración del par de llaves VAPID en el centro de control.

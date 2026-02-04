@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "cl.hojacero.germain",
+            "sha256_cert_fingerprints": [
+                "C3:5D:A1:D5:E7:7C:C2:AD:0F:6D:70:5A:FD:AE:48:14:BD:F2:B1:63:71:6E:16:45:56:B0:0D:B1:88:1F:6A:9E"
+            ]
+        }
+    }
+]
