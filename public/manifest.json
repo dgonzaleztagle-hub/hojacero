@@ -83,7 +83,7 @@
     "orientation": "portrait",
     "prefer_related_applications": false,
     "serviceworker": {
-        "src": "/sw.js",
+        "src": "/service-worker.js",
         "scope": "/",
         "update_via_cache": "none"
     }
