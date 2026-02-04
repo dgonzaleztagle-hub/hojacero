@@ -4,7 +4,7 @@ import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 export const metadata: Metadata = {
     title: "Donde Germain | La Mafia del Sabor",
     description: "Menú Gourmet, Burger Mafia y Empanadas Brutales. Pide online ahora.",
-    manifest: "/manifest.json",
+    manifest: "/prospectos/donde-germain/manifest.json",
     themeColor: "#000000",
     viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
     appleWebApp: {

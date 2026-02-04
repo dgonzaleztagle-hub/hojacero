@@ -83,8 +83,8 @@
     "orientation": "portrait",
     "prefer_related_applications": false,
     "serviceworker": {
-        "src": "/service-worker.js",
-        "scope": "/",
+        "src": "/prospectos/donde-germain/sw.js",
+        "scope": "/prospectos/donde-germain/",
         "update_via_cache": "none"
     }
 }

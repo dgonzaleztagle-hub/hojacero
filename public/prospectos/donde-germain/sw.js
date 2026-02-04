@@ -1,5 +1,5 @@
 const CACHE_NAME = 'germain-v3';
-const OFFLINE_URL = '/offline.html';
+const OFFLINE_URL = '/prospectos/donde-germain/offline.html';
 
 // Assets to cache immediately on install
 const PRECACHE_ASSETS = [
