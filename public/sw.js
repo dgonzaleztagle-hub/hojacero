@@ -1,5 +1,4 @@
-// Service Worker para Donde Germain PWA
-const CACHE_NAME = 'germain-v2';
+const CACHE_NAME = 'germain-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately on install
@@ -11,11 +10,16 @@ const PRECACHE_ASSETS = [
     OFFLINE_URL
 ];
 
-// Install event - precache assets
+// Install event - precache assets with resilience
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(PRECACHE_ASSETS);
+            // Usamos map y allSettled para que si un asset da 404, el SW se instale igual
+            return Promise.allSettled(
+                PRECACHE_ASSETS.map(url =>
+                    cache.add(url).catch(err => console.warn(`⚠️ Cache failed for: ${url}`, err))
+                )
+            );
         })
     );
     self.skipWaiting();
