@@ -6,9 +6,11 @@ export default function ServiceWorkerRegistrar() {
     useEffect(() => {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker
-                .register('/sw.js', { scope: '/prospectos/donde-germain' })
+                .register('/sw.js', { scope: '/' })
                 .then((registration) => {
                     console.log('✅ Service Worker registrado:', registration.scope);
+                    // Forzar actualización si hay un nuevo SW
+                    registration.update();
                 })
                 .catch((error) => {
                     console.error('❌ Error registrando Service Worker:', error);

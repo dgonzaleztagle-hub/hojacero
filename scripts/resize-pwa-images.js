@@ -49,6 +49,14 @@ async function resizeImages() {
             .toBuffer();
         fs.writeFileSync(path.join(PUBLIC_DIR, 'germain_icon_192.png'), icon192);
         console.log('   ✅ germain_icon_192.png (192x192)');
+
+        // 96x96 (NUEVO para shortcuts)
+        const icon96 = await sharp(buffer)
+            .resize(96, 96, { fit: 'cover' })
+            .png()
+            .toBuffer();
+        fs.writeFileSync(path.join(PUBLIC_DIR, 'germain_icon_96.png'), icon96);
+        console.log('   ✅ germain_icon_96.png (96x96)');
     }
 
     // Redimensionar screenshots
