@@ -1,0 +1,16 @@
+{
+    "general": {
+        "site_name": "Apimiel - Autogestión",
+        "hero_title": "Miel Pura de la Patagonia",
+        "hero_subtitle": "Del panal a tu mesa, sin intermediarios.",
+        "contact_phone": "+56 9 1234 5678"
+    },
+    "pricing": {
+        "honey_jar_500g": "8.500",
+        "honey_jar_1kg": "15.000",
+        "pollen_250g": "12.000"
+    },
+    "assets": {
+        "hero_bg": "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&q=80&w=1920"
+    }
+}

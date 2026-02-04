@@ -383,6 +383,29 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
             'Acceso exclusivo al personal mediante protección de rutas.',
             'Sincronización atómica para evitar pedidos perdidos.'
         ]
+    },
+    {
+        id: 'worker-cms-standalone',
+        category: 'worker',
+        title: 'CMS Pro Standalone',
+        slash: '/worker-cms-standalone',
+        icon: ShieldCheck,
+        strategy: 'Inyecta autonomía total (Zero Connection) en el sitio del cliente mediante persistencia vía GitHub API.',
+        impact: {
+            db: ['N/A (JSON-as-a-DB)'],
+            files: ['app/api/cms/', 'app/cms/admin/', 'data/cms-content.json'],
+            core: ['GitHub Octokit Persistence', 'Standalone Master Key Auth']
+        },
+        steps: [
+            'Inyección del motor de persistencia Octokit.',
+            'Activación de sockets inteligentes <Editable />.',
+            'Despliegue del Dashboard Admin Premium en /cms/admin.',
+            'Configuración de variables de entorno GITHUB_* y CMS_ACCESS_KEY.'
+        ],
+        rules: [
+            'Prohibido usar Supabase en este motor; la independencia es ley.',
+            'El Master Key debe configurarse en Vercel para habilitar el acceso.'
+        ]
     }
 ];
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 
 export const metadata: Metadata = {
     title: "Donde Germain | La Mafia del Sabor",
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
         title: "Germain Pro",
     },
     icons: {
-        icon: "/germain_pwa_icon.png",
-        apple: "/germain_pwa_icon.png",
+        icon: "/germain_pwa_icon.jpg",
+        apple: "/germain_pwa_icon.jpg",
     }
 };
 
@@ -24,6 +25,7 @@ export default function GermainLayout({
 }) {
     return (
         <div className="germain-pro-wrapper">
+            <ServiceWorkerRegistrar />
             {children}
         </div>
     );

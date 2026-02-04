@@ -58,14 +58,21 @@ export const ModalTabAuditoria = ({
                 <h4 className="text-sm font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" /> Reporte de Inteligencia (SEO & Competencia)
                 </h4>
-                <button
-                    onClick={onDeepAnalyze}
-                    disabled={isDeepAnalyzing}
-                    className={`p-1.5 rounded-lg border transition-all ${isDark ? 'bg-purple-500/10 border-purple-500/20 hover:bg-purple-500/20 text-purple-300' : 'bg-purple-50 border-purple-100 hover:bg-purple-100 text-purple-500'}`}
-                    title="Forzar re-auditoría profunda"
-                >
-                    {isDeepAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-                </button>
+                <div className="flex items-center gap-2">
+                    {selectedLead.source_data?.scraped?.forensic?.archetype && (
+                        <span className="px-2 py-1 bg-red-500/10 border border-red-500/20 rounded text-[10px] font-black text-red-400 uppercase">
+                            Arquetipo: {selectedLead.source_data?.scraped?.forensic?.archetype}
+                        </span>
+                    )}
+                    <button
+                        onClick={onDeepAnalyze}
+                        disabled={isDeepAnalyzing}
+                        className={`p-1.5 rounded-lg border transition-all ${isDark ? 'bg-purple-500/10 border-purple-500/20 hover:bg-purple-500/20 text-purple-300' : 'bg-purple-50 border-purple-100 hover:bg-purple-100 text-purple-500'}`}
+                        title="Forzar re-auditoría profunda"
+                    >
+                        {isDeepAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                    </button>
+                </div>
             </div>
 
             {/* TECHNICAL HEALTH (Web-Check Style) */}

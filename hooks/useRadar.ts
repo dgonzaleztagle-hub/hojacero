@@ -17,7 +17,7 @@ export function useRadar() {
 
     // Tabs & Navigation
     const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'closed' | 'history'>('scanner');
-    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo'>('diagnostico');
+    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo' | 'forense'>('diagnostico');
 
     // Data Lists
     const [historyLeads, setHistoryLeads] = useState<any[]>([]);
@@ -332,14 +332,22 @@ export function useRadar() {
     const performDeepAnalysis = async () => {
         if (!selectedLead) return;
         const leadId = selectedLead.id || selectedLead.db_id;
-        const url = selectedLead.website || selectedLead.sitio_web || selectedLead.source_data?.sitio_web;
 
-        // Validation needs to be robust as restored leads might have partial data
-        if (!url) {
-            alert('No web URL found for this lead');
+        // Búsqueda exhaustiva de URL en todos los campos posibles
+        const url = selectedLead.website ||
+            selectedLead.sitio_web ||
+            selectedLead.domain ||
+            selectedLead.url ||
+            selectedLead.source_data?.sitio_web ||
+            selectedLead.source_data?.website ||
+            selectedLead.source_data?.domain;
+
+        if (!url && !selectedLead.nombre && !selectedLead.title) {
+            alert('Kimi necesita al menos el nombre del negocio para iniciar el descubrimiento.');
             return;
         }
 
+        console.log(`🕵️ KIMI DISCOVERY MODE: Iniciando búsqueda para "${selectedLead.nombre || selectedLead.title}"...`);
         setIsDeepAnalyzing(true);
         try {
             const res = await fetch('/api/radar/analyze', {
@@ -355,11 +363,16 @@ export function useRadar() {
             const data = await res.json();
 
             if (data.success) {
+                console.log(`📥 RECEIVED FROM SERVER - scraped:`, data.scraped);
+                console.log(`📥 RECEIVED FROM SERVER - discoveryData:`, data.discoveryData);
+                console.log(`🔍 LinkedIn Found:`, data.scraped?.linkedin || data.discoveryData?.linkedin || 'NONE');
+
                 // Merge data into selectedLead
                 const updatedSourceData = {
                     ...(selectedLead.source_data || {}),
                     scraped: data.scraped,
                     deep_analysis: { ...data.analysis, techSpecs: data.analysis.techSpecs }, // ensure structure matches
+                    kimi_forensics: data.kimiForensics, // <-- NUEVO: Datos de Kimi Forensics
                     last_audit_date: new Date().toISOString()
                 };
 
@@ -374,8 +387,8 @@ export function useRadar() {
                 setLeads(prev => prev.map(l => (l.id === leadId || l.db_id === leadId) ? updatedLead : l));
                 setPipelineLeads(prev => prev.map(l => (l.id === leadId || l.db_id === leadId) ? updatedLead : l));
 
-                // Switch to Auditoria Tab to show results
-                setModalTab('auditoria');
+                // No redirigir automáticamente para no romper el flujo del usuario
+                // setModalTab('auditoria');
             } else {
                 alert('Analysis failed: ' + (data.error || 'Unknown error'));
             }

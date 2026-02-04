@@ -1,0 +1,59 @@
+{
+    "categories": [
+        {
+            "name": "Contenido General",
+            "fields": [
+                {
+                    "id": "general.site_name",
+                    "label": "Nombre del Sitio",
+                    "type": "text"
+                },
+                {
+                    "id": "general.hero_title",
+                    "label": "Título Principal",
+                    "type": "text"
+                },
+                {
+                    "id": "general.hero_subtitle",
+                    "label": "Subtítulo",
+                    "type": "rich-text"
+                },
+                {
+                    "id": "general.contact_phone",
+                    "label": "Teléfono de Contacto",
+                    "type": "text"
+                }
+            ]
+        },
+        {
+            "name": "Gestión de Precios",
+            "fields": [
+                {
+                    "id": "pricing.honey_jar_500g",
+                    "label": "Miel 500g",
+                    "type": "price"
+                },
+                {
+                    "id": "pricing.honey_jar_1kg",
+                    "label": "Miel 1kg",
+                    "type": "price"
+                },
+                {
+                    "id": "pricing.pollen_250g",
+                    "label": "Polen 250g",
+                    "type": "price"
+                }
+            ]
+        },
+        {
+            "name": "Multimedia",
+            "fields": [
+                {
+                    "id": "assets.hero_bg",
+                    "label": "Fondo de Portada",
+                    "type": "image"
+                }
+            ]
+        }
+    ]
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard, Rocket, BookOpen, Calendar, Megaphone } from 'lucide-react';
+import { Home, BarChart2, Users, Settings, LogOut, ChevronRight, Activity, Mail, FileText, Database, Lock, Cpu, Target, KanbanSquare, HelpCircle, LayoutDashboard, Rocket, BookOpen, Calendar, Megaphone, Shield } from 'lucide-react';
 
 // ... (lines 5-34)
 
@@ -53,12 +53,12 @@ export default function Sidebar() {
 
     const menuItems: { label: string; href: string; icon: any; isBeta?: boolean; badge?: number; badgeColor?: string }[] = [
         { label: 'DASHBOARD', href: '/dashboard', icon: LayoutDashboard },
-        { label: 'MÉTRICAS', href: '/dashboard/metrics', icon: Activity },
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
         { label: 'PIPELINE', href: '/dashboard/pipeline', icon: KanbanSquare },
         { label: 'AGENDA', href: '/dashboard/agenda', icon: Calendar, badge: agendaCount, badgeColor: 'cyan' },
         { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
+        { label: 'FLOTA', href: '/dashboard/fleet', icon: Shield },
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
         { label: 'ADS FACTORY', href: '/dashboard/ads-factory', icon: Megaphone, isBeta: true },
         { label: 'BIBLIA H0', href: '/dashboard/ayuda', icon: BookOpen },

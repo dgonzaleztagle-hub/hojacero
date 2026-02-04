@@ -58,6 +58,38 @@ export const ModalTabDiagnostico = ({
 }: ModalTabDiagnosticoProps) => {
     return (
         <div className="grid grid-cols-1 gap-6">
+            {/* FORENSIC PULSE (Kimi Engine) */}
+            {(analysis.forensic || selectedLead.source_data?.scraped?.forensic) && (
+                <div className={`rounded-3xl p-6 border flex flex-col items-center justify-center relative overflow-hidden transition-all ${isDark ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
+                    <div className="absolute top-0 right-0 p-3">
+                        <span className="flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                    </div>
+
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500/60 mb-2">Fuga de Capital Digital</span>
+
+                    <div className="flex items-baseline gap-1">
+                        <span className={`text-4xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                            ${(analysis.forensic?.loss?.monthlyLoss || selectedLead.source_data?.scraped?.forensic?.loss?.monthlyLoss || 0).toLocaleString('es-CL')}
+                        </span>
+                        <span className="text-xs font-bold text-zinc-500">CLP / mes</span>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-4">
+                        <div className="flex flex-col items-center">
+                            <span className="text-[8px] font-bold text-zinc-500 uppercase">Arquetipo</span>
+                            <span className="text-xs font-black text-red-400">{analysis.forensic?.archetype || selectedLead.source_data?.scraped?.forensic?.archetype || 'TIEMPO'}</span>
+                        </div>
+                        <div className="w-[1px] h-6 bg-white/5"></div>
+                        <div className="flex flex-col items-center">
+                            <span className="text-[8px] font-bold text-zinc-500 uppercase">Severidad</span>
+                            <span className="text-xs font-black text-red-400 uppercase">{analysis.forensic?.loss?.severity || selectedLead.source_data?.scraped?.forensic?.loss?.severity || 'ALTA'}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* AI ANALYSIS CARD */}
             <div className={`backdrop-blur-xl rounded-3xl p-6 border space-y-6 shadow-2xl relative overflow-hidden transition-colors ${isDark ? 'bg-zinc-900/40 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-5 mb-2">

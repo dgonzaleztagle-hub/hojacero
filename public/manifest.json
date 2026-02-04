@@ -1,28 +1,113 @@
 {
+    "id": "/prospectos/donde-germain",
     "name": "Donde Germain Pro",
     "short_name": "Germain",
-    "description": "La Mafia del Sabor - Pedidos Online",
+    "description": "La Mafia del Sabor - Pedidos Online. Burgers, empanadas y más.",
+    "lang": "es-CL",
+    "dir": "ltr",
     "start_url": "/prospectos/donde-germain",
+    "scope": "/prospectos/donde-germain",
     "display": "standalone",
+    "display_override": [
+        "standalone",
+        "minimal-ui"
+    ],
     "background_color": "#FFCC00",
     "theme_color": "#000000",
+    "categories": [
+        "food",
+        "lifestyle"
+    ],
+    "shortcuts": [
+        {
+            "name": "Ver Menú",
+            "short_name": "Menú",
+            "description": "Explora nuestro menú completo",
+            "url": "/prospectos/donde-germain#menu",
+            "icons": [
+                {
+                    "src": "/germain_pwa_icon.jpg",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Hacer Pedido",
+            "short_name": "Pedir",
+            "description": "Realiza tu pedido ahora",
+            "url": "/prospectos/donde-germain#pedido",
+            "icons": [
+                {
+                    "src": "/germain_pwa_icon.jpg",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ],
     "icons": [
         {
-            "src": "/germain_pwa_icon.png",
+            "src": "/germain_pwa_icon.jpg",
+            "sizes": "48x48",
+            "type": "image/jpeg",
+            "purpose": "any"
+        },
+        {
+            "src": "/germain_pwa_icon.jpg",
+            "sizes": "72x72",
+            "type": "image/jpeg",
+            "purpose": "any"
+        },
+        {
+            "src": "/germain_pwa_icon.jpg",
+            "sizes": "96x96",
+            "type": "image/jpeg",
+            "purpose": "any"
+        },
+        {
+            "src": "/germain_pwa_icon.jpg",
+            "sizes": "128x128",
+            "type": "image/jpeg",
+            "purpose": "any"
+        },
+        {
+            "src": "/germain_pwa_icon.jpg",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/jpeg",
+            "purpose": "any"
         },
         {
-            "src": "/germain_pwa_icon.png",
-            "sizes": "512x512",
-            "type": "image/png"
+            "src": "/germain_pwa_icon.jpg",
+            "sizes": "384x384",
+            "type": "image/jpeg",
+            "purpose": "any"
         },
         {
-            "src": "/germain_pwa_icon.png",
+            "src": "/germain_pwa_icon.jpg",
             "sizes": "512x512",
-            "type": "image/png",
+            "type": "image/jpeg",
+            "purpose": "any"
+        },
+        {
+            "src": "/germain_pwa_icon.jpg",
+            "sizes": "512x512",
+            "type": "image/jpeg",
             "purpose": "maskable"
         }
     ],
-    "orientation": "portrait"
+    "screenshots": [
+        {
+            "src": "/prospectos/donde-germain/screenshot-wide.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/prospectos/donde-germain/screenshot-narrow.png",
+            "sizes": "720x1280",
+            "type": "image/png",
+            "form_factor": "narrow"
+        }
+    ],
+    "orientation": "portrait",
+    "prefer_related_applications": false
 }

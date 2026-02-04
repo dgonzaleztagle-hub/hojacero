@@ -3,6 +3,7 @@
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 import { ScraperEngine } from './scraper-engine';
+import { detectArchetype, calculateLossScore, ForensicArchetype, LossScoreResult } from './forensic-logic';
 
 // ========================
 // SCRAPER: Extract contacts from website + subpages
@@ -118,6 +119,10 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
     isHojaCeroClient: boolean;
     hasStore: boolean;
     hasBackend: boolean;
+    forensic: {
+        archetype: ForensicArchetype;
+        loss: LossScoreResult;
+    };
 }> {
     const result = {
         emails: [] as string[],
@@ -130,6 +135,10 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
         isHojaCeroClient: false,
         hasStore: false,
         hasBackend: false,
+        forensic: {
+            archetype: 'DESCONOCIDO' as ForensicArchetype,
+            loss: { monthlyLoss: 0, currency: 'CLP', severity: 'low' as any, reason: '' }
+        }
     };
 
     if (!websiteUrl) return result;
@@ -155,6 +164,10 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
     result.isHojaCeroClient = htmlLower.includes('hojacero') || htmlLower.includes('hoja cero') || htmlLower.includes('<!-- h0 -->');
     result.hasStore = htmlLower.includes('add-to-cart') || htmlLower.includes('añadir al carrito') || htmlLower.includes('woocommerce') || htmlLower.includes('shopify') || htmlLower.includes('/cart') || (htmlLower.includes('precio') && htmlLower.includes('comprar'));
     result.hasBackend = htmlLower.includes('login') || htmlLower.includes('iniciar sesión') || htmlLower.includes('mi cuenta') || htmlLower.includes('my-account') || htmlLower.includes('dashboard');
+
+    // --- KIMI FORENSIC INJECTION ---
+    result.forensic.archetype = detectArchetype(result);
+    result.forensic.loss = calculateLossScore(result.techStack, result.hasSSL, result.forensic.archetype);
 
     if (fastMode) return result;
 
@@ -333,6 +346,10 @@ export async function analyzeLeadWithOpenAI(place: any, scraped: any) {
     - Web: ${place.website || 'NO TIENE'}
     - Contactos: ${contactsStr}
     - Tech: ${techStackStr}
+    - FORENSIC DNA (Kimi):
+        * Arquetipo de Dolor: ${scraped.forensic?.archetype || 'Desconocido'}
+        * Fuga de Capital: $${scraped.forensic?.loss?.monthlyLoss || 0} ${scraped.forensic?.loss?.currency || 'CLP'}/mes
+        * Razonamiento: ${scraped.forensic?.loss?.reason || 'N/A'}
     
     REGLAS DE ANÁLISIS (ENFOQUE VISUAL/MARCA):
     - NO menciones velocidad, SSL, o código como argumento principal. Eso aburre al cliente.

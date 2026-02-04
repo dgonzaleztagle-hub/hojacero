@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { analyzeTechSpecs } from '@/utils/tech-analysis';
+import { analizarForense, KimiForensicResult } from '@/utils/kimi-forensics';
 
 // ===========================================
 // AUDITORÍA PROFUNDA - HOJACERO RADAR
@@ -63,8 +64,9 @@ async function performSeoAudit(url: string) {
             const cms = isNextJs ? 'Next.js' : isWordpress ? 'WordPress' : isWix ? 'Wix' : isShopify ? 'Shopify' : null;
 
             return {
-                hasTitle: /<title>/.test(html),
-                hasMetaDesc: /<meta[^>]*name=["']description["'][^>]*content=["']/.test(html),
+                // hasTitle: verifica que el tag tenga contenido real (no solo <title></title> vacío)
+                hasTitle: /<title>[^<]+<\/title>/i.test(html),
+                hasMetaDesc: /<meta[^>]*name=["']description["'][^>]*content=["'][^"']+/i.test(html),
                 hasH1: /<h1/.test(html),
                 hasOGTags: /<meta[^>]*property=["']og:/.test(html),
                 hasViewport: /<meta[^>]*name=["']viewport["']/i.test(html),
@@ -119,16 +121,87 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        console.log(`🕵️ DEEP ANALYZE: Processing ${businessName} (${url})...`);
+        let targetUrl = url;
+        let discoveryData: any = null;
 
-        // 1. Technical Audit
-        const [audit, techSpecs] = await Promise.all([
-            performSeoAudit(url),
-            analyzeTechSpecs(url)
-        ]);
+        // --- FASE DE DESCUBRIMIENTO KIMI ---
+        // Siempre intentamos descubrir redes sociales si tenemos el nombre del negocio, 
+        // incluso si ya tenemos una URL, para evitar puntos ciegos (como LinkedIn).
+        if (businessName) {
+            console.log(`🔍 KIMI STARTING DISCOVERY for: ${businessName}`);
+            const discoveryQuery = `${businessName} Chile sitio web oficial linkedin facebook instagram`;
+            try {
+                const searchRes = await fetch('https://google.serper.dev/search', {
+                    method: 'POST',
+                    headers: { 'X-API-KEY': SERPER_API_KEY || '', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q: discoveryQuery, gl: 'cl', hl: 'es' })
+                });
+                const searchData = await searchRes.json();
 
-        // 2. Google Search Context
-        const searchContext = await performDeepResearch(`${businessName} Chile`);
+                const possibleWeb = searchData.organic?.find((r: any) =>
+                    !r.link.includes('facebook.com') &&
+                    !r.link.includes('instagram.com') &&
+                    !r.link.includes('linkedin.com') &&
+                    !r.link.includes('cl.linkedin.com') &&
+                    !r.link.includes('youtube.com') &&
+                    !r.link.includes('twitter.com') &&
+                    !r.link.includes('x.com') &&
+                    !r.link.includes('tiktok.com')
+                );
+
+                if (possibleWeb) {
+                    targetUrl = possibleWeb.link;
+                    console.log(`✅ KIMI DISCOVERED URL: ${targetUrl}`);
+                }
+
+                // --- BÚSQUEDA DEDICADA DE LINKEDIN ---
+                let liLink = searchData.organic?.find((r: any) => r.link.includes('linkedin.com'))?.link ||
+                    searchData.knowledgeGraph?.attributes?.LinkedIn || null;
+
+                if (!liLink) {
+                    console.log(`🔍 KIMI TARGETED LINKEDIN SEARCH for: ${businessName}`);
+                    const liSearchRes = await fetch('https://google.serper.dev/search', {
+                        method: 'POST',
+                        headers: { 'X-API-KEY': SERPER_API_KEY || '', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ q: `${businessName} Chile LinkedIn company`, gl: 'cl', hl: 'es', num: 3 })
+                    });
+                    const liSearchData = await liSearchRes.json();
+                    liLink = liSearchData.organic?.find((r: any) => r.link.includes('linkedin.com'))?.link || null;
+                    console.log(`🔍 LINKEDIN SEARCH RESULTS:`, liSearchData.organic?.slice(0, 3).map((r: any) => r.link));
+                }
+
+                console.log(`✅ KIMI DISCOVERY COMPLETE - LinkedIn: ${liLink || 'NOT FOUND'}`);
+
+                discoveryData = {
+                    facebook: searchData.organic?.find((r: any) => r.link.includes('facebook.com'))?.link ||
+                        searchData.knowledgeGraph?.attributes?.Facebook || null,
+                    instagram: searchData.organic?.find((r: any) => r.link.includes('instagram.com'))?.link ||
+                        searchData.knowledgeGraph?.attributes?.Instagram || null,
+                    linkedin: liLink,
+                    snippets: searchData.organic?.slice(0, 5).map((r: any) => r.snippet).join(' | ')
+                };
+
+                console.log(`📊 DISCOVERY DATA:`, JSON.stringify(discoveryData, null, 2));
+            } catch (discoveryErr) {
+                console.error('Error in discovery phase:', discoveryErr);
+            }
+        }
+
+        console.log(`🕵️ DEEP ANALYZE: Processing ${businessName} (Target: ${targetUrl})...`);
+
+        // 1. Technical Audit (Solo si hay URL meta o descubierta)
+        let audit: any = null;
+        let techSpecs: any = null;
+
+        if (targetUrl) {
+            [audit, techSpecs] = await Promise.all([
+                performSeoAudit(targetUrl),
+                analyzeTechSpecs(targetUrl)
+            ]);
+        }
+
+        // 2. Google Search Context (Usar el nombre para buscar contexto global)
+        const searchContext = discoveryData?.snippets || await performDeepResearch(`${businessName} Chile`);
 
         // 3. AI Analysis con OpenAI
         let deepAnalysis: any = {
@@ -177,6 +250,9 @@ ${JSON.stringify({
 TECH SPECS:
 ${JSON.stringify(techSpecs, null, 2)}
 
+FORENSIC DNA (Kimi):
+${JSON.stringify(audit && 'forensic' in audit ? (audit as any).forensic : {}, null, 2)}
+
 CONTEXTO GOOGLE:
 ${searchContext}
 
@@ -184,7 +260,7 @@ RESPONDE SOLO JSON:
 {
   "seoScore": 0-100 (Bajo es mejor para nosotros),
   "verdict": "CONTACTAR URGENTE" | "CONTACTAR" | "DESCARTAR",
-  "executiveSummary": "Resumen brutalmente honesto de por qué su web actual no vende.",
+  "executiveSummary": "Resumen brutalmente honesto. DEBES citar el Arquetipo de Dolor y la Fuga de Capital estimada.",
   
   "technicalIssues": [
     {"issue": "Problema Técnico", "severity": "Alta", "impact": "Pierdes clientes por esto"}
@@ -258,8 +334,55 @@ REGLAS DE ORO:
             }
         }
 
-        // 4. Save to DB
+        // 4. KIMI FORENSICS - Análisis forense real
+        let kimiForensics: KimiForensicResult | null = null;
+        if (audit?.htmlPreview || audit?.hasSSL !== undefined) {
+            try {
+                // Obtener HTML completo para análisis de copyright
+                let htmlCompleto = '';
+                if (targetUrl) {
+                    try {
+                        const controller = new AbortController();
+                        setTimeout(() => controller.abort(), 3000);
+                        const res = await fetch(targetUrl, {
+                            signal: controller.signal,
+                            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HojaCeroBot/1.0)' }
+                        });
+                        htmlCompleto = await res.text();
+                    } catch (e) {
+                        htmlCompleto = audit?.htmlPreview || '';
+                    }
+                }
+
+                kimiForensics = await analizarForense(
+                    htmlCompleto,
+                    leadId,
+                    {
+                        facebook: audit?.facebook || discoveryData?.facebook,
+                        instagram: audit?.instagram || discoveryData?.instagram,
+                        linkedin: discoveryData?.linkedin
+                    },
+                    audit?.hasSSL || false,
+                    audit?.hasViewport || false,
+                    businessType
+                );
+                console.log(`🔬 KIMI FORENSICS:`, JSON.stringify(kimiForensics, null, 2));
+            } catch (kimiErr) {
+                console.error('Error en Kimi Forensics:', kimiErr);
+            }
+        }
+
+        // 5. Save to DB
         const { data: currentLead } = await supabase.from('leads').select('source_data').eq('id', leadId).single();
+
+        // DEBUG: Log para verificar valores de scraping
+        console.log(`🔍 SCRAPING DEBUG:`, {
+            hasTitle: audit?.hasTitle,
+            hasMetaDesc: audit?.hasMetaDesc,
+            hasViewport: audit?.hasViewport,
+            cms: audit?.cms,
+            targetUrl
+        });
 
         const scrapedData = {
             hasSSL: audit?.hasSSL || false,
@@ -271,9 +394,10 @@ REGLAS DE ORO:
             cms: audit?.cms || null,
             emails: audit?.emails || [],
             phones: audit?.phones || [],
-            facebook: audit?.facebook || null,
-            instagram: audit?.instagram || null,
-            whatsapp: audit?.whatsapp || null,
+            facebook: audit?.facebook || discoveryData?.facebook || null,
+            instagram: audit?.instagram || discoveryData?.instagram || null,
+            whatsapp: audit?.whatsapp || discoveryData?.whatsapp || null,
+            linkedin: discoveryData?.linkedin || null,
             techStack: [audit?.cms].filter(Boolean)
         };
 
@@ -285,17 +409,24 @@ REGLAS DE ORO:
             ...(currentLead?.source_data || {}),
             scraped: scrapedData,
             deep_analysis: { ...deepAnalysis, techSpecs },
+            kimi_forensics: kimiForensics, // <-- NUEVO: Resultados de Kimi
             last_audit_date: new Date().toISOString()
         };
 
+        const updateFields: any = { source_data: updatedSourceData };
+        if (!url && targetUrl) {
+            updateFields.website = targetUrl;
+            updateFields.sitio_web = targetUrl;
+        }
+
         const { error: updateError } = await supabase
             .from('leads')
-            .update({ source_data: updatedSourceData })
+            .update(updateFields)
             .eq('id', leadId);
 
         if (updateError) throw updateError;
 
-        return NextResponse.json({ success: true, analysis: deepAnalysis, scraped: scrapedData });
+        return NextResponse.json({ success: true, analysis: deepAnalysis, scraped: scrapedData, discoveryData, kimiForensics });
 
     } catch (error: any) {
         console.error('Deep Analyze Error:', error);
