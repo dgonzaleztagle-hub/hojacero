@@ -1,12 +1,14 @@
 // Service Worker para Donde Germain PWA
-const CACHE_NAME = 'germain-v1';
-const OFFLINE_URL = '/prospectos/donde-germain/offline.html';
+const CACHE_NAME = 'germain-v2';
+const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately on install
 const PRECACHE_ASSETS = [
     '/prospectos/donde-germain',
-    '/germain_pwa_icon.jpg',
-    '/manifest.json'
+    '/germain_icon_192.png',
+    '/germain_icon_512.png',
+    '/manifest.json',
+    OFFLINE_URL
 ];
 
 // Install event - precache assets

@@ -8,8 +8,7 @@ export default function ServiceWorkerRegistrar() {
             navigator.serviceWorker
                 .register('/sw.js', { scope: '/' })
                 .then((registration) => {
-                    console.log('✅ Service Worker registrado:', registration.scope);
-                    // Forzar actualización si hay un nuevo SW
+                    console.log('✅ Service Worker registrado con éxito:', registration.scope);
                     registration.update();
                 })
                 .catch((error) => {
