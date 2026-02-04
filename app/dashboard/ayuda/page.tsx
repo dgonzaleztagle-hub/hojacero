@@ -13,7 +13,8 @@ import {
     Code, Fingerprint, Eye, Globe, Lock,
     CheckCircle2, AlertTriangle, Info,
     Cpu as Engine, Settings2, ShieldCheck,
-    Server, GitBranch, Share2, ClipboardList
+    Server, GitBranch, Share2, ClipboardList,
+    Smartphone
 } from 'lucide-react';
 
 type WorkflowCategory = 'factory' | 'worker' | 'maintenance' | 'dna';
@@ -405,6 +406,52 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
         rules: [
             'Prohibido usar Supabase en este motor; la independencia es ley.',
             'El Master Key debe configurarse en Vercel para habilitar el acceso.'
+        ]
+    },
+    {
+        id: 'worker-pwa',
+        category: 'worker',
+        title: 'PWA Performance & Score',
+        slash: '/worker-pwa',
+        icon: Smartphone,
+        strategy: 'Optimiza el sitio para cumplir estándares de PWA Builder (Score 40+) y habilitar modo offline real.',
+        impact: {
+            db: ['N/A'],
+            files: ['sw.js', 'manifest.json', 'offline.html'],
+            core: ['Offline Support', 'Image Precision Engine']
+        },
+        steps: [
+            'Redimensionamiento de iconos (512, 192, 96) y screenshots vía Sharp.',
+            'Inyección de Service Worker resiliente con Promise.allSettled.',
+            'Configuración de manifest.json con isolación de subcarpetas.',
+            'Validación de Bypass en Middleware de Next.js.'
+        ],
+        rules: [
+            'El Service Worker debe instalarse incluso si fallan assets secundarios.',
+            'Asegurar el scope exacto para evitar colisiones entre prospectos.'
+        ]
+    },
+    {
+        id: 'worker-twa',
+        category: 'worker',
+        title: 'TWA Native App Generator',
+        slash: '/worker-twa',
+        icon: Rocket,
+        strategy: 'Convierte el PWA en una App Nativa Android (APK) eliminando las barras del navegador.',
+        impact: {
+            db: ['N/A'],
+            files: ['assetlinks.json', 'signing.keystore'],
+            core: ['Native Integration', 'Domain Authority Handshake']
+        },
+        steps: [
+            'Generación de paquete Android en PWA Builder.',
+            'Extracción y despliegue de assetlinks.json en .well-known/.',
+            'Configuración de Package ID corporativo (cl.hojacero.[nombre]).',
+            'Prueba de "Apretón de Manos" (Handshake) para modo Full Screen.'
+        ],
+        rules: [
+            'Nunca borrar el .keystore; es la identidad única de la App.',
+            'Subir assetlinks.json antes de la primera apertura para evitar lag de barras.'
         ]
     }
 ];
