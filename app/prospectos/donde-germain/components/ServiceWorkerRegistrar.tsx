@@ -6,7 +6,7 @@ export default function ServiceWorkerRegistrar() {
     useEffect(() => {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker
-                .register('/service-worker.js')
+                .register('/service-worker.js', { scope: '/prospectos/donde-germain/' })
                 .then((registration) => {
                     console.log('✅ Service Worker registrado con éxito:', registration.scope);
                     registration.update();

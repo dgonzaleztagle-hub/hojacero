@@ -5,8 +5,8 @@
     "description": "La Mafia del Sabor - Pedidos Online. Burgers, empanadas y más.",
     "lang": "es-CL",
     "dir": "ltr",
-    "start_url": "/prospectos/donde-germain",
-    "scope": "/prospectos/donde-germain",
+    "start_url": "/prospectos/donde-germain/",
+    "scope": "/prospectos/donde-germain/",
     "display": "standalone",
     "display_override": [
         "standalone",
