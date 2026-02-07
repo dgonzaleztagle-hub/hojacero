@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, Building2, ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface ReportHeroProps {
     address: string;

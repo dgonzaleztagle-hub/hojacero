@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { MapPin, Info, Layers, Crosshair, Map as MapIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { SectionContainer } from './shared/SectionContainer';
 import { ScrollReveal } from './shared/ScrollReveal';
 
