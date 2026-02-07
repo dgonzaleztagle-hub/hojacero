@@ -4,9 +4,11 @@ const OFFLINE_URL = '/prospectos/donde-germain/offline.html';
 // Assets to cache immediately on install
 const PRECACHE_ASSETS = [
     '/prospectos/donde-germain',
+    '/prospectos/donde-germain/admin',
     '/germain_icon_192.png',
     '/germain_icon_512.png',
-    '/manifest.json',
+    '/prospectos/donde-germain/manifest.json',
+    '/prospectos/donde-germain/manifest-admin.json',
     OFFLINE_URL
 ];
 

@@ -17,7 +17,7 @@ export function useRadar() {
 
     // Tabs & Navigation
     const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'closed' | 'history'>('scanner');
-    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo' | 'forense'>('diagnostico');
+    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo' | 'forense' | 'territorial'>('diagnostico');
 
     // Data Lists
     const [historyLeads, setHistoryLeads] = useState<any[]>([]);

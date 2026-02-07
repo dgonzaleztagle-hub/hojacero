@@ -14,7 +14,7 @@ import {
     CheckCircle2, AlertTriangle, Info,
     Cpu as Engine, Settings2, ShieldCheck,
     Server, GitBranch, Share2, ClipboardList,
-    Smartphone
+    Monitor, Smartphone
 } from 'lucide-react';
 
 type WorkflowCategory = 'factory' | 'worker' | 'maintenance' | 'dna';
@@ -453,12 +453,12 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
             'Nunca borrar el .keystore; es la identidad única de la App.',
             'Subir assetlinks.json antes de la primera apertura para evitar lag de barras.'
         ]
-    }
+    },
 ];
 
 
 
-export default function BibliaH0Page() {
+export default function AyudaPage() {
     const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>(WORKFLOW_DATABASE[0].id);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -482,7 +482,7 @@ export default function BibliaH0Page() {
                         <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
                             <BookOpen size={18} />
                         </div>
-                        <h1 className="text-sm font-black uppercase tracking-[0.2em] italic">Biblia H0</h1>
+                        <h1 className="text-sm font-black uppercase tracking-[0.2em] italic">Ayuda H0</h1>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={14} />
@@ -570,7 +570,24 @@ export default function BibliaH0Page() {
                                 <div key={i} className="flex gap-8 group">
                                     <span className="text-cyan-500 font-mono text-sm mt-1.5 font-black">0{i + 1}.</span>
                                     <div className="flex-1 pb-6 border-b border-white/5 group-last:border-none text-lg text-zinc-200 font-medium leading-[1.6]">
-                                        {step}
+                                        {step.split(/(\[.*?\]\(.*?\))/g).map((part, index) => {
+                                            const match = part.match(/\[(.*?)\]\((.*?)\)/);
+                                            if (match) {
+                                                const isExternal = match[2].startsWith('http');
+                                                return (
+                                                    <a
+                                                        key={index}
+                                                        href={match[2]}
+                                                        target={isExternal ? "_blank" : undefined}
+                                                        rel={isExternal ? "noopener noreferrer" : undefined}
+                                                        className="text-cyan-400 underline decoration-cyan-400/30 hover:decoration-cyan-400 transition-all font-black mx-1"
+                                                    >
+                                                        {match[1]}
+                                                    </a>
+                                                );
+                                            }
+                                            return part;
+                                        })}
                                     </div>
                                 </div>
                             ))}

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
     X, Target, Zap, Search, Shield, ShieldOff, Globe, MapPin, Star, AlertCircle,
     Save, Copy, CheckCircle2, MessageCircle, Mail, Phone, Instagram, Facebook,
-    Trash2, ExternalLink, Activity, FileText, ChevronRight, Loader2, CreditCard, ShieldAlert
+    Trash2, ExternalLink, Activity, FileText, ChevronRight, Loader2, CreditCard, ShieldAlert,
+    Map as MapIcon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -18,7 +19,8 @@ import {
     ModalTabAuditoria,
     ModalTabEstrategia,
     ModalTabTrabajo,
-    ModalTabForense
+    ModalTabForense,
+    ModalTabTerritorial
 } from '@/components/lead-modal';
 import { VictoryModal, VictoryData } from '@/components/pipeline/VictoryModal';
 
@@ -359,11 +361,14 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                         <button onClick={() => setModalTab('forense')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${modalTab === 'forense' ? 'bg-red-500 text-white shadow-lg shadow-red-500/40' : 'text-zinc-500 hover:bg-red-500/5 hover:text-red-400'}`}>
                             <ShieldAlert className="w-4 h-4" /> Forense
                         </button>
+                        <button onClick={() => setModalTab('territorial')} className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${modalTab === 'territorial' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/40' : 'text-zinc-500 hover:bg-indigo-500/5 hover:text-indigo-400'}`}>
+                            <MapIcon className="w-4 h-4" /> Territorial
+                        </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20">
                         <div className="md:hidden flex overflow-x-auto p-2 border-b border-white/10 gap-2 shrink-0">
-                            {['diagnostico', 'auditoria', 'estrategia', 'trabajo', 'forense'].map((t) => (
+                            {['diagnostico', 'auditoria', 'estrategia', 'trabajo', 'forense', 'territorial'].map((t) => (
                                 <button key={t} onClick={() => setModalTab(t as any)} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase whitespace-nowrap ${modalTab === t ? 'bg-cyan-500 text-black' : 'bg-black/40 text-zinc-500'}`}>
                                     {t}
                                 </button>
@@ -497,6 +502,12 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     onDeepAnalyze={performDeepAnalysis}
                                     isDeepAnalyzing={isDeepAnalyzing}
                                     setModalTab={setModalTab}
+                                />
+                            )}
+                            {modalTab === 'territorial' && (
+                                <ModalTabTerritorial
+                                    selectedLead={selectedLead}
+                                    isDark={isDark}
                                 />
                             )}
                         </div>

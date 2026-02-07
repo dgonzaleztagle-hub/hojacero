@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useParams } from 'next/navigation';
 import { Clock, CheckCircle2, Package, Flame, ShoppingBag, ArrowLeft, Check, Instagram, Phone } from 'lucide-react';
 import Link from 'next/link';
+import GermainGame from '../../GermainGame';
 
 export default function OrderTrackingPage() {
     const params = useParams();
@@ -198,6 +199,11 @@ export default function OrderTrackingPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* --- GAME SECTION --- */}
+                <div className="mt-20">
+                    <GermainGame />
                 </div>
 
                 <footer className="mt-32 text-center pb-20">

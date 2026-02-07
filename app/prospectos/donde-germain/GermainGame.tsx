@@ -57,13 +57,31 @@ export default function GermainGame() {
         });
     };
 
+    const handleInput = (clientX: number) => {
+        if (!canvasRef.current) return;
+        const rect = canvasRef.current.getBoundingClientRect();
+        // Optimización: Usar el centro de la boca para mejor control
+        let newX = clientX - rect.left;
+        const size = gameState.current.player.size;
+        if (newX < size) newX = size;
+        if (newX > canvasRef.current.width - size) newX = canvasRef.current.width - size;
+        gameState.current.player.x = newX;
+    };
+
     const update = () => {
         if (!gameState.current.active || !canvasRef.current) return;
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false }); // Optimización: Deshabilitar alfa si no se usa
         if (!ctx) return;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Limpiar fondo con color sólido (más rápido que clearRect con transparencia)
+        ctx.fillStyle = '#050505';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Configurar fuente UNA sola vez por frame
+        ctx.font = '28px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
         // Animación boca
         gameState.current.player.mouthOpen = Math.abs(Math.sin(Date.now() / 150));
@@ -72,16 +90,15 @@ export default function GermainGame() {
         for (let i = gameState.current.items.length - 1; i >= 0; i--) {
             const item = gameState.current.items[i];
             item.y += item.speed;
-            ctx.font = '28px serif';
-            ctx.fillText(item.emoji, item.x - 14, item.y + 14);
+            ctx.fillText(item.emoji, item.x, item.y);
 
             const dx = gameState.current.player.x - item.x;
             const dy = gameState.current.player.y - item.y;
             if (Math.sqrt(dx * dx + dy * dy) < gameState.current.player.size + 15) {
                 gameState.current.items.splice(i, 1);
                 gameState.current.score += 150;
-                setScore(gameState.current.score);
-            } else if (item.y > canvas.height) {
+                // NO llamar a setScore aquí para evitar re-renders cada frame
+            } else if (item.y > canvas.height + 50) {
                 gameState.current.items.splice(i, 1);
             }
         }
@@ -90,20 +107,19 @@ export default function GermainGame() {
         for (let i = gameState.current.enemies.length - 1; i >= 0; i--) {
             const enemy = gameState.current.enemies[i];
             enemy.y += enemy.speed;
-            ctx.font = '28px serif';
-            ctx.fillText(enemy.emoji, enemy.x - 14, enemy.y + 14);
+            ctx.fillText(enemy.emoji, enemy.x, enemy.y);
 
             const dx = gameState.current.player.x - enemy.x;
             const dy = gameState.current.player.y - enemy.y;
             if (Math.sqrt(dx * dx + dy * dy) < gameState.current.player.size + 10) {
                 endGame();
                 return;
-            } else if (enemy.y > canvas.height) {
+            } else if (enemy.y > canvas.height + 50) {
                 gameState.current.enemies.splice(i, 1);
             }
         }
 
-        // Dibujar Player (Pac-man arriba)
+        // Dibujar Player
         ctx.save();
         ctx.translate(gameState.current.player.x, gameState.current.player.y);
         ctx.rotate(-Math.PI / 2);
@@ -119,8 +135,14 @@ export default function GermainGame() {
         ctx.fill();
         ctx.restore();
 
+        // Dibujar Score en el Canvas (más eficiente que en DOM)
+        ctx.fillStyle = '#FFCC00';
+        ctx.font = 'bold 16px Courier New';
+        ctx.textAlign = 'right';
+        ctx.fillText(`SCORE: ${gameState.current.score}`, canvas.width - 20, 30);
+
         if (Math.random() < 0.04) spawnItem();
-        if (Math.random() < 0.015 + (gameState.current.score / 100000)) spawnEnemy();
+        if (Math.random() < 0.015 + (gameState.current.score / 50000)) spawnEnemy();
 
         requestRef.current = requestAnimationFrame(update);
     };
@@ -128,22 +150,13 @@ export default function GermainGame() {
     const endGame = () => {
         gameState.current.active = false;
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        setScore(gameState.current.score); // Sincronizar con React solo al final
 
         if (gameState.current.score >= 1000) {
             setShowWin(true);
         } else {
             setGameOver(true);
         }
-    };
-
-    const handleInput = (clientX: number) => {
-        if (!canvasRef.current) return;
-        const rect = canvasRef.current.getBoundingClientRect();
-        let newX = clientX - rect.left;
-        const size = gameState.current.player.size;
-        if (newX < size) newX = size;
-        if (newX > canvasRef.current.width - size) newX = canvasRef.current.width - size;
-        gameState.current.player.x = newX;
     };
 
     const saveRecord = () => {

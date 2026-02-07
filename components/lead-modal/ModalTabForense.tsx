@@ -343,7 +343,7 @@ export const ModalTabForense = ({
                     if (noSSL) {
                         reason = "⚠️ Sin SSL (https). Los navegadores marcan este sitio como INSEGURO.";
                     } else if (isSecuestrable) {
-                        reason = `Plataforma ${cms || 'limitada'} detectada. El cliente NO es dueño real de su sitio.`;
+                        reason = kimiData?.secuestro?.anguloVenta || `Plataforma ${cms || 'limitada'} detectada. El cliente NO es dueño real de su sitio.`;
                     } else if (noViewport) {
                         reason = "Sitio NO responsive. 60% del tráfico es móvil y lo está perdiendo.";
                     } else {
@@ -526,9 +526,9 @@ export const ModalTabForense = ({
                                     <div className="flex items-center gap-4">
                                         <div className={cn(
                                             "w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-lg",
-                                            status === 'scanning' ? "bg-red-500/30 text-red-400 ring-2 ring-red-500/50" :
-                                                status === 'found' ? "bg-yellow-500/30 text-yellow-500 ring-1 ring-yellow-500/30" :
-                                                    status === 'none' ? "bg-green-500/30 text-green-500" :
+                                            currentStatus === 'scanning' ? "bg-red-500/30 text-red-400 ring-2 ring-red-500/50" :
+                                                currentStatus === 'found' ? "bg-yellow-500/30 text-yellow-500 ring-1 ring-yellow-500/30" :
+                                                    currentStatus === 'none' ? "bg-green-500/30 text-green-500" :
                                                         isDark ? "bg-white/5 text-zinc-500" : "bg-gray-100 text-gray-400"
                                         )}>
                                             {currentStatus === 'scanning' ? <Loader2 className="w-6 h-6 animate-spin" /> : <Icon className="w-6 h-6" />}
@@ -712,8 +712,10 @@ export const ModalTabForense = ({
             {/* === KIMI FORENSICS REAL === */}
             {selectedLead?.source_data?.kimi_forensics && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2">
-                    {/* Loss Score Card - DESHABILITADO: Los cálculos genéricos son contraproducentes para B2B de alto ticket */}
-                    {/* Se puede rehabilitar cuando tengamos datos de ticket real por rubro */}
+                    {/* Loss Score Card - DESHABILITADO INTENCIONALMENTE */}
+                    {/* Razón: Los cálculos son demasiado inexactos para B2B de alto ticket. */}
+                    {/* Ejemplo: Biocrom (equipos de millones USD) mostraba pérdida de $20k CLP = ridículo */}
+                    {/* Esto daña credibilidad y genera malos speech de ventas */}
 
                     {/* Secuestro Técnico Card */}
                     {selectedLead.source_data.kimi_forensics.secuestro?.esSecuestrable && (

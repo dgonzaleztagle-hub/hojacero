@@ -1,0 +1,48 @@
+{
+    "id": "/prospectos/donde-germain/admin",
+    "name": "Germain COCINA",
+    "short_name": "Cocina",
+    "description": "Panel de Gestión y Cocina - Donde Germain",
+    "lang": "es-CL",
+    "dir": "ltr",
+    "start_url": "/prospectos/donde-germain/admin",
+    "scope": "/prospectos/donde-germain/admin",
+    "display": "standalone",
+    "display_override": [
+        "standalone",
+        "minimal-ui"
+    ],
+    "background_color": "#000000",
+    "theme_color": "#FFCC00",
+    "categories": [
+        "business",
+        "food"
+    ],
+    "icons": [
+        {
+            "src": "/germain_icon_192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/germain_icon_512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/germain_icon_512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "orientation": "landscape",
+    "prefer_related_applications": false,
+    "serviceworker": {
+        "src": "/prospectos/donde-germain/sw.js",
+        "scope": "/prospectos/donde-germain/admin",
+        "update_via_cache": "none"
+    }
+}

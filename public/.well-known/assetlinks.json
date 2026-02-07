@@ -10,5 +10,17 @@
                 "C3:5D:A1:D5:E7:7C:C2:AD:0F:6D:70:5A:FD:AE:48:14:BD:F2:B1:63:71:6E:16:45:56:B0:0D:B1:88:1F:6A:9E"
             ]
         }
+    },
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "cl.hojacero.twa",
+            "sha256_cert_fingerprints": [
+                "03:80:3C:A8:17:7F:54:5B:46:AF:8D:12:9E:8D:5F:45:92:7F:40:8C:D3:26:D0:CA:9F:D7:88:D9:CD:A3:75:C4"
+            ]
+        }
     }
 ]

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, MapPin, Instagram, Phone, ChevronRight, Menu as MenuIcon, X, Flame, ShoppingBag, ArrowRight, Gamepad2, Plus, Minus, Trash2, Check } from 'lucide-react';
-import GermainGame from './GermainGame';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
 
@@ -592,9 +591,6 @@ export default function DondeGermainPage() {
                     GERMAIN
                 </div>
             </section>
-
-            {/* --- GAME SECTION --- */}
-            <GermainGame />
 
             {/* --- CALL TO ACTION (LOUD) --- */}
             <section className="bg-[#FFCC00] py-40 text-center px-6 border-t-8 border-black border-dotted">

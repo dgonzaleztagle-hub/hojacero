@@ -1,0 +1,25 @@
+{
+    "name": "h0-local-worker",
+    "version": "1.0.0",
+    "description": "HojaCero Local scraping Worker",
+    "main": "worker_local.js",
+    "scripts": {
+        "start": "node worker_local.js",
+        "build": "pkg . --targets node18-win-x64 --output worker_local.exe"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.39.0",
+        "playwright": "^1.41.0",
+        "dotenv": "^16.3.1"
+    },
+    "devDependencies": {
+        "pkg": "^5.8.1"
+    },
+    "bin": "worker_local.js",
+    "pkg": {
+        "assets": [],
+        "targets": [
+            "node18-win-x64"
+        ]
+    }
+}
