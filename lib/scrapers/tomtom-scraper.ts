@@ -21,7 +21,7 @@ export interface SaturationResult {
     byCategory: Record<string, {
         count: number;
         level: 'CRITICA' | 'ALTA' | 'MEDIA' | 'NULA';
-        restaurants: string[];
+        names: string[];
     }>;
     oceanoAzul: string | null;
     oceanoRojo: string | null;
@@ -131,21 +131,21 @@ export async function searchTomTom(
  * Analiza saturación por categoría
  */
 export function analyzeTomTomSaturation(restaurants: RestaurantData[]): SaturationResult {
-    const byCategory: Record<string, { count: number; restaurants: string[] }> = {};
+    const byCategory: Record<string, { count: number; names: string[] }> = {};
 
     for (const cuisine of Object.keys(CUISINE_KEYWORDS)) {
-        byCategory[cuisine] = { count: 0, restaurants: [] };
+        byCategory[cuisine] = { count: 0, names: [] };
     }
-    byCategory['otros'] = { count: 0, restaurants: [] };
+    byCategory['otros'] = { count: 0, names: [] };
 
     for (const r of restaurants) {
         for (const cuisine of r.cuisine) {
             if (!byCategory[cuisine]) {
-                byCategory[cuisine] = { count: 0, restaurants: [] };
+                byCategory[cuisine] = { count: 0, names: [] };
             }
             byCategory[cuisine].count++;
-            if (byCategory[cuisine].restaurants.length < 5) {
-                byCategory[cuisine].restaurants.push(r.name);
+            if (byCategory[cuisine].names.length < 5) {
+                byCategory[cuisine].names.push(r.name);
             }
         }
     }
@@ -164,7 +164,7 @@ export function analyzeTomTomSaturation(restaurants: RestaurantData[]): Saturati
         result[cuisine] = {
             count: data.count,
             level,
-            restaurants: data.restaurants,
+            names: data.names,
         };
 
         if (data.count < minCount) {

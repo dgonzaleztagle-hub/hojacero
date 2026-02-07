@@ -3,16 +3,17 @@ import { createClient } from '@/utils/supabase/server';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { reportId: string } }
+    { params }: { params: Promise<{ reportId: string }> }
 ) {
     try {
+        const { reportId } = await params;
         const supabase = await createClient();
 
         // Fetch report from database
         const { data: report, error } = await supabase
             .from('territorial_reports')
             .select('*')
-            .eq('id', params.reportId)
+            .eq('id', reportId)
             .single();
 
         if (error || !report) {
