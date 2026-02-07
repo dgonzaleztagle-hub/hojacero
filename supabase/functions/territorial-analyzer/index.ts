@@ -1,345 +1,176 @@
+// @ts-nocheck - Deno Edge Function
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// COSTO CERO: Solo Groq + Supabase (sin Google Maps API)
-const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY')!;
 
-if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY no configurada');
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
-interface TerritorialRequest {
-    address: string;
-    plan_type: 1 | 2 | 3;
-    business_type?: string;
+// GSE por comuna (simplificado)
+const GSE_DATA: Record<string, { gse: string; ingreso: string }> = {
+  'las condes': { gse: 'ABC1', ingreso: '$4.500.000+' },
+  'vitacura': { gse: 'ABC1', ingreso: '$5.000.000+' },
+  'lo barnechea': { gse: 'ABC1', ingreso: '$4.800.000+' },
+  'providencia': { gse: 'C1a', ingreso: '$2.800.000' },
+  'ñuñoa': { gse: 'C1b', ingreso: '$2.200.000' },
+  'santiago': { gse: 'C2', ingreso: '$1.500.000' },
+  'la florida': { gse: 'C3', ingreso: '$900.000' },
+  'maipú': { gse: 'C3', ingreso: '$850.000' },
+  'puente alto': { gse: 'D', ingreso: '$650.000' },
+};
+
+// Geocoding con Nominatim
+async function geocode(address: string) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=cl&limit=1`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'HojaCero/1.0' } });
+  const data = await res.json();
+  if (!data.length) return null;
+  const { lat, lon, display_name } = data[0];
+  const comuna = display_name.split(',').find((p: string) =>
+    p.toLowerCase().includes('las condes') || p.toLowerCase().includes('providencia') ||
+    p.toLowerCase().includes('santiago') || p.toLowerCase().includes('ñuñoa')
+  )?.trim() || 'Santiago';
+  return { lat: parseFloat(lat), lng: parseFloat(lon), comuna };
 }
 
-interface Coordinates { lat: number; lng: number; }
-
-// Dataset estático de Metro de Santiago (20 estaciones principales)
-const ESTACIONES_METRO = [
-    { nombre: 'Baquedano', lat: -33.4372, lng: -70.6344 },
-    { nombre: 'Tobalaba', lat: -33.4172, lng: -70.6025 },
-    { nombre: 'Los Leones', lat: -33.4447, lng: -70.5477 },
-    { nombre: 'Pedro de Valdivia', lat: -33.4447, lng: -70.5549 },
-    { nombre: 'Manuel Montt', lat: -33.4447, lng: -70.5621 },
-    { nombre: 'Universidad Católica', lat: -33.4447, lng: -70.5837 },
-    { nombre: 'Universidad de Chile', lat: -33.4447, lng: -70.5981 },
-    { nombre: 'La Moneda', lat: -33.4447, lng: -70.6053 },
-    { nombre: 'Los Héroes', lat: -33.4447, lng: -70.6125 },
-    { nombre: 'Estación Central', lat: -33.4509, lng: -70.6828 },
-    { nombre: 'Plaza de Maipú', lat: -33.5097, lng: -70.7533 },
-    { nombre: 'Bellas Artes', lat: -33.4347, lng: -70.6433 },
-    { nombre: 'Plaza de Armas', lat: -33.4397, lng: -70.6533 },
-    { nombre: 'Santa Ana', lat: -33.4397, lng: -70.6533 },
-    { nombre: 'Patronato', lat: -33.4197, lng: -70.6533 },
-    { nombre: 'Cerro Blanco', lat: -33.4597, lng: -70.6833 },
-    { nombre: 'Cementerios', lat: -33.4497, lng: -70.6833 },
-    { nombre: 'Quinta Normal', lat: -33.4397, lng: -70.6833 },
-    { nombre: 'República', lat: -33.4447, lng: -70.6197 },
-    { nombre: 'Salvador', lat: -33.4447, lng: -70.5693 }
-];
-
-function calcularDistancia(c1: Coordinates, c2: Coordinates): number {
-    const R = 6371000;
-    const φ1 = c1.lat * Math.PI / 180;
-    const φ2 = c2.lat * Math.PI / 180;
-    const Δφ = (c2.lat - c1.lat) * Math.PI / 180;
-    const Δλ = (c2.lng - c1.lng) * Math.PI / 180;
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
-
-// GEOCODING con Nominatim (OpenStreetMap - GRATIS)
-async function geocodeAddress(address: string): Promise<Coordinates> {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=cl`;
-    const response = await fetch(url, {
-        headers: { 'User-Agent': 'HojaCero/1.0 (contact@hojacero.cl)' }
+// Competidores con Overpass
+async function getCompetitors(lat: number, lng: number, businessType: string) {
+  const typeMap: Record<string, string> = {
+    'restaurant': 'amenity=restaurant', 'cafe': 'amenity=cafe',
+    'pharmacy': 'amenity=pharmacy', 'supermarket': 'shop=supermarket',
+    'gym': 'leisure=fitness_centre', 'hairdresser': 'shop=hairdresser',
+  };
+  const tag = typeMap[businessType] || 'shop';
+  const query = `[out:json][timeout:10];node(around:500,${lat},${lng})[${tag}];out body 10;`;
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST', body: query, headers: { 'Content-Type': 'text/plain' }
     });
-    const data = await response.json();
-    if (!data || data.length === 0) throw new Error('Dirección no encontrada');
-    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    const data = await res.json();
+    return data.elements?.map((e: any) => e.tags?.name || 'Sin nombre').slice(0, 5) || [];
+  } catch { return []; }
 }
 
-// DIMENSIÓN 1: DEMOGRAFÍA (Overpass API - GRATIS)
-async function scrapeDemografia(coords: Coordinates) {
-    try {
-        // Usar Overpass API para contar POIs en 500m
-        const query = `[out:json];(node(around:500,${coords.lat},${coords.lng})["shop"];node(around:500,${coords.lat},${coords.lng})["amenity"];);out count;`;
-        const response = await fetch('https://overpass-api.de/api/interpreter', {
-            method: 'POST',
-            body: query
-        });
-        const data = await response.json();
-        const negocios_cercanos = data.elements?.length || 0;
+// Síntesis con Groq
+async function synthesize(data: any, planType: number) {
+  const planPrompts: Record<number, string> = {
+    1: `Eres un analista territorial comercial chileno experto. Genera un análisis PROFUNDO y COMERCIAL en JSON válido.
 
-        let densidad_estimada: 'ALTA' | 'MEDIA' | 'BAJA' = 'BAJA';
-        let perfil: 'Residencial' | 'Comercial' | 'Mixto' = 'Residencial';
-        let poblacion_flotante: 'ALTA' | 'MEDIA' | 'BAJA' = 'BAJA';
+CONTEXTO:
+- Dirección: ${data.address}
+- Comuna: ${data.comuna}
+- GSE: ${data.gse.gse} (Ingreso promedio: ${data.gse.ingreso})
+- Tipo de negocio: ${data.business_type}
+- Competidores cercanos (500m): ${data.competitors.length}
 
-        if (negocios_cercanos > 50) {
-            densidad_estimada = 'ALTA';
-            perfil = 'Comercial';
-            poblacion_flotante = 'ALTA';
-        } else if (negocios_cercanos > 20) {
-            densidad_estimada = 'MEDIA';
-            perfil = 'Mixto';
-            poblacion_flotante = 'MEDIA';
-        }
+INSTRUCCIONES:
+1. Usa un tono COMERCIAL y PERSUASIVO, no académico
+2. Sé ESPECÍFICO con datos concretos (no genérico)
+3. Menciona la comuna y el GSE en el análisis
+4. Usa números y porcentajes cuando sea posible
+5. Enfócate en VIABILIDAD COMERCIAL, no residencial
 
-        return {
-            densidad_estimada,
-            gse_predominante: 'C2' as const,
-            poblacion_flotante,
-            perfil,
-            negocios_cercanos
-        };
-    } catch (error) {
-        console.error('Error en Overpass API:', error);
-        return {
-            densidad_estimada: 'MEDIA' as const,
-            gse_predominante: 'C2' as const,
-            poblacion_flotante: 'MEDIA' as const,
-            perfil: 'Mixto' as const,
-            negocios_cercanos: 0
-        };
-    }
-}
-
-// DIMENSIÓN 2: FLUJO (Dataset estático de Metro)
-async function scrapeFlujo(coords: Coordinates, address: string) {
-    // Buscar metro más cercano
-    let metroCercano = null;
-    let distanciaMin = Infinity;
-
-    for (const estacion of ESTACIONES_METRO) {
-        const dist = calcularDistancia(coords, estacion);
-        if (dist < distanciaMin) {
-            distanciaMin = dist;
-            metroCercano = estacion;
-        }
-    }
-
-    const metro_cercano = distanciaMin < 1000;
-    const esAvenida = address.toLowerCase().includes('avenida') || address.toLowerCase().includes('av.');
-
-    let score_conectividad = 50;
-    if (metro_cercano) score_conectividad += 30;
-    if (esAvenida) score_conectividad += 20;
-
-    return {
-        flujo_peatonal_estimado: metro_cercano ? 'ALTO' : 'MEDIO' as const,
-        flujo_vehicular: esAvenida ? 'ALTO' : 'MEDIO' as const,
-        accesibilidad: {
-            metro_cercano,
-            distancia_metro: Math.round(distanciaMin),
-            nombre_estacion: metroCercano?.nombre
-        },
-        score_conectividad
-    };
-}
-
-// DIMENSIÓN 3: COMERCIAL (Estimación simplificada)
-async function scrapeComercial(coords: Coordinates, businessType: string) {
-    // Versión simplificada sin Google Maps API
-    // En producción, esto podría usar scraping de Google Maps HTML
-    return {
-        competencia_directa: 8,
-        competidores_principales: [
-            { nombre: 'Competidor 1', tipo: businessType },
-            { nombre: 'Competidor 2', tipo: businessType },
-            { nombre: 'Competidor 3', tipo: businessType }
-        ],
-        anclas_comerciales: {
-            supermercados: 2,
-            bancos: 3,
-            colegios: 1
-        },
-        saturacion: 'MEDIA' as const
-    };
-}
-
-// DIMENSIÓN 4: RIESGO (Estimación)
-async function scrapeRiesgo(coords: Coordinates) {
-    return {
-        cip_permitido: 'VERIFICAR' as const,
-        seguridad_estimada: 'MEDIA' as const,
-        iluminacion: 'REGULAR' as const,
-        estado_calle: 'BUENO' as const
-    };
-}
-
-// DIMENSIÓN 5: DIGITAL (Simplificada - sin scraping real)
-async function scrapeDigital(coords: Coordinates, businessType: string) {
-    // Versión simplificada - en producción usaría Kimi Forensics
-    return {
-        competidores_analizados: 10,
-        con_web_propia: 4,
-        plataformas_detectadas: { 'WordPress': 2, 'Wix': 1, 'Custom': 1 },
-        sitios_abandonados: 3,
-        oportunidad_digital: 'ALTA' as const
-    };
-}
-
-// SÍNTESIS CON GROQ
-async function synthesizeWithGroq(dimensiones: any, planType: number, address: string) {
-    const planPrompts = {
-        1: 'Análisis básico para prospecto inicial ($150k). Resume en 3 puntos clave: viabilidad, riesgos, y recomendación.',
-        2: 'Análisis profesional ($350k). Incluye: score de ubicación (0-100), análisis FODA territorial, y 5 insights accionables.',
-        3: 'Análisis premium ($600k). Incluye: proyección de plusvalía 3 años, análisis normativo, comparativa con 3 zonas similares, y dossier ejecutivo.'
-    };
-
-    const prompt = `Eres un experto en Real Estate. Analiza esta ubicación: "${address}".
-
-DATOS:
-- Demografía: ${JSON.stringify(dimensiones.demografia)}
-- Flujo: ${JSON.stringify(dimensiones.flujo)}
-- Comercial: ${JSON.stringify(dimensiones.comercial)}
-- Riesgo: ${JSON.stringify(dimensiones.riesgo)}
-- Digital: ${JSON.stringify(dimensiones.digital)}
-
-PLAN: ${planPrompts[planType as keyof typeof planPrompts]}
-
-Responde SOLO en JSON con esta estructura:
+ESTRUCTURA JSON REQUERIDA:
 {
-  "score_ubicacion": number (0-100),
-  "veredicto": "ORO" | "VIABLE" | "RIESGOSO" | "DESCARTADO",
-  "resumen_ejecutivo": "string (máx 200 palabras)",
-  "fortalezas": ["string", "string", "string"],
-  "debilidades": ["string", "string"],
-  "oportunidades": ["string", "string"],
-  "recomendacion_final": "string"
-}`;
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${GROQ_API_KEY}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: 'llama-3.1-70b-versatile',
-            messages: [
-                { role: 'system', content: 'Eres un experto en Real Estate. Respondes SOLO JSON válido.' },
-                { role: 'user', content: prompt }
-            ],
-            temperature: 0.5,
-            response_format: { type: 'json_object' }
-        })
-    });
-
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Groq API error: ${error}`);
-    }
-
-    const data = await response.json();
-    try {
-        return JSON.parse(data.choices[0].message.content);
-    } catch (parseError) {
-        console.error('Error parsing Groq response:', data.choices[0].message.content);
-        throw new Error('Groq devolvió JSON inválido');
-    }
+  "ecosistema": {
+    "tipo_zona": "Descripción específica del tipo de zona comercial (ej: 'Corredor comercial de alto tráfico', 'Zona residencial premium', 'Hub gastronómico emergente')",
+    "dinamica": "Análisis DETALLADO (3-4 oraciones) de cómo funciona el barrio: flujos peatonales, horarios peak, perfil de transeúntes, actividad comercial. Menciona la comuna y características específicas.",
+    "conectividad": "Análisis de acceso: transporte público cercano, estacionamientos, accesibilidad peatonal, principales vías de acceso"
+  },
+  "demografia": {
+    "perfil": "Descripción ESPECÍFICA del perfil demográfico: edad promedio, composición familiar, estilo de vida, hábitos de consumo. Menciona el GSE ${data.gse.gse} y su significado comercial.",
+    "poder_adquisitivo": "Análisis del poder de compra: ingreso promedio (${data.gse.ingreso}), disposición al gasto, ticket promedio esperado, sensibilidad al precio"
+  },
+  "flujos": {
+    "patron": "Descripción de patrones de movilidad: horarios de mayor tráfico, días peak, estacionalidad, origen/destino de flujos",
+    "oportunidad": "Análisis de cómo aprovechar estos flujos para el negocio: mejor horario de apertura, días clave, estrategias de captura"
+  },
+  "competencia": {
+    "total": ${data.competitors.length},
+    "saturacion": "Análisis HONESTO de saturación: ¿hay espacio para otro ${data.business_type}? ¿Qué diferenciación se necesita? Menciona competidores específicos si los hay.",
+    "ventana": "Oportunidad de diferenciación: qué NO están haciendo los competidores, nichos desatendidos, propuesta de valor única"
+  },
+  "digital": {
+    "presencia_local": "Análisis de presencia digital de competidores locales: ¿tienen web? ¿redes sociales activas? ¿delivery? Oportunidad de destacar digitalmente.",
+    "estrategia": "Recomendación específica: canales digitales prioritarios (Instagram, Google Maps, delivery apps), tipo de contenido, frecuencia de publicación"
+  },
+  "veredicto": {
+    "viabilidad": "ALTA",
+    "score": 85,
+    "resumen": "Resumen ejecutivo (2-3 oraciones) del análisis: ¿es viable? ¿por qué? ¿cuál es el principal factor de éxito?",
+    "estrategia": "Recomendación ACCIONABLE (3-4 puntos específicos) para maximizar éxito: posicionamiento, diferenciación, pricing, marketing, operación"
+  }
 }
 
-// HANDLER PRINCIPAL
+IMPORTANTE: 
+- NO uses frases genéricas como "zona con potencial" o "buena ubicación"
+- SÉ ESPECÍFICO: menciona la comuna, el GSE, el número de competidores
+- Si hay ${data.competitors.length} competidores, analiza si es MUCHO o POCO para un ${data.business_type}
+- La viabilidad debe ser ALTA solo si realmente lo justifican los datos
+- Si hay más de 5 competidores en 500m, considera viabilidad MEDIA y sugiere diferenciación fuerte`,
+
+    2: `Genera análisis comercial COMPLETO en JSON:
+{"score_viabilidad":8,"nivel_riesgo":"BAJO","vision":"","avatar":{"pagador":"","influenciador":""},"competidores":[],"matriz_riesgo":{"regulatorio":"","economico":"","competencia":""},"estrategia":{"fase1":"","fase2":"","fase3":""},"proyeccion":{"ticket":0,"venta_mensual":0}}`,
+
+    3: `Genera dossier de inversión en JSON:
+{"veredicto":"STRONG BUY/BUY/HOLD/SELL","tesis":"","cap_rate":0,"noi":0,"inversion_uf":0,"plusvalia_3_años":"","stress_test":{"pesimista":{},"base":{},"optimista":{}}}`
+  };
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'llama-3.1-70b-versatile',
+      messages: [
+        { role: 'system', content: 'Eres analista territorial chileno. Responde SOLO JSON válido.' },
+        { role: 'user', content: `Datos: ${JSON.stringify(data)}\n\n${planPrompts[planType]}` }
+      ],
+      temperature: 0.1, max_tokens: 3000
+    })
+  });
+  const result = await res.json();
+  const content = result.choices?.[0]?.message?.content || '{}';
+  try { return JSON.parse(content.replace(/```json?|```/g, '').trim()); }
+  catch { return { error: 'Error parsing', raw: content }; }
+}
+
 serve(async (req) => {
-    if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            }
-        });
-    }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-    try {
-        const { address, plan_type, business_type = 'restaurant' }: TerritorialRequest = await req.json();
-        console.log(`🎯 Análisis territorial: ${address} (Plan ${plan_type})`);
+  try {
+    const { address, plan_type = 1, business_type = 'restaurant' } = await req.json();
+    if (!address) return new Response(JSON.stringify({ error: 'Falta dirección' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-        // 1. Geocoding
-        const coords = await geocodeAddress(address);
-        console.log(`📍 Coords: ${coords.lat}, ${coords.lng}`);
+    // 1. Geocoding
+    const geo = await geocode(address);
+    if (!geo) return new Response(JSON.stringify({ error: 'No se pudo geocodificar' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-        // 2. Generar mapa estático con MapCN (GRATIS, sin API key)
-        const mapImageUrl = `https://api.mapcn.dev/static?center=${coords.lat},${coords.lng}&zoom=15&size=800x400&markers=${coords.lat},${coords.lng},red`;
-        console.log(`🗺️ Mapa generado: ${mapImageUrl}`);
+    // 2. Datos
+    const gse = GSE_DATA[geo.comuna.toLowerCase()] || { gse: 'C2', ingreso: '$1.200.000' };
+    const competitors = await getCompetitors(geo.lat, geo.lng, business_type);
 
-        // 3. Scraping de 5 dimensiones (con fallbacks)
-        const [demografia, flujo, comercial, riesgo, digital] = await Promise.allSettled([
-            scrapeDemografia(coords),
-            scrapeFlujo(coords, address),
-            scrapeComercial(coords, business_type),
-            scrapeRiesgo(coords),
-            scrapeDigital(coords, business_type)
-        ]);
+    // 3. Síntesis
+    const dataForAI = { address, comuna: geo.comuna, gse, competitors, business_type, plan_type };
+    const analysis = await synthesize(dataForAI, plan_type);
 
-        const dimensiones = {
-            demografia: demografia.status === 'fulfilled' ? demografia.value : {},
-            flujo: flujo.status === 'fulfilled' ? flujo.value : {},
-            comercial: comercial.status === 'fulfilled' ? comercial.value : {},
-            riesgo: riesgo.status === 'fulfilled' ? riesgo.value : {},
-            digital: digital.status === 'fulfilled' ? digital.value : {}
-        };
+    // 4. Guardar
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { data: report } = await supabase.from('territorial_reports').insert({
+      address, comuna: geo.comuna, coordinates: { lat: geo.lat, lng: geo.lng },
+      business_type, plan_type, dimensiones: { gse, competitors }, analysis
+    }).select().single();
 
-        console.log(`✅ Scraping completado`);
+    return new Response(JSON.stringify({
+      success: true, report_id: report?.id, address, comuna: geo.comuna,
+      coordinates: geo, dimensiones: { gse, competitors }, analysis
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-        // 3. Síntesis con Groq
-        const analysis = await synthesizeWithGroq(dimensiones, plan_type, address);
-        console.log(`🤖 Síntesis IA completada`);
-
-        // 4. Guardar en Supabase
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-        const { data: savedData, error } = await supabase
-            .from('territorial_reports')
-            .insert({
-                address,
-                plan_type,
-                coordinates: coords,
-                dimensiones,
-                analysis,
-                status: 'COMPLETED'
-            })
-            .select()
-            .single();
-
-        if (error) throw error;
-        console.log(`💾 Reporte guardado: ID ${savedData.id}`);
-
-        return new Response(
-            JSON.stringify({
-                success: true,
-                report_id: savedData.id,
-                map_image_url: mapImageUrl,
-                address,
-                coordinates: coords,
-                dimensiones,
-                analysis
-            }),
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            }
-        );
-    } catch (error: any) {
-        console.error('❌ Error:', error.message);
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: error.message
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            }
-        );
-    }
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
 });
