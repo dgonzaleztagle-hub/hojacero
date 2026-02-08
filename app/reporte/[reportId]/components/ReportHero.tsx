@@ -51,13 +51,25 @@ export function ReportHero({ address, businessType, createdAt, mapUrl, lat, lng,
             try {
                 if (!mapContainer.current || !lat || !lng || map.current) return;
 
-                const mapboxgl = await import('mapbox-gl');
-                mapboxgl.default.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+                const mapboxModule = await import('mapbox-gl');
+                const mapboxgl = (mapboxModule as any).default || mapboxModule;
 
-                map.current = new mapboxgl.default.Map({
+                const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+                if (!token) {
+                    console.error('❌ MAPBOX_TOKEN no encontrado en environment');
+                    return;
+                }
+                mapboxgl.accessToken = token;
+
+                const numericLat = Number(lat);
+                const numericLng = Number(lng);
+
+                console.log('🗺️ Iniciando Mapa en Hero:', { numericLat, numericLng });
+
+                map.current = new mapboxgl.Map({
                     container: mapContainer.current,
                     style: 'mapbox://styles/mapbox/dark-v11',
-                    center: [lng, lat],
+                    center: [numericLng, numericLat],
                     zoom: 15.5,
                     pitch: 60,
                     bearing: -20,
@@ -91,8 +103,8 @@ export function ReportHero({ address, businessType, createdAt, mapUrl, lat, lng,
                     el.style.backgroundImage = 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIGZpbGw9IiNlZjQ0NDQiIGZpbGwtb3BhY2l0eT0iMC4zIi8+CjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEyIiBmaWxsPSIjZWY0NDQ0Ii8+CjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjYiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=)';
                     el.style.backgroundSize = 'contain';
 
-                    new mapboxgl.default.Marker(el)
-                        .setLngLat([lng, lat])
+                    new mapboxgl.Marker(el)
+                        .setLngLat([numericLng, numericLat])
                         .addTo(map.current!);
 
                     setMapboxLoaded(true);
