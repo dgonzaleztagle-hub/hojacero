@@ -217,15 +217,90 @@ export interface SaturationResult {
     restaurants: RestaurantData[];
 }
 
-export function analyzeSaturation(restaurants: RestaurantData[]): SaturationResult {
+export function analyzeSaturation(restaurants: RestaurantData[], businessType: string = 'restaurant'): SaturationResult {
+    // Definir keywords dinámicas según el tipo de negocio
+    let categoryKeywords: Record<string, string[]> = {};
+
+    switch (businessType) {
+        case 'cafe':
+            categoryKeywords = {
+                'cafe': ['café', 'cafetería', 'coffee'],
+                'heladeria': ['heladería', 'helados', 'gelato', 'ice cream'],
+                'pasteleria': ['pastelería', 'repostería', 'pasteles', 'tortas'],
+                'confiteria': ['confitería', 'dulces', 'chocolates'],
+                'coffee_shop': ['coffee shop', 'espresso', 'latte']
+            };
+            break;
+
+        case 'fast_food':
+            categoryKeywords = {
+                'burger': ['burger', 'hamburguesa'],
+                'chicken': ['pollo', 'chicken', 'broaster'],
+                'completos': ['completos', 'hot dog'],
+                'sandwiches': ['sandwich', 'sandwichería'],
+                'pizza': ['pizza', 'pizzería']
+            };
+            break;
+
+        case 'bakery':
+            categoryKeywords = {
+                'panaderia': ['panadería', 'pan', 'bakery'],
+                'pasteleria': ['pastelería', 'repostería', 'pasteles'],
+                'confiteria': ['confitería', 'dulces']
+            };
+            break;
+
+        case 'pharmacy':
+            categoryKeywords = {
+                'cruz_verde': ['cruz verde'],
+                'salcobrand': ['salcobrand'],
+                'ahumada': ['ahumada'],
+                'dr_simi': ['dr simi', 'similares'],
+                'independiente': ['farmacia']
+            };
+            break;
+
+        case 'gym':
+            categoryKeywords = {
+                'gimnasio': ['gimnasio', 'gym', 'fitness'],
+                'crossfit': ['crossfit'],
+                'funcional': ['funcional', 'entrenamiento'],
+                'yoga': ['yoga', 'pilates']
+            };
+            break;
+
+        case 'restaurant':
+        default:
+            // Keywords originales para restaurantes
+            categoryKeywords = {
+                'sushi': ['sushi', 'japonés', 'japanese', 'rolls'],
+                'chinese': ['chino', 'chinese', 'cantonés', 'wok', 'chifa'],
+                'korean': ['coreano', 'korean', 'kimchi'],
+                'pizza': ['pizza', 'pizzería', 'italiano'],
+                'burger': ['burger', 'hamburguesa', 'american'],
+                'chicken': ['pollo', 'chicken', 'broaster'],
+                'mexican': ['mexicano', 'mexican', 'tacos', 'burritos'],
+                'peruvian': ['peruano', 'peruvian', 'ceviche'],
+                'seafood': ['mariscos', 'seafood', 'pescado'],
+                'healthy': ['saludable', 'healthy', 'ensaladas', 'vegan'],
+                'grill': ['parrilla', 'grill', 'asado', 'carnes'],
+                'cafe': ['café', 'cafetería', 'coffee'],
+                'arab': ['árabe', 'shawarma', 'falafel', 'kebab'],
+                'thai': ['tailandés', 'thai', 'pad thai'],
+                'indian': ['indio', 'indian', 'curry'],
+                'fast_food': ['comida rápida', 'fast food', 'completos']
+            };
+            break;
+    }
+
     const byCategory: Record<string, { count: number; names: string[] }> = {};
     const tiers: SaturationResult['tiers'] = {
         local: { total: 0, categories: {} },
         delivery: { total: 0, categories: {} }
     };
 
-    // Inicializar TODAS las categorías de CUISINE_KEYWORDS para asegurar visibilidad total (Océanos Azules)
-    for (const cuisine of Object.keys(CUISINE_KEYWORDS)) {
+    // Inicializar TODAS las categorías dinámicas
+    for (const cuisine of Object.keys(categoryKeywords)) {
         byCategory[cuisine] = { count: 0, names: [] };
         tiers.local.categories[cuisine] = { count: 0, details: [] };
         tiers.delivery.categories[cuisine] = { count: 0, details: [] };
@@ -239,7 +314,19 @@ export function analyzeSaturation(restaurants: RestaurantData[]): SaturationResu
         if (isLocal) tiers.local.total++;
         else tiers.delivery.total++;
 
-        for (const cuisine of r.cuisine) {
+        // Clasificar usando keywords dinámicas
+        const text = `${r.name} ${r.category}`.toLowerCase();
+        const matches: string[] = [];
+
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+            if (keywords.some(kw => text.includes(kw))) {
+                matches.push(category);
+            }
+        }
+
+        const cuisines = matches.length > 0 ? matches : ['otros'];
+
+        for (const cuisine of cuisines) {
             if (!byCategory[cuisine]) continue;
 
             byCategory[cuisine].count++;
@@ -429,7 +516,8 @@ export async function getTerritorialData(
     address: string,
     apiKey: string,
     specificQueries?: string[],
-    maxRadius: number = 5
+    maxRadius: number = 5,
+    businessType: string = 'restaurant' // NUEVO: tipo de negocio para clasificación dinámica
 ): Promise<TerritorialData> {
     // Obtener competidores (restaurantes, etc.)
     const restaurants = await searchSerperMaps(lat, lng, address, apiKey, specificQueries, maxRadius);
@@ -437,8 +525,8 @@ export async function getTerritorialData(
     // Obtener anclas comerciales (colegios, supermercados, etc.)
     const anchors = await searchAnchorPoints(lat, lng, address, apiKey, 2); // Radio más pequeño para anclas
 
-    // Analizar saturación
-    const saturation = analyzeSaturation(restaurants);
+    // Analizar saturación con clasificación dinámica según business_type
+    const saturation = analyzeSaturation(restaurants, businessType);
 
     return {
         restaurants,

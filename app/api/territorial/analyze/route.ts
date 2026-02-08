@@ -1186,7 +1186,8 @@ export async function POST(req: NextRequest) {
         address,
         SERPER_API_KEY,
         specificQueries,
-        5 // Radio de 5km para análisis detallado (Gastón Rule)
+        5, // Radio de 5km para análisis detallado (Gastón Rule)
+        business_type // NUEVO: Pasar business_type para clasificación dinámica
       );
 
       territorialData = {
