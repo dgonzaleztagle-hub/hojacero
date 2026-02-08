@@ -122,6 +122,34 @@ export function CompetenciaSection({ data }: CompetenciaSectionProps) {
                             'dr_simi': '💊', 'independiente': '💊',
                             // Gimnasios
                             'gimnasio': '💪', 'crossfit': '🏋️', 'funcional': '🤸', 'yoga': '🧘',
+                            // Supermercados
+                            'ok_market': '🛒', 'unimarc': '🛒', 'tottus': '🛒', 'santa_isabel': '🛒',
+                            // Peluquerías
+                            'peluqueria': '💇', 'salon': '💇', 'barberia': '✂️',
+                            // Estética
+                            'estetica': '💅', 'unas': '💅', 'depilacion': '✨',
+                            // Dental
+                            'clinica': '🦷', 'ortodoncista': '🦷', 'dentista': '🦷',
+                            // Médico
+                            'centro_medico': '🏥', 'consultorio': '🏥', 'laboratorio': '🔬',
+                            // Veterinaria
+                            'veterinaria': '🐾', 'clinica_vet': '🐾', 'pet_shop': '🐾',
+                            // Ferretería
+                            'ferreteria': '🔨', 'construccion': '🔨', 'sodimac': '🔨',
+                            // Librería
+                            'libreria': '📚', 'papeleria': '📚', 'feria_chilena': '📚',
+                            // Óptica
+                            'optica': '👓', 'gmo': '👓', 'rotter': '👓',
+                            // Ropa
+                            'ropa': '👕', 'zapateria': '👟', 'deportiva': '👟',
+                            // Taller Mecánico
+                            'mecanica': '🔧', 'lubricentro': '🔧', 'lavado': '🚗',
+                            // Lavandería
+                            'lavanderia': '🧺', 'lavado_seco': '🧺', 'planchado': '👔',
+                            // Tienda Mascotas
+                            'mascotas': '🐶', 'alimento': '🐶', 'accesorios': '🐶',
+                            // Florería
+                            'floreria': '🌸', 'plantas': '🌿', 'arreglos': '💐',
                         };
                         const emoji = emojiMap[categoria.toLowerCase()] || '🏪';
 

@@ -272,6 +272,120 @@ export function analyzeSaturation(restaurants: RestaurantData[], businessType: s
             };
             break;
 
+        case 'supermarket':
+            categoryKeywords = {
+                'ok_market': ['ok market', 'ok'],
+                'unimarc': ['unimarc'],
+                'tottus': ['tottus'],
+                'santa_isabel': ['santa isabel'],
+                'independiente': ['minimarket', 'almacén']
+            };
+            break;
+
+        case 'hairdresser':
+            categoryKeywords = {
+                'peluqueria': ['peluquería', 'barbería', 'barber'],
+                'salon': ['salón', 'estilista'],
+                'barberia': ['barbería', 'barber shop']
+            };
+            break;
+
+        case 'beauty':
+            categoryKeywords = {
+                'estetica': ['estética', 'spa', 'belleza'],
+                'unas': ['uñas', 'manicure', 'pedicure'],
+                'depilacion': ['depilación', 'láser']
+            };
+            break;
+
+        case 'dental':
+            categoryKeywords = {
+                'clinica': ['clínica dental', 'odontología'],
+                'ortodoncista': ['ortodoncia', 'brackets'],
+                'dentista': ['dentista', 'dental']
+            };
+            break;
+
+        case 'medical':
+            categoryKeywords = {
+                'centro_medico': ['centro médico', 'clínica'],
+                'consultorio': ['consultorio', 'médico'],
+                'laboratorio': ['laboratorio', 'exámenes']
+            };
+            break;
+
+        case 'veterinary':
+            categoryKeywords = {
+                'veterinaria': ['veterinaria', 'veterinario'],
+                'clinica_vet': ['clínica veterinaria'],
+                'pet_shop': ['pet shop', 'mascotas']
+            };
+            break;
+
+        case 'hardware':
+            categoryKeywords = {
+                'ferreteria': ['ferretería', 'materiales'],
+                'construccion': ['construcción', 'maestro'],
+                'sodimac': ['sodimac', 'homecenter']
+            };
+            break;
+
+        case 'bookstore':
+            categoryKeywords = {
+                'libreria': ['librería', 'libros'],
+                'papeleria': ['papelería', 'útiles'],
+                'feria_chilena': ['feria chilena']
+            };
+            break;
+
+        case 'optics':
+            categoryKeywords = {
+                'optica': ['óptica', 'lentes'],
+                'gmo': ['gmo'],
+                'rotter': ['rotter & krauss']
+            };
+            break;
+
+        case 'clothes':
+            categoryKeywords = {
+                'ropa': ['ropa', 'vestuario'],
+                'zapateria': ['zapatería', 'calzado'],
+                'deportiva': ['deportiva', 'sport']
+            };
+            break;
+
+        case 'car_service':
+            categoryKeywords = {
+                'mecanica': ['mecánica', 'taller'],
+                'lubricentro': ['lubricentro', 'cambio aceite'],
+                'lavado': ['lavado', 'car wash']
+            };
+            break;
+
+        case 'laundry':
+            categoryKeywords = {
+                'lavanderia': ['lavandería', 'tintorería'],
+                'lavado_seco': ['lavado en seco'],
+                'planchado': ['planchado']
+            };
+            break;
+
+        case 'pet_store':
+            categoryKeywords = {
+                'mascotas': ['mascotas', 'pet shop'],
+                'alimento': ['alimento', 'comida mascotas'],
+                'accesorios': ['accesorios', 'juguetes']
+            };
+            break;
+
+        case 'florist':
+            categoryKeywords = {
+                'floreria': ['florería', 'flores'],
+                'plantas': ['plantas', 'vivero'],
+                'arreglos': ['arreglos florales']
+            };
+            break;
+
         case 'restaurant':
         default:
             // Keywords originales para restaurantes
