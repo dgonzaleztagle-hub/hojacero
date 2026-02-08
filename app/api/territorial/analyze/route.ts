@@ -981,16 +981,15 @@ export async function POST(req: NextRequest) {
       anchors?: any[];
     } = { saturation: null, oceanoAzul: null, oceanoRojo: null, restaurants: [], anchors: [] };
 
-    // Solo para rubros gastronómicos - usar la nueva función que obtiene datos más específicos
-    if (['restaurant', 'cafe', 'fast_food', 'bakery'].includes(business_type) && SERPER_API_KEY) {
-      // Usar la nueva función que obtiene tanto competidores como anclas
-      const newData = await import('@/lib/scrapers/serper-scraper');
-      const territorialResult = await newData.getTerritorialData(
-        geo.lat,
-        geo.lng,
-        address,
-        SERPER_API_KEY,
-        [
+    // Sistema de queries dinámicas por categoría de negocio
+    let specificQueries: string[] = [];
+    let useSerperScraper = false;
+
+    // Switch para asignar queries específicas según business_type
+    switch (business_type) {
+      case 'restaurant':
+        useSerperScraper = true;
+        specificQueries = [
           `sushi en ${geo.comuna}, Chile`,
           `comida china en ${geo.comuna}, Chile`,
           `comida coreana en ${geo.comuna}, Chile`,
@@ -1001,7 +1000,192 @@ export async function POST(req: NextRequest) {
           `comida peruana en ${geo.comuna}, Chile`,
           `comida saludable en ${geo.comuna}, Chile`,
           `restaurantes cerca de ${address}`
-        ],
+        ];
+        break;
+
+      case 'fast_food':
+        useSerperScraper = true;
+        specificQueries = [
+          `hamburguesas en ${geo.comuna}, Chile`,
+          `pollo asado en ${geo.comuna}, Chile`,
+          `completos en ${geo.comuna}, Chile`,
+          `sandwicherías en ${geo.comuna}, Chile`,
+          `pizzería en ${geo.comuna}, Chile`,
+          `comida rápida en ${geo.comuna}, Chile`,
+          `fast food cerca de ${address}`
+        ];
+        break;
+
+      case 'cafe':
+        useSerperScraper = true;
+        specificQueries = [
+          `cafeterías en ${geo.comuna}, Chile`,
+          `cafés en ${geo.comuna}, Chile`,
+          `heladerías en ${geo.comuna}, Chile`,
+          `pastelerías en ${geo.comuna}, Chile`,
+          `coffee shop en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'bakery':
+        useSerperScraper = true;
+        specificQueries = [
+          `panaderías en ${geo.comuna}, Chile`,
+          `pastelerías en ${geo.comuna}, Chile`,
+          `reposterías en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'pharmacy':
+        useSerperScraper = true;
+        specificQueries = [
+          `farmacias en ${geo.comuna}, Chile`,
+          `Cruz Verde en ${geo.comuna}, Chile`,
+          `Salcobrand en ${geo.comuna}, Chile`,
+          `Ahumada en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'gym':
+        useSerperScraper = true;
+        specificQueries = [
+          `gimnasios en ${geo.comuna}, Chile`,
+          `centros de entrenamiento en ${geo.comuna}, Chile`,
+          `fitness en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'supermarket':
+        useSerperScraper = true;
+        specificQueries = [
+          `minimarket en ${geo.comuna}, Chile`,
+          `supermercados en ${geo.comuna}, Chile`,
+          `almacenes en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'hairdresser':
+        useSerperScraper = true;
+        specificQueries = [
+          `peluquerías en ${geo.comuna}, Chile`,
+          `barberías en ${geo.comuna}, Chile`,
+          `salones de belleza en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'beauty':
+        useSerperScraper = true;
+        specificQueries = [
+          `centros de estética en ${geo.comuna}, Chile`,
+          `spa en ${geo.comuna}, Chile`,
+          `salones de belleza en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'dental':
+        useSerperScraper = true;
+        specificQueries = [
+          `clínicas dentales en ${geo.comuna}, Chile`,
+          `dentistas en ${geo.comuna}, Chile`,
+          `odontólogos en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'medical':
+        useSerperScraper = true;
+        specificQueries = [
+          `centros médicos en ${geo.comuna}, Chile`,
+          `clínicas en ${geo.comuna}, Chile`,
+          `consultorios en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'veterinary':
+        useSerperScraper = true;
+        specificQueries = [
+          `veterinarias en ${geo.comuna}, Chile`,
+          `clínicas veterinarias en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'hardware':
+        useSerperScraper = true;
+        specificQueries = [
+          `ferreterías en ${geo.comuna}, Chile`,
+          `materiales de construcción en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'bookstore':
+        useSerperScraper = true;
+        specificQueries = [
+          `librerías en ${geo.comuna}, Chile`,
+          `papelerías en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'optics':
+        useSerperScraper = true;
+        specificQueries = [
+          `ópticas en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'clothes':
+        useSerperScraper = true;
+        specificQueries = [
+          `tiendas de ropa en ${geo.comuna}, Chile`,
+          `boutiques en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'car_service':
+        useSerperScraper = true;
+        specificQueries = [
+          `talleres mecánicos en ${geo.comuna}, Chile`,
+          `mecánicas en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'laundry':
+        useSerperScraper = true;
+        specificQueries = [
+          `lavanderías en ${geo.comuna}, Chile`,
+          `tintorerías en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'pet_store':
+        useSerperScraper = true;
+        specificQueries = [
+          `tiendas de mascotas en ${geo.comuna}, Chile`,
+          `pet shop en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      case 'florist':
+        useSerperScraper = true;
+        specificQueries = [
+          `floristerías en ${geo.comuna}, Chile`,
+          `flores en ${geo.comuna}, Chile`
+        ];
+        break;
+
+      default:
+        // Fallback para categorías no definidas
+        useSerperScraper = false;
+        break;
+    }
+
+    // Ejecutar scraper si está configurado
+    if (useSerperScraper && SERPER_API_KEY) {
+      const newData = await import('@/lib/scrapers/serper-scraper');
+      const territorialResult = await newData.getTerritorialData(
+        geo.lat,
+        geo.lng,
+        address,
+        SERPER_API_KEY,
+        specificQueries,
         5 // Radio de 5km para análisis detallado (Gastón Rule)
       );
 
@@ -1012,27 +1196,6 @@ export async function POST(req: NextRequest) {
         restaurants: territorialResult.restaurants,
         anchors: territorialResult.anchors
       };
-    } else {
-      // Para otros rubros, usar el método anterior pero también obtener anclas
-      const result = await getCompetitorsAllCategories(geo.lat, geo.lng, address, business_type, 5000);
-
-      territorialData = {
-        saturation: result.saturation,
-        oceanoAzul: result.oceanoAzul,
-        oceanoRojo: result.oceanoRojo,
-        restaurants: result.restaurants,
-        anchors: result.anchors || []
-      };
-
-      if (SERPER_API_KEY && (!territorialData.anchors || territorialData.anchors.length === 0)) {
-        try {
-          const newData = await import('@/lib/scrapers/serper-scraper');
-          const anchors = await newData.searchAnchorPoints(geo.lat, geo.lng, address, SERPER_API_KEY, 2);
-          territorialData.anchors = anchors;
-        } catch (err) {
-          console.error('Error obteniendo anclas comerciales:', err);
-        }
-      }
     }
 
     // 7. Preparar datos para IA
