@@ -11,11 +11,18 @@ interface FlujosSectionProps {
         titulo?: string;
         flujo_vehicular: string;
         flujo_peatonal: string;
-        polos_atraccion?: string;
+        polos_atraccion?: string | string[];
     };
+    anchors_fallback?: Array<{ name: string; category?: string }>;
 }
 
-export function FlujosSection({ data }: FlujosSectionProps) {
+export function FlujosSection({ data, anchors_fallback }: FlujosSectionProps) {
+    // Fallback: Si Groq no generó polos_atraccion, usar las anclas comerciales crudas
+    const hasPolosAtraccion = data.polos_atraccion && (
+        Array.isArray(data.polos_atraccion) ? data.polos_atraccion.length > 0 : data.polos_atraccion.trim() !== ''
+    );
+    const shouldShowAnchors = hasPolosAtraccion || (anchors_fallback && anchors_fallback.length > 0);
+
     return (
         <SectionContainer id="flujos" className="bg-gradient-to-b from-slate-900 to-blue-950/20">
             <ScrollReveal>
@@ -97,7 +104,7 @@ export function FlujosSection({ data }: FlujosSectionProps) {
                 </div>
 
                 {/* Polos de Atracción */}
-                {data.polos_atraccion && (
+                {shouldShowAnchors && (
                     <ScrollReveal delay={0.4}>
                         <GlassPanel gradient="from-green-500/5 via-emerald-500/5 to-transparent">
                             <div className="space-y-4">
@@ -108,9 +115,38 @@ export function FlujosSection({ data }: FlujosSectionProps) {
                                     <h3 className="text-2xl font-bold text-white">Polos de Atracción (Anclas)</h3>
                                 </div>
                                 <div className="h-px bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-transparent" />
-                                <p className="text-lg text-zinc-300 leading-relaxed">
-                                    {data.polos_atraccion}
-                                </p>
+                                {hasPolosAtraccion ? (
+                                    // Mostrar datos de Groq
+                                    Array.isArray(data.polos_atraccion) ? (
+                                        <ul className="text-lg text-zinc-300 leading-relaxed space-y-2">
+                                            {data.polos_atraccion.map((polo, idx) => (
+                                                <li key={idx} className="flex items-start gap-3">
+                                                    <span className="text-green-400 mt-1">•</span>
+                                                    <span>{polo}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-lg text-zinc-300 leading-relaxed">
+                                            {data.polos_atraccion}
+                                        </p>
+                                    )
+                                ) : (
+                                    // Fallback: Mostrar anclas comerciales crudas
+                                    <ul className="text-lg text-zinc-300 leading-relaxed space-y-2">
+                                        {anchors_fallback?.map((anchor, idx) => (
+                                            <li key={idx} className="flex items-start gap-3">
+                                                <span className="text-green-400 mt-1">•</span>
+                                                <span>
+                                                    {anchor.name}
+                                                    {anchor.category && (
+                                                        <span className="text-zinc-500 text-sm ml-2">({anchor.category})</span>
+                                                    )}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                                 <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
                                     <p className="text-sm text-zinc-400">
                                         💡 <span className="text-green-300 font-semibold">Insight Estratégico:</span> Los

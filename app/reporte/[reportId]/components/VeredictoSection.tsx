@@ -51,7 +51,7 @@ export function VeredictoSection({ data }: VeredictoSectionProps) {
                     </motion.div>
 
                     <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-tighter text-white uppercase">
-                        Veredicto de <span className="text-zinc-600 italic">Inversión</span>
+                        Veredicto de <span className="text-emerald-500 italic">Viabilidad</span>
                     </h2>
                 </div>
 

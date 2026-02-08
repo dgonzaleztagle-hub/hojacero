@@ -56,7 +56,10 @@ export function ReportClient({ report }: ReportClientProps) {
 
             {/* Flujos */}
             {analysis.flujos && (
-                <FlujosSection data={analysis.flujos} />
+                <FlujosSection
+                    data={analysis.flujos}
+                    anchors_fallback={report.dimensiones?.anchors_comerciales || report.dimensiones?.anchors}
+                />
             )}
 
             {/* Competencia */}

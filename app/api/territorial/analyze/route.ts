@@ -1056,6 +1056,16 @@ export async function POST(req: NextRequest) {
     // 8. Síntesis con Groq
     const analysis = await synthesizeWithGroq(dataForAI, plan_type);
 
+    // Validar que la síntesis no tenga errores antes de continuar
+    if (analysis.error) {
+      console.error('❌ Error en síntesis de Groq:', analysis.error);
+      return NextResponse.json({
+        error: 'Error generando análisis territorial',
+        details: analysis.error,
+        message: analysis.message || 'La IA no pudo procesar los datos correctamente'
+      }, { status: 500 });
+    }
+
     // 8. Generar mapa estático (Mapbox)
     let mapUrl: string | null = null;
     if (MAPBOX_TOKEN) {

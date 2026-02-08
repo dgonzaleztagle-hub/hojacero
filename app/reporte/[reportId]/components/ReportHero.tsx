@@ -40,6 +40,19 @@ const getCategoryFromText = (text: string): string => {
     return 'default';
 };
 
+const BUSINESS_TYPE_LABELS: Record<string, string> = {
+    'restaurant': 'Restaurante',
+    'cafe': 'Cafetería',
+    'pharmacy': 'Farmacia',
+    'gym': 'Gimnasio',
+    'bakery': 'Panadería',
+    'fast_food': 'Comida Rápida',
+    'supermarket': 'Supermercado',
+    'retail': 'Retail',
+    'clinic': 'Clínica',
+    'school': 'Colegio',
+};
+
 export function ReportHero({ address, businessType, createdAt, mapUrl, lat, lng, competitors = [] }: ReportHeroProps) {
     const mapContainer = useRef<HTMLDivElement>(null);
     const map = useRef<any>(null);
@@ -200,7 +213,9 @@ export function ReportHero({ address, businessType, createdAt, mapUrl, lat, lng,
 
                         <div className="flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
                             <Building2 className="w-5 h-5 text-blue-400" />
-                            <span className="text-base text-white font-medium">{businessType}</span>
+                            <span className="text-base text-white font-medium">
+                                {BUSINESS_TYPE_LABELS[businessType] || businessType}
+                            </span>
                         </div>
 
                         <div className="flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
