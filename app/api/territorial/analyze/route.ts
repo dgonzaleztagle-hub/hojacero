@@ -611,6 +611,7 @@ CRITICAL GUIDANCE ON SATURATION:
 6. Usa el mismo tono consultor profesional y directo
 7. Incluye referencias específicas a grupos/comunidades si se conocen
 8. Genera recomendaciones hiper-específicas según el rubro
+9. CRÍTICO: "polos_atraccion" DEBE ser un array de strings (["Ancla 1", "Ancla 2"]), NO un string narrativo largo
 
 ## GENERA EXACTAMENTE ESTE JSON CON EL MISMO ESTILO Y FORMATO QUE EL EJEMPLO:
 
@@ -632,7 +633,7 @@ CRITICAL GUIDANCE ON SATURATION:
     "titulo": "[PÁGINA 3: FLUJOS Y VISIBILIDAD]",
     "flujo_vehicular": "[descripción específica con niveles y horarios si aplica]",
     "flujo_peatonal": "[descripción específica con niveles y horarios si aplica]",
-    "polos_atraccion": [lista de anclas específicas con nombres reales si están disponibles]
+    "polos_atraccion": ["Ancla 1 con nombre específico y distancia", "Ancla 2 con nombre específico y distancia", "Ancla 3 con nombre específico y distancia"]
   },
   "competencia": {
     "titulo": "[PÁGINA 4: SCAN DE MERCADO (APPS & COMPETENCIA)]",
