@@ -171,12 +171,12 @@ export async function searchSerperMaps(
         }
 
         const category = place.category || 'Restaurant';
-        const cuisines = classifyRestaurant(place.title, category);
+        // NO clasificar aquí - dejar que analyzeSaturation lo haga dinámicamente según business_type
 
         restaurants.push({
             name: place.title,
             category,
-            cuisine: cuisines,
+            cuisine: [], // Vacío - se llenará en analyzeSaturation
             rating: place.rating || null,
             address: place.address || '',
             lat: coords?.lat,
@@ -218,6 +218,9 @@ export interface SaturationResult {
 }
 
 export function analyzeSaturation(restaurants: RestaurantData[], businessType: string = 'restaurant'): SaturationResult {
+    // DEBUG: Ver qué business_type está llegando
+    console.log('🔍 analyzeSaturation recibió businessType:', businessType);
+
     // Definir keywords dinámicas según el tipo de negocio
     let categoryKeywords: Record<string, string[]> = {};
 

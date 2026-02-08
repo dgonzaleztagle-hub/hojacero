@@ -33,11 +33,10 @@ export function CompetenciaSection({ data }: CompetenciaSectionProps) {
 
     const currentTierData = activeTier === 'local' ? data.tiers?.local : data.tiers?.delivery;
 
-    // Categorías maestras para asegurar que se muestren todas (Océanos Azules)
-    const masterCategories = [
-        'sushi', 'chinese', 'korean', 'pizza', 'burger', 'chicken',
-        'mexican', 'peruvian', 'seafood', 'healthy', 'grill', 'cafe'
-    ];
+    // Obtener categorías dinámicamente del backend (adaptable a cualquier business_type)
+    const masterCategories = currentTierData?.categories
+        ? Object.keys(currentTierData.categories)
+        : [];
 
     const activeCategoryData = selectedCategory ? currentTierData?.categories?.[selectedCategory] : null;
 
@@ -105,11 +104,26 @@ export function CompetenciaSection({ data }: CompetenciaSectionProps) {
                         // @ts-ignore - Adaptación quirúrgica
                         const count = tierCategory?.count || 0;
 
-                        const emoji = {
+                        const emojiMap: Record<string, string> = {
+                            // Restaurantes
                             'sushi': '🍣', 'chinese': '🥡', 'korean': '🍜', 'pizza': '🍕',
                             'burger': '🍔', 'chicken': '🍗', 'mexican': '🌮', 'peruvian': '🇵🇪',
-                            'seafood': '🦐', 'cafe': '☕', 'healthy': '🥗', 'grill': '🥩'
-                        }[categoria.toLowerCase()] || '🍽️';
+                            'seafood': '🦐', 'healthy': '🥗', 'grill': '🥩', 'arab': '🥙',
+                            'thai': '🍛', 'indian': '🍛', 'fast_food': '🍟',
+                            // Cafeterías
+                            'cafe': '☕', 'heladeria': '🍦', 'pasteleria': '🍰',
+                            'confiteria': '🍬', 'coffee_shop': '☕',
+                            // Comida Rápida
+                            'completos': '🌭', 'sandwiches': '🥪',
+                            // Panadería
+                            'panaderia': '🥖',
+                            // Farmacias
+                            'cruz_verde': '💊', 'salcobrand': '💊', 'ahumada': '💊',
+                            'dr_simi': '💊', 'independiente': '💊',
+                            // Gimnasios
+                            'gimnasio': '💪', 'crossfit': '🏋️', 'funcional': '🤸', 'yoga': '🧘',
+                        };
+                        const emoji = emojiMap[categoria.toLowerCase()] || '🏪';
 
                         const level = count >= 4 ? 'CRÍTICA' : count >= 2 ? 'ALTA' : count >= 1 ? 'MEDIA' : 'NULA';
 
