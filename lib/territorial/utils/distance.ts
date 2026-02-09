@@ -1,0 +1,33 @@
+/**
+ * Distance Calculation Utilities
+ * 
+ * Funciones para calcular distancias geográficas usando la fórmula de Haversine.
+ */
+
+/**
+ * Calcula la distancia entre dos puntos geográficos usando Haversine
+ * @param lat1 Latitud del primer punto
+ * @param lng1 Longitud del primer punto
+ * @param lat2 Latitud del segundo punto
+ * @param lng2 Longitud del segundo punto
+ * @returns Distancia en metros (redondeada)
+ */
+export function calculateDistance(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+): number {
+    const R = 6371e3; // Radio de la Tierra en metros
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lng2 - lng1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return Math.round(R * c);
+}
