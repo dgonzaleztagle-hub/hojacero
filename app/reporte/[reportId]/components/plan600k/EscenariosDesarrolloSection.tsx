@@ -160,7 +160,7 @@ export function EscenariosDesarrolloSection({ data }: EscenariosDesarrolloSectio
 
                                     {/* Metrics */}
                                     <div className="space-y-4 mb-6 flex-1">
-                                        {escenario.data.precio_venta_uf_m2 && (
+                                        {'precio_venta_uf_m2' in escenario.data && escenario.data.precio_venta_uf_m2 && (
                                             <div className="bg-slate-950/50 border border-slate-800 rounded-lg p-4">
                                                 <p className="text-slate-500 text-sm mb-1">Precio Venta</p>
                                                 <p className="text-white text-xl font-bold">
@@ -171,7 +171,7 @@ export function EscenariosDesarrolloSection({ data }: EscenariosDesarrolloSectio
                                             </div>
                                         )}
 
-                                        {escenario.key === 'obra_nueva' && escenario.data.inversion_estimada_uf && (
+                                        {'inversion_estimada_uf' in escenario.data && escenario.data.inversion_estimada_uf && (
                                             <div className="bg-slate-950/50 border border-slate-800 rounded-lg p-4">
                                                 <p className="text-slate-500 text-sm mb-1">Inversión Estimada</p>
                                                 <p className="text-white text-xl font-bold">
