@@ -418,23 +418,6 @@ async function getAnchors(lat: number, lng: number, radius: number = 1000) {
   }
 }
 
-// ============================================
-// METRO MÁS CERCANO
-// ============================================
-function findNearestMetro(lat: number, lng: number): { station: string; line: string; distance: number } | null {
-  let nearest = null;
-  let minDist = Infinity;
-
-  for (const station of METRO_STATIONS) {
-    const dist = Math.sqrt(Math.pow(lat - station.lat, 2) + Math.pow(lng - station.lng, 2)) * 111000; // aprox metros
-    if (dist < minDist) {
-      minDist = dist;
-      nearest = { station: station.name, line: station.line, distance: Math.round(dist) };
-    }
-  }
-
-  return nearest && nearest.distance < 2000 ? nearest : null;
-}
 
 // ============================================
 // PROMPTS POR PLAN (ESTILO GASTÓN)
@@ -850,10 +833,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Obtener GSE
-    const gse = GSE_DATA[geo.comuna.toLowerCase()] || { gse: 'C2', ingreso: '$1.200.000', descripcion: 'Zona urbana mixta' };
+    const gse = getGSEByComuna(geo.comuna) || getDefaultGSE();
 
     // 3. Metro más cercano
-    const metro = findNearestMetro(geo.lat, geo.lng);
+    const metro = findNearestMetro(geo.lat, geo.lng, calculateDistance);
 
     // 4. Buscar en caché primero
     const quadrantKey = getQuadrantKey(geo.lat, geo.lng);
