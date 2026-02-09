@@ -130,6 +130,17 @@ CRITICAL GUIDANCE ON SATURATION:
     },
     "conclusion_digital": "[Resumen del gap digital a explotar con oportunidades concretas]"
   },
+  "analisis_algoritmos": {
+    "disclaimer": "⚠️ Estimación basada en saturación de mercado detectada. Datos reales de apps requieren acceso directo a plataformas.",
+    "saturacion_apps": {
+      "rappi": "[BAJA/MEDIA/ALTA - Inferido de competidores detectados]",
+      "uber_eats": "[BAJA/MEDIA/ALTA - Inferido de competidores detectados]",
+      "pedidos_ya": "[BAJA/MEDIA/ALTA - Inferido de competidores detectados]"
+    },
+    "estimacion_presencia": "[% estimado de competidores en apps basado en presencia digital]",
+    "oportunidad_ranking": "[Análisis de oportunidad de posicionamiento basado en saturación]",
+    "recomendacion_estrategia": "[Estrategia específica para apps de delivery basada en gaps detectados]"
+  },
   "matriz_riesgo": {
     "regulatorio": {"nivel": "[BAJO/MEDIO/ALTO]", "descripcion": "[Detalles específicos de regulaciones/permisos]"},
     "economico": {"nivel": "[BAJO/MEDIO/ALTO]", "descripcion": "[Detalles específicos de sensibilidad económica]"},

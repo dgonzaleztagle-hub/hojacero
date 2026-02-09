@@ -97,6 +97,35 @@ CRITICAL SATURATION ADVISORY:
       {"prioridad": 2, "rubro": "[Rubro]", "data": "[Justificación]", "estrategia": "[Estrategia basada en análisis previos]"}
     ]
   },
+  "factibilidad_normativa": {
+    "disclaimer": "⚠️ IMPORTANTE: Este análisis es preliminar. Zonificación y permisos requieren consulta directa a DOM (Dirección de Obras Municipales) de ${data.comuna}.",
+    "zonificacion_estimada": "[Estimación basada en ubicación y GSE - requiere validación DOM]",
+    "aptitud_comercial": "[Análisis preliminar basado en entorno - requiere certificado DOM]",
+    "restricciones_potenciales": "[Posibles restricciones basadas en zona - requiere validación técnica]",
+    "pasos_siguientes": "1. Consultar Plan Regulador Comunal en DOM. 2. Solicitar Certificado de Informaciones Previas. 3. Validar factibilidad con arquitecto."
+  },
+  "escenarios_desarrollo": {
+    "disclaimer": "⚠️ Análisis financiero. Factibilidad constructiva requiere arquitecto y estudio de mecánica de suelos.",
+    "escenario_residencial": {
+      "descripcion": "[Desarrollo residencial - departamentos/casas]",
+      "precio_venta_uf_m2": [${data.portal_inmobiliario ? `Usar dato real: ${data.portal_inmobiliario.venta.precio_uf_m2} UF/m²` : 'estimar basado en zona'}],
+      "cap_rate_estimado": "[% basado en arriendo residencial]",
+      "viabilidad": "[ALTA/MEDIA/BAJA basado en análisis de mercado]"
+    },
+    "escenario_comercial_light": {
+      "descripcion": "[Comercio pequeño - locales/oficinas]",
+      "precio_venta_uf_m2": "[Estimar premium sobre residencial]",
+      "cap_rate_estimado": "[% basado en arriendo comercial]",
+      "viabilidad": "[ALTA/MEDIA/BAJA basado en análisis de mercado]"
+    },
+    "escenario_obra_nueva": {
+      "descripcion": "[Desarrollo comercial mayor - strip center/edificio]",
+      "inversion_estimada_uf": "[Estimar basado en m² y tipo]",
+      "cap_rate_estimado": "[% basado en arriendo comercial mayor]",
+      "viabilidad": "[ALTA/MEDIA/BAJA basado en análisis de mercado]"
+    },
+    "recomendacion_highest_best_use": "[Mejor uso basado en análisis financiero y de mercado]"
+  },
   "modelo_financiero": {
     "precio_adquisicion_uf": [${data.portal_inmobiliario ? `USA EL DATO REAL: ${data.portal_inmobiliario.venta.precio_promedio_uf} UF como referencia` : 'número estimado'}],
     "habilitacion_uf": [estima 15-20% del precio de adquisición para habilitación comercial],
