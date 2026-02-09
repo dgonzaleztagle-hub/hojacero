@@ -15,6 +15,7 @@ import { calculateDistance } from '@/lib/territorial/utils/distance';
 import { generatePlan1Prompt } from '@/lib/territorial/prompts/plan1-prompt';
 import { generatePlan2Prompt } from '@/lib/territorial/prompts/plan2-prompt';
 import { generatePlan3Prompt } from '@/lib/territorial/prompts/plan3-prompt';
+import { getPortalInmobiliarioData } from '@/lib/scrapers/portal-inmobiliario-cached';
 
 // ============================================
 // MOTOR TERRITORIAL HOJACERO v2.0
@@ -1087,6 +1088,19 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    // 6.5. Portal Inmobiliario (solo Plan 3 - Inversión)
+    let portalInmobiliarioData = null;
+    if (plan_type === 3 || plan_type === '3') {
+      console.log('🏢 Plan 3 detectado: Obteniendo datos de Portal Inmobiliario...');
+      portalInmobiliarioData = await getPortalInmobiliarioData(supabase, geo.comuna);
+
+      if (portalInmobiliarioData) {
+        console.log(`  ✅ Portal Inmobiliario: Venta ${portalInmobiliarioData.venta.muestra} props | Arriendo ${portalInmobiliarioData.arriendo.muestra} props`);
+      } else {
+        console.log('  ⚠️ Portal Inmobiliario: No se pudieron obtener datos');
+      }
+    }
+
     // 7. Preparar datos para IA
     const dataForAI = {
       address,
@@ -1104,6 +1118,8 @@ export async function POST(req: NextRequest) {
       oceanoRojo: territorialData.oceanoRojo,
       restaurants: territorialData.restaurants, // Restaurantes específicos con nombres reales
       anchors_comerciales: territorialData.anchors, // Anclas comerciales específicas con nombres reales
+      // Portal Inmobiliario (solo Plan 3)
+      portal_inmobiliario: portalInmobiliarioData,
     };
 
     // 8. Síntesis con Groq

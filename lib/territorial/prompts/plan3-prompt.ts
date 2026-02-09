@@ -6,22 +6,34 @@
  */
 
 export interface Plan3PromptData {
-    address: string;
-    comuna: string;
-    gse: { gse: string; ingreso: string; descripcion: string } | null;
-    metro: { station: string; line: string; distance: number } | null;
-    competitors: any[];
-    anchors: any[];
-    business_type: string;
-    oceanoAzul?: string;
-    oceanoRojo?: string;
-    saturation?: any;
-    plan1_analysis?: any;
-    plan2_analysis?: any;
+  address: string;
+  comuna: string;
+  gse: { gse: string; ingreso: string; descripcion: string } | null;
+  metro: { station: string; line: string; distance: number } | null;
+  competitors: any[];
+  anchors: any[];
+  business_type: string;
+  oceanoAzul?: string;
+  oceanoRojo?: string;
+  saturation?: any;
+  plan1_analysis?: any;
+  plan2_analysis?: any;
+  portal_inmobiliario?: {
+    venta: {
+      precio_promedio_uf: number;
+      precio_uf_m2: number;
+      muestra: number;
+    };
+    arriendo: {
+      precio_promedio_uf: number;
+      precio_uf_m2: number;
+      muestra: number;
+    };
+  } | null;
 }
 
 export function generatePlan3Prompt(data: Plan3PromptData): string {
-    return `Eres un analista de inversiones inmobiliarias de HojaCero Chile. Genera un DOSSIER DE INVERSIÓN que sintetice y eleve los análisis previos del Plan 1 y Plan 2 hacia una evaluación de inversión profesional.
+  return `Eres un analista de inversiones inmobiliarias de HojaCero Chile. Genera un DOSSIER DE INVERSIÓN que sintetice y eleve los análisis previos del Plan 1 y Plan 2 hacia una evaluación de inversión profesional.
 
 ## FORMATO DE DOSSIER PROFESIONAL (SIGUE ESTE ESTILO):
 - Usa un lenguaje de inversión y análisis financiero
@@ -42,13 +54,18 @@ export function generatePlan3Prompt(data: Plan3PromptData): string {
 - Metro: ${data.metro ? `${data.metro.station} (${data.metro.distance}m)` : 'No'}
 - Competidores: ${data.competitors?.length || 0}
 - Anclas: ${data.anchors?.length || 0}
+${data.portal_inmobiliario ? `
+- DATOS DE MERCADO INMOBILIARIO (Portal Inmobiliario):
+  * VENTA: Promedio ${data.portal_inmobiliario.venta.precio_promedio_uf} UF | ${data.portal_inmobiliario.venta.precio_uf_m2} UF/m² (${data.portal_inmobiliario.venta.muestra} propiedades)
+  * ARRIENDO: Promedio ${data.portal_inmobiliario.arriendo.precio_promedio_uf} UF/mes | ${data.portal_inmobiliario.arriendo.precio_uf_m2} UF/m² (${data.portal_inmobiliario.arriendo.muestra} propiedades)
+` : ''}
 - Análisis previos: ${JSON.stringify({
-        oceanoAzul: data.oceanoAzul,
-        oceanoRojo: data.oceanoRojo,
-        saturation: data.saturation,
-        plan1_analysis: data.saturation,
-        plan2_analysis: data.anchors
-    })}
+    oceanoAzul: data.oceanoAzul,
+    oceanoRojo: data.oceanoRojo,
+    saturation: data.saturation,
+    plan1_analysis: data.saturation,
+    plan2_analysis: data.anchors
+  })}
 
 CRITICAL SATURATION ADVISORY:
 - No ignores la saturación previa. Si el rubro propuesto está en Océano Rojo, el "veredicto_inversion" debería ser HOLD o SELL a menos que la tesis de inversión sea disruptiva (ej: inversión en propiedad para arriendo a un rubro distinto).
@@ -81,12 +98,12 @@ CRITICAL SATURATION ADVISORY:
     ]
   },
   "modelo_financiero": {
-    "precio_adquisicion_uf": [número estimado basado en análisis previos],
-    "habilitacion_uf": [número basado en análisis de zona],
-    "inversion_total_uf": [número basado en análisis previos],
-    "arriendo_mensual_uf": [número basado en proyecciones del Plan 2],
-    "noi_uf": [número anual basado en análisis financiero],
-    "cap_rate": [número % calculado]
+    "precio_adquisicion_uf": [${data.portal_inmobiliario ? `USA EL DATO REAL: ${data.portal_inmobiliario.venta.precio_promedio_uf} UF como referencia` : 'número estimado'}],
+    "habilitacion_uf": [estima 15-20% del precio de adquisición para habilitación comercial],
+    "inversion_total_uf": [suma de precio_adquisicion_uf + habilitacion_uf],
+    "arriendo_mensual_uf": [${data.portal_inmobiliario ? `USA EL DATO REAL: ${data.portal_inmobiliario.arriendo.precio_promedio_uf} UF/mes como referencia` : 'número estimado'}],
+    "noi_uf": [arriendo_mensual_uf * 12 * 0.85 (asume 15% gastos operativos)],
+    "cap_rate": [calcula: (noi_uf / inversion_total_uf) * 100]
   },
   "stress_test": {
     "pesimista": {"cap_rate": [número], "vacancia": [%]},
