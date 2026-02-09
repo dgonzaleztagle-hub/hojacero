@@ -7,6 +7,15 @@ import Groq from 'groq-sdk';
 import { generateTerritorialMap } from '@/lib/mapbox-static';
 import { geocodeBatch } from '@/lib/mapbox-geocoding';
 
+// Módulos territoriales
+import { getGSEByComuna, getDefaultGSE } from '@/lib/territorial/data/gse-data';
+import { findNearestMetro } from '@/lib/territorial/data/metro-stations';
+import { geocode } from '@/lib/territorial/utils/geocoding';
+import { calculateDistance } from '@/lib/territorial/utils/distance';
+import { generatePlan1Prompt } from '@/lib/territorial/prompts/plan1-prompt';
+import { generatePlan2Prompt } from '@/lib/territorial/prompts/plan2-prompt';
+import { generatePlan3Prompt } from '@/lib/territorial/prompts/plan3-prompt';
+
 // ============================================
 // MOTOR TERRITORIAL HOJACERO v2.0
 // Basado en reportes de Gastón
@@ -20,60 +29,6 @@ const TOMTOM_API_KEY = process.env.TOMTOM_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN;
 
-// ============================================
-// DATASET: GSE POR COMUNA (CHILE)
-// ============================================
-const GSE_DATA: Record<string, { gse: string; ingreso: string; descripcion: string }> = {
-  'las condes': { gse: 'ABC1', ingreso: '$4.500.000+', descripcion: 'Elite económica, alto poder adquisitivo' },
-  'vitacura': { gse: 'ABC1', ingreso: '$5.000.000+', descripcion: 'Zona premium residencial' },
-  'lo barnechea': { gse: 'ABC1', ingreso: '$4.800.000+', descripcion: 'Familias de alto patrimonio' },
-  'providencia': { gse: 'C1a', ingreso: '$2.800.000', descripcion: 'Profesionales jóvenes, oficinas' },
-  'ñuñoa': { gse: 'C1b', ingreso: '$2.200.000', descripcion: 'Clase media-alta, universitarios' },
-  'la reina': { gse: 'C1b', ingreso: '$2.400.000', descripcion: 'Familias consolidadas' },
-  'santiago': { gse: 'C2', ingreso: '$1.500.000', descripcion: 'Centro financiero, oficinistas' },
-  'macul': { gse: 'C2', ingreso: '$1.300.000', descripcion: 'Zona universitaria mixta' },
-  'san miguel': { gse: 'C2', ingreso: '$1.400.000', descripcion: 'Clase media emergente' },
-  'la florida': { gse: 'C3', ingreso: '$900.000', descripcion: 'Clase media masiva' },
-  'maipú': { gse: 'C3', ingreso: '$850.000', descripcion: 'Gran masa poblacional' },
-  'peñalolén': { gse: 'C3', ingreso: '$800.000', descripcion: 'Mixto, en desarrollo' },
-  'puente alto': { gse: 'D', ingreso: '$650.000', descripcion: 'Alta densidad, precio sensible' },
-  'la pintana': { gse: 'E', ingreso: '$450.000', descripcion: 'Vulnerable, bajo ticket' },
-  'san bernardo': { gse: 'D', ingreso: '$600.000', descripcion: 'Periferia sur' },
-  'quilicura': { gse: 'C3', ingreso: '$750.000', descripcion: 'Industrial y residencial' },
-  'independencia': { gse: 'C2', ingreso: '$1.100.000', descripcion: 'Comercio mayorista' },
-  'recoleta': { gse: 'C3', ingreso: '$800.000', descripcion: 'Comercio, Patronato' },
-  'estación central': { gse: 'C3', ingreso: '$750.000', descripcion: 'Transporte, comercio' },
-  'quinta normal': { gse: 'C3', ingreso: '$700.000', descripcion: 'Zona tradicional' },
-};
-
-// ============================================
-// DATASET: METRO SANTIAGO
-// ============================================
-const METRO_STATIONS: Array<{ name: string; lat: number; lng: number; line: string }> = [
-  { name: 'Los Dominicos', lat: -33.4105, lng: -70.5227, line: '1' },
-  { name: 'Hernando de Magallanes', lat: -33.4102, lng: -70.5356, line: '1' },
-  { name: 'Manquehue', lat: -33.4097, lng: -70.5526, line: '1' },
-  { name: 'Escuela Militar', lat: -33.4246, lng: -70.5943, line: '1' },
-  { name: 'Tobalaba', lat: -33.4206, lng: -70.6012, line: '1' },
-  { name: 'Los Leones', lat: -33.4260, lng: -70.6045, line: '1' },
-  { name: 'Pedro de Valdivia', lat: -33.4253, lng: -70.6134, line: '1' },
-  { name: 'Manuel Montt', lat: -33.4271, lng: -70.6206, line: '1' },
-  { name: 'Salvador', lat: -33.4371, lng: -70.6331, line: '1' },
-  { name: 'Baquedano', lat: -33.4373, lng: -70.6391, line: '1' },
-  { name: 'Universidad Católica', lat: -33.4413, lng: -70.6416, line: '1' },
-  { name: 'Santa Lucía', lat: -33.4421, lng: -70.6453, line: '1' },
-  { name: 'Universidad de Chile', lat: -33.4435, lng: -70.6513, line: '1' },
-  { name: 'La Moneda', lat: -33.4421, lng: -70.6541, line: '1' },
-  { name: 'Los Héroes', lat: -33.4497, lng: -70.6584, line: '1' },
-  { name: 'República', lat: -33.4541, lng: -70.6601, line: '1' },
-  { name: 'Estación Central', lat: -33.4521, lng: -70.6778, line: '1' },
-  { name: 'Parque O\'Higgins', lat: -33.4642, lng: -70.6482, line: '2' },
-  { name: 'Franklin', lat: -33.4715, lng: -70.6469, line: '2' },
-  { name: 'Vespucio Norte', lat: -33.3845, lng: -70.6096, line: '2' },
-  { name: 'Plaza de Puente Alto', lat: -33.5977, lng: -70.5774, line: '4' },
-  { name: 'Vicente Valdés', lat: -33.5287, lng: -70.5918, line: '5' },
-  { name: 'Plaza Maipú', lat: -33.5169, lng: -70.7561, line: '5' },
-];
 
 // ============================================
 // SISTEMA DE CACHÉ POR CUADRANTE (~1km²)
@@ -174,56 +129,6 @@ async function saveToCacheInternal(
   }
 }
 
-// ============================================
-// GEOCODING CON NOMINATIM
-// ============================================
-async function geocode(address: string): Promise<{ lat: number; lng: number; comuna: string; display: string } | null> {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=cl&limit=1`;
-  const res = await fetch(url, { headers: { 'User-Agent': 'HojaCero/2.0' } });
-  const data = await res.json();
-
-  if (!data.length) return null;
-
-  const { lat, lon, display_name } = data[0];
-  const parts = display_name.split(',').map((p: string) => p.trim().toLowerCase());
-
-  // Detectar comuna de forma más precisa
-  let comuna = 'Santiago';
-
-  // Priorizar partes de la dirección que coincidan exactamente con GSE_DATA
-  for (const part of parts) {
-    const cleanPart = part.toLowerCase().replace('comuna de ', '').trim();
-    if (GSE_DATA[cleanPart]) {
-      comuna = cleanPart.charAt(0).toUpperCase() + cleanPart.slice(1);
-      break;
-    }
-  }
-
-  // Backup: si no se encontró en GSE_DATA, intentar buscar específicamente la palabra 'Lampa' o similares en el string completo
-  if (comuna === 'Santiago' && display_name.toLowerCase().includes('lampa')) {
-    comuna = 'Lampa';
-  }
-
-  return { lat: parseFloat(lat), lng: parseFloat(lon), comuna, display: display_name };
-}
-
-// ============================================
-// CÁLCULO DE DISTANCIA (HAVERSINE)
-// ============================================
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371e3; // Radio de la Tierra en metros
-  const φ1 = lat1 * Math.PI / 180;
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) *
-    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return Math.round(R * c);
-}
 
 // ============================================
 // COMPETIDORES CON OVERPASS API
