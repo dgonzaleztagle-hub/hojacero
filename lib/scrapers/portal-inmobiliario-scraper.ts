@@ -75,6 +75,33 @@ const SELECTORS = {
 };
 
 // ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+
+/**
+ * Valida que el precio en UF esté en un rango realista
+ * @param precioUF Precio en UF
+ * @param tipo 'venta' | 'arriendo'
+ * @returns true si el precio está en rango realista
+ */
+function validarRangoUF(precioUF: number, tipo: 'venta' | 'arriendo'): boolean {
+    if (tipo === 'arriendo') {
+        // Arriendos comerciales típicos: UF 10 - UF 1,000
+        if (precioUF < 10 || precioUF > 1000) {
+            console.warn(`⚠️ Precio arriendo fuera de rango: ${precioUF} UF (esperado: 10-1000 UF)`);
+            return false;
+        }
+    } else {
+        // Ventas comerciales típicas: UF 500 - UF 200,000
+        if (precioUF < 500 || precioUF > 200000) {
+            console.warn(`⚠️ Precio venta fuera de rango: ${precioUF} UF (esperado: 500-200,000 UF)`);
+            return false;
+        }
+    }
+    return true;
+}
+
+// ============================================
 // FUNCIONES PRINCIPALES
 // ============================================
 
@@ -189,11 +216,13 @@ export async function getPropertyPrices(
                 return properties;
             }, SELECTORS);
 
-            // Convertir fecha de string a Date
-            const propertiesWithDate = pageProperties.map(p => ({
-                ...p,
-                fecha_scraping: new Date(p.fecha_scraping)
-            }));
+            // Convertir fecha de string a Date y filtrar por rango UF válido
+            const propertiesWithDate = pageProperties
+                .map(p => ({
+                    ...p,
+                    fecha_scraping: new Date(p.fecha_scraping)
+                }))
+                .filter(p => validarRangoUF(p.precio, tipo));
 
             allProperties.push(...propertiesWithDate);
 

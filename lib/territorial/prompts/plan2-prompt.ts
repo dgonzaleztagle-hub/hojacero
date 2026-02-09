@@ -1,8 +1,10 @@
 /**
- * Prompt Generator for Plan 2 (Plan 350k - Estratégico)
+ * Prompt Generator for Plan 2 Premium (Plan 400k - Estrategia + Inversión)
  * 
- * Genera el prompt para análisis comercial profundo con Groq LLM.
- * Enfoque: Estrategia comercial completa para ejecución de negocio.
+ * Genera el prompt para análisis comercial completo + análisis de inversión.
+ * Enfoque: Estrategia comercial + viabilidad de inversión inmobiliaria.
+ * 
+ * FUSIÓN: Combina el antiguo Plan 350k + Plan 600k en un solo producto premium.
  */
 
 export interface Plan2PromptData {
@@ -16,7 +18,7 @@ export interface Plan2PromptData {
   oceanoAzul?: string;
   oceanoRojo?: string;
   saturation?: any;
-  // Estimadores (nuevos)
+  // Estimadores de flujo y ticket
   estimadores?: {
     flujo: {
       flujo_diario_estimado: number;
@@ -37,21 +39,36 @@ export interface Plan2PromptData {
       clientes_mensuales: number;
     };
   } | null;
+  // Datos de Portal Inmobiliario (para análisis de inversión)
+  portal_inmobiliario?: {
+    venta: {
+      precio_promedio_uf: number;
+      precio_uf_m2: number;
+      muestra: number;
+    };
+    arriendo: {
+      precio_promedio_uf: number;
+      precio_uf_m2: number;
+      muestra: number;
+    };
+  } | null;
 }
 
 export function generatePlan2Prompt(data: Plan2PromptData): string {
-  return `Eres un consultor estratégico senior de HojaCero Chile. Genera un ANÁLISIS COMERCIAL COMPLETO que expanda y profundice el análisis inicial del Plan 1, manteniendo la misma calidad y estilo consultor profesional.
+  return `Eres un consultor estratégico senior de HojaCero Chile. Genera un ANÁLISIS COMERCIAL COMPLETO + ANÁLISIS DE INVERSIÓN que expanda y profundice el análisis inicial del Plan 1, manteniendo la misma calidad y estilo consultor profesional.
 
 ## FORMATO CONSULTOR PROFESIONAL (SIGUE ESTE ESTILO):
 - Usa un tono más analítico y estratégico que el Plan 1
 - Incluye datos cuantitativos específicos
 - Mantiene el enfoque práctico pero con mayor profundidad
 - Usa el mismo estilo de Gastón con análisis detallados
+- Integra análisis de inversión inmobiliaria cuando hay datos disponibles
 
 ## RELACIÓN CON PLAN 1:
-- El Plan 2 debe expandir cada sección del Plan 1 con mayor profundidad
+- El Plan 2 Premium debe expandir cada sección del Plan 1 con mayor profundidad
 - Debe mantener la coherencia con los hallazgos del Plan 1
 - Debe añadir capas de análisis que el Plan 1 no cubrió
+- Debe incluir viabilidad de inversión inmobiliaria
 
 ## DATOS RECOPILADOS:
 - Dirección: ${data.address}
@@ -68,7 +85,7 @@ export function generatePlan2Prompt(data: Plan2PromptData): string {
     saturation: data.saturation
   })}
 
-## DATOS ENRIQUECIDOS (PLAN 350K):
+## DATOS ENRIQUECIDOS (PLAN 400K PREMIUM):
 ${data.estimadores ? `
 - Flujo Peatonal Estimado: ${data.estimadores.flujo.flujo_diario_estimado} personas/día (${data.estimadores.flujo.flujo_mensual_estimado}/mes)
   Confianza: ${data.estimadores.flujo.confianza.toUpperCase()}
@@ -82,6 +99,13 @@ ${data.estimadores ? `
   Clientes estimados: ${data.estimadores.ventas.clientes_mensuales}/mes
   Tasa de conversión: 15%
 ` : '- Estimadores no disponibles (requiere Plan 2 o superior)'}
+
+## DATOS DE MERCADO INMOBILIARIO (PLAN 400K PREMIUM):
+${data.portal_inmobiliario ? `
+- Portal Inmobiliario (${data.comuna}):
+  * VENTA: Promedio ${data.portal_inmobiliario.venta.precio_promedio_uf} UF | ${data.portal_inmobiliario.venta.precio_uf_m2} UF/m² (${data.portal_inmobiliario.venta.muestra} propiedades)
+  * ARRIENDO: Promedio ${data.portal_inmobiliario.arriendo.precio_promedio_uf} UF/mes | ${data.portal_inmobiliario.arriendo.precio_uf_m2} UF/m² (${data.portal_inmobiliario.arriendo.muestra} propiedades)
+` : '- Datos de Portal Inmobiliario no disponibles para esta comuna'}
 
 CRITICAL GUIDANCE ON SATURATION:
 - OCEANOS AZULES / NULA / BAJA: Son áreas de alta oportunidad estratégica.
@@ -167,9 +191,44 @@ CRITICAL GUIDANCE ON SATURATION:
     "venta_mensual": [número estimado en CLP],
     "nota": "Proyección basada en análisis del Plan 1 y datos de mercado específicos"
   },
+  "analisis_inversion": {
+    "factibilidad_normativa": {
+      "disclaimer": "⚠️ IMPORTANTE: Este análisis es preliminar. La zonificación y permisos requieren consulta directa a la Dirección de Obras Municipales (DOM) de ${data.comuna}.",
+      "zonificacion_estimada": "[Estimación basada en ubicación y GSE - REQUIERE VALIDACIÓN DOM]",
+      "aptitud_comercial": "[Análisis preliminar basado en entorno comercial detectado - REQUIERE CERTIFICADO DOM]",
+      "restricciones_potenciales": "[Posibles restricciones basadas en zona - REQUIERE VALIDACIÓN TÉCNICA]",
+      "pasos_siguientes": [
+        "1. Consultar Plan Regulador Comunal en sitio web de DOM ${data.comuna}",
+        "2. Solicitar Certificado de Informaciones Previas (CIP) en DOM",
+        "3. Validar factibilidad constructiva con arquitecto",
+        "4. Confirmar uso de suelo permitido (Equipamiento vs Solo Vivienda)",
+        "5. Verificar sistema de agrupamiento (adosamiento)",
+        "6. Confirmar antejardín obligatorio"
+      ],
+      "datos_clave_cip": {
+        "uso_suelo": "REQUIERE CIP - Verificar si permite 'Equipamiento Comercial'",
+        "sistema_agrupamiento": "REQUIERE CIP - Confirmar posibilidad de adosamiento",
+        "antejardin_obligatorio": "REQUIERE CIP - Confirmar metros libres desde reja"
+      }
+    },
+    "modelo_financiero": {
+      "disclaimer": "⚠️ Cálculos basados en datos de mercado de Portal Inmobiliario. Validar con tasación profesional.",
+      "precio_adquisicion_uf": ${data.portal_inmobiliario ? data.portal_inmobiliario.venta.precio_promedio_uf : '[número estimado basado en zona]'},
+      "habilitacion_uf": ${data.portal_inmobiliario ? Math.round(data.portal_inmobiliario.venta.precio_promedio_uf * 0.15) : '[estima 15-20% del precio de adquisición]'},
+      "inversion_total_uf": ${data.portal_inmobiliario ? Math.round(data.portal_inmobiliario.venta.precio_promedio_uf * 1.15) : '[suma de precio_adquisicion_uf + habilitacion_uf]'},
+      "arriendo_mensual_uf": ${data.portal_inmobiliario ? data.portal_inmobiliario.arriendo.precio_promedio_uf : '[número estimado basado en zona]'},
+      "noi_anual_uf": ${data.portal_inmobiliario ? Math.round(data.portal_inmobiliario.arriendo.precio_promedio_uf * 12 * 0.85) : '[arriendo_mensual_uf * 12 * 0.85]'},
+      "cap_rate": ${data.portal_inmobiliario ? ((data.portal_inmobiliario.arriendo.precio_promedio_uf * 12 * 0.85) / (data.portal_inmobiliario.venta.precio_promedio_uf * 1.15) * 100).toFixed(2) : '[calcula: (noi_anual_uf / inversion_total_uf) * 100]'},
+      "interpretacion_cap_rate": "[EXCELENTE (>8%) / BUENO (6-8%) / REGULAR (4-6%) / BAJO (<4%)]"
+    },
+    "tenant_mix_recomendado": [
+      {"prioridad": 1, "rubro": "[Rubro basado en Océano Azul]", "justificacion": "[Por qué este rubro tiene alta viabilidad]"},
+      {"prioridad": 2, "rubro": "[Rubro alternativo]", "justificacion": "[Justificación basada en análisis de competencia]"}
+    ]
+  },
   "conclusion": {
     "veredicto": "[ORO/PLATA/BRONCE/RIESGO]",
-    "mensaje": "[Mensaje final de 2-3 líneas que conecte con el Plan 1 pero indique la profundidad adicional]"
+    "mensaje": "[Mensaje final de 2-3 líneas que conecte con el Plan 1 e indique el valor adicional del análisis de inversión]"
   }
 }`;
 }

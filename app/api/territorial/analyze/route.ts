@@ -1089,10 +1089,10 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    // 6.5. Portal Inmobiliario (solo Plan 3 - Inversión)
+    // 6.5. Portal Inmobiliario (Plan 2 Premium - Inversión)
     let portalInmobiliarioData = null;
-    if (plan_type === 3 || plan_type === '3') {
-      console.log('🏢 Plan 3 detectado: Obteniendo datos de Portal Inmobiliario...');
+    if (plan_type === 2 || plan_type === '2') {
+      console.log('🏢 Plan 2 Premium detectado: Obteniendo datos de Portal Inmobiliario...');
       portalInmobiliarioData = await getPortalInmobiliarioData(supabase, geo.comuna);
 
       if (portalInmobiliarioData) {
@@ -1102,9 +1102,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 6.6. Estimadores de Flujo y Ticket (Plan 2 y 3)
+    // 6.6. Estimadores de Flujo y Ticket (Plan 2 Premium)
     let estimadores = null;
-    if (plan_type === 2 || plan_type === '2' || plan_type === 3 || plan_type === '3') {
+    if (plan_type === 2 || plan_type === '2') {
       console.log('📊 Calculando estimadores de flujo y ticket...');
 
       // Estimar flujo peatonal
