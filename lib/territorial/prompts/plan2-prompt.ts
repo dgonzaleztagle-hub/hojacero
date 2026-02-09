@@ -185,10 +185,12 @@ CRITICAL GUIDANCE ON SATURATION:
     }
   },
   "proyeccion_financiera": {
+    "disclaimer": "📊 RENTABILIDAD OPERATIVA: Este análisis es para emprendedores que operarán el negocio. Muestra ingresos por ventas del ${data.business_type}.",
     "pedidos_lunes_jueves": "[Estimación diaria con rango]",
     "pedidos_viernes_sabado": "[Estimación diaria con rango]",
     "ticket_promedio": [número estimado en CLP],
     "venta_mensual": [número estimado en CLP],
+    "margen_operativo_estimado": "[% estimado basado en industria]",
     "nota": "Proyección basada en análisis del Plan 1 y datos de mercado específicos"
   },
   "analisis_inversion": {
@@ -212,14 +214,15 @@ CRITICAL GUIDANCE ON SATURATION:
       }
     },
     "modelo_financiero": {
-      "disclaimer": "⚠️ Cálculos basados en datos de mercado de Portal Inmobiliario. Validar con tasación profesional.",
+      "disclaimer": "💰 ANÁLISIS DE INVERSIÓN INMOBILIARIA: Este análisis es para inversionistas que comprarán el local para arrendarlo. El Cap Rate mide rentabilidad del arriendo, NO del negocio operativo.",
       "precio_adquisicion_uf": ${data.portal_inmobiliario ? data.portal_inmobiliario.venta.precio_promedio_uf : '[número estimado basado en zona]'},
       "habilitacion_uf": ${data.portal_inmobiliario ? Math.round(data.portal_inmobiliario.venta.precio_promedio_uf * 0.15) : '[estima 15-20% del precio de adquisición]'},
       "inversion_total_uf": ${data.portal_inmobiliario ? Math.round(data.portal_inmobiliario.venta.precio_promedio_uf * 1.15) : '[suma de precio_adquisicion_uf + habilitacion_uf]'},
       "arriendo_mensual_uf": ${data.portal_inmobiliario ? data.portal_inmobiliario.arriendo.precio_promedio_uf : '[número estimado basado en zona]'},
       "noi_anual_uf": ${data.portal_inmobiliario ? Math.round(data.portal_inmobiliario.arriendo.precio_promedio_uf * 12 * 0.85) : '[arriendo_mensual_uf * 12 * 0.85]'},
       "cap_rate": ${data.portal_inmobiliario ? ((data.portal_inmobiliario.arriendo.precio_promedio_uf * 12 * 0.85) / (data.portal_inmobiliario.venta.precio_promedio_uf * 1.15) * 100).toFixed(2) : '[calcula: (noi_anual_uf / inversion_total_uf) * 100]'},
-      "interpretacion_cap_rate": "[EXCELENTE (>8%) / BUENO (6-8%) / REGULAR (4-6%) / BAJO (<4%)]"
+      "interpretacion_cap_rate": "[EXCELENTE (>8%) / BUENO (6-8%) / REGULAR (4-6%) / BAJO (<4%)]",
+      "nota_importante": "El Cap Rate mide rentabilidad de ARRENDAR el local, no de OPERAR el negocio. Para rentabilidad operativa, ver 'Proyección Financiera'."
     },
     "tenant_mix_recomendado": [
       {"prioridad": 1, "rubro": "[Rubro basado en Océano Azul]", "justificacion": "[Por qué este rubro tiene alta viabilidad]"},
