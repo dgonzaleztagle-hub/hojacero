@@ -9,12 +9,12 @@ interface FactibilidadNormativaSectionProps {
         zonificacion_estimada?: string;
         aptitud_comercial?: string;
         restricciones_potenciales?: string;
-        pasos_siguientes?: string;
+        pasos_siguientes?: string[]; // Es un array, no un string
     };
 }
 
 export function FactibilidadNormativaSection({ data }: FactibilidadNormativaSectionProps) {
-    const pasos = data.pasos_siguientes?.split(/\d+\./).filter(Boolean) || [];
+    const pasos = data.pasos_siguientes || []; // Ya es un array, no necesita .split()
 
     return (
         <section className="relative py-32 px-6 bg-gradient-to-b from-black via-slate-950 to-black overflow-hidden">
