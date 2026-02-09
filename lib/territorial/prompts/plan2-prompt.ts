@@ -142,16 +142,19 @@ CRITICAL GUIDANCE ON SATURATION:
   "auditoria_digital": {
     "competidor_1": {
       "nombre": "[Nombre específico encontrado en análisis]",
-      "presencia": "[Descripción detallada de presencia digital con plataformas específicas]",
+      "tiene_sitio_web": "[SÍ/NO]",
+      "tiene_perfil_google": "[SÍ/NO]",
       "debilidad": "[Debilidad digital específica detectada]",
       "oportunidad": "[Oportunidad específica para superarlo]"
     },
     "competidor_2": {
       "nombre": "[Nombre específico encontrado en análisis]",
-      "presencia": "[Descripción detallada]",
+      "tiene_sitio_web": "[SÍ/NO]",
+      "tiene_perfil_google": "[SÍ/NO]",
       "debilidad": "[Debilidad específica]",
       "oportunidad": "[Oportunidad específica]"
     },
+    "disclaimer_presencia": "⚠️ IMPORTANTE: Solo reportamos si el competidor TIENE o NO TIENE sitio web y perfil de Google. NO inventamos datos de seguidores, likes, o métricas que no podemos verificar.",
     "conclusion_digital": "[Resumen del gap digital a explotar con oportunidades concretas]"
   },
   "analisis_algoritmos": {

@@ -1010,7 +1010,25 @@ export default function TerritorialPage() {
 
                                     {/* Botón Descargar PDF */}
                                     <button
-                                        onClick={() => generateTerritorialPDF(currentReport as any)}
+                                        onClick={async () => {
+                                            try {
+                                                const response = await fetch(`/api/reporte/${currentReport.id}/pdf`);
+                                                if (!response.ok) throw new Error('Error generando PDF');
+
+                                                const blob = await response.blob();
+                                                const url = window.URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `reporte-territorial-${currentReport.id}.pdf`;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                window.URL.revokeObjectURL(url);
+                                                document.body.removeChild(a);
+                                            } catch (error) {
+                                                console.error('Error descargando PDF:', error);
+                                                alert('Error al generar el PDF. Intenta nuevamente.');
+                                            }
+                                        }}
                                         className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-bold text-white flex items-center gap-2 hover:shadow-lg hover:shadow-green-500/20 transition-all"
                                     >
                                         <Download className="w-5 h-5" />

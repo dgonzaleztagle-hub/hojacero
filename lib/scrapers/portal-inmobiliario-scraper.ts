@@ -86,15 +86,17 @@ const SELECTORS = {
  */
 function validarRangoUF(precioUF: number, tipo: 'venta' | 'arriendo'): boolean {
     if (tipo === 'arriendo') {
-        // Arriendos comerciales típicos: UF 10 - UF 1,000
-        if (precioUF < 10 || precioUF > 1000) {
-            console.warn(`⚠️ Precio arriendo fuera de rango: ${precioUF} UF (esperado: 10-1000 UF)`);
+        // Arriendos comerciales/residenciales típicos: UF 5 - UF 200
+        // Lampa/zonas residenciales: ~UF 10-50
+        if (precioUF < 5 || precioUF > 200) {
+            console.warn(`⚠️ Precio arriendo fuera de rango: ${precioUF} UF (esperado: 5-200 UF)`);
             return false;
         }
     } else {
-        // Ventas comerciales típicas: UF 500 - UF 200,000
-        if (precioUF < 500 || precioUF > 200000) {
-            console.warn(`⚠️ Precio venta fuera de rango: ${precioUF} UF (esperado: 500-200,000 UF)`);
+        // Ventas residenciales/comerciales pequeños: UF 1,000 - UF 20,000
+        // Esto filtra terrenos industriales y galpones gigantes
+        if (precioUF < 1000 || precioUF > 20000) {
+            console.warn(`⚠️ Precio venta fuera de rango: ${precioUF} UF (esperado: 1,000-20,000 UF)`);
             return false;
         }
     }
@@ -280,28 +282,76 @@ export async function getComercialPropertyData(
 // ============================================
 
 /**
- * Calcula el precio promedio en UF
+ * Calcula el precio promedio en UF con filtro de outliers
+ * Implementa la solución de Gastón: elimina valores atípicos antes de promediar
  */
 function calcularPromedioUF(propiedades: PropertyData[]): number {
     if (propiedades.length === 0) return 0;
+    if (propiedades.length === 1) return Math.round(propiedades[0].precio);
 
-    const total = propiedades.reduce((sum, p) => sum + p.precio, 0);
-    return Math.round(total / propiedades.length);
+    // 1. Calcular promedio inicial
+    const precios = propiedades.map(p => p.precio);
+    const promedioInicial = precios.reduce((a, b) => a + b, 0) / precios.length;
+
+    // 2. Calcular desviación estándar
+    const varianza = precios.reduce((sum, precio) => {
+        return sum + Math.pow(precio - promedioInicial, 2);
+    }, 0) / precios.length;
+    const desviacionEstandar = Math.sqrt(varianza);
+
+    // 3. Filtrar outliers: eliminar valores > 2 desviaciones estándar
+    const preciosFiltrados = precios.filter(precio => {
+        const distancia = Math.abs(precio - promedioInicial);
+        const esOutlier = distancia > (2 * desviacionEstandar);
+
+        if (esOutlier) {
+            console.warn(`⚠️ Outlier detectado y eliminado: ${precio} UF (promedio: ${Math.round(promedioInicial)} UF, σ: ${Math.round(desviacionEstandar)} UF)`);
+        }
+
+        return !esOutlier;
+    });
+
+    // 4. Si eliminamos demasiados datos, usar todos
+    if (preciosFiltrados.length < precios.length * 0.5) {
+        console.warn('⚠️ Demasiados outliers detectados, usando todos los datos');
+        return Math.round(promedioInicial);
+    }
+
+    // 5. Calcular promedio final sin outliers
+    const promedioFinal = preciosFiltrados.reduce((a, b) => a + b, 0) / preciosFiltrados.length;
+
+    console.log(`📊 Promedio UF: ${Math.round(promedioFinal)} UF (${preciosFiltrados.length}/${precios.length} propiedades válidas)`);
+
+    return Math.round(promedioFinal);
 }
 
 /**
- * Calcula el precio promedio UF/m²
+ * Calcula el precio promedio UF/m² con filtro de outliers
  */
 function calcularUFporM2(propiedades: PropertyData[]): number {
     if (propiedades.length === 0) return 0;
 
     const validas = propiedades.filter(p => p.metros > 0 && p.precio > 0);
     if (validas.length === 0) return 0;
+    if (validas.length === 1) return Math.round((validas[0].precio / validas[0].metros) * 100) / 100;
 
+    // Calcular UF/m² para cada propiedad
     const ufPorM2 = validas.map(p => p.precio / p.metros);
-    const promedio = ufPorM2.reduce((a, b) => a + b, 0) / ufPorM2.length;
 
-    return Math.round(promedio * 100) / 100; // 2 decimales
+    // Filtrar outliers usando mismo método
+    const promedio = ufPorM2.reduce((a, b) => a + b, 0) / ufPorM2.length;
+    const varianza = ufPorM2.reduce((sum, val) => sum + Math.pow(val - promedio, 2), 0) / ufPorM2.length;
+    const desviacionEstandar = Math.sqrt(varianza);
+
+    const filtrados = ufPorM2.filter(val => {
+        const distancia = Math.abs(val - promedio);
+        return distancia <= (2 * desviacionEstandar);
+    });
+
+    if (filtrados.length === 0) return Math.round(promedio * 100) / 100;
+
+    const promedioFinal = filtrados.reduce((a, b) => a + b, 0) / filtrados.length;
+    return Math.round(promedioFinal * 100) / 100; // 2 decimales
 }
 
 /**
