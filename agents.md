@@ -12,6 +12,7 @@ Este archivo es la "Memoria Maestra" de GeminisClaude (Jarvis). Debe leerse al i
    - Jarvis ha eliminado la "ansiedad de la inmediatez": prefiere ejecutar menos veces con resultados perfectos.
 
 ## 🗺️ MAPA DE ESTRUCTURA (Contexto)
+- **LEER SIEMPRE AL INICIO:** `NAVIGATION_MAP.md` - Mapa completo de navegación del proyecto para no perderse.
 - `/exports`: Sitios terminados para mantenimiento/modificación.
 - `/prospectos`: Demos y prototipos.
 - `**/aplicaciones`: Apps propias de HojaCero.

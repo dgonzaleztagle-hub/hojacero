@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -12,7 +11,7 @@ import {
     Cpu, Target, Activity, Flame, Megaphone,
     Code, Fingerprint, Eye, Globe, Lock,
     CheckCircle2, AlertTriangle, Info,
-    Cpu as Engine, Settings2, ShieldCheck,
+    Settings2, ShieldCheck,
     Server, GitBranch, Share2, ClipboardList,
     Monitor, Smartphone
 } from 'lucide-react';
@@ -35,11 +34,67 @@ interface WorkflowDetail {
     icon: any;
 }
 
-const MonitorPlay = ({ size, className }: { size?: number, className?: string }) => (
-    <PlayCircle size={size} className={className} />
-);
-
 const WORKFLOW_DATABASE: WorkflowDetail[] = [
+    {
+        id: 'skill-creative',
+        category: 'dna',
+        title: 'Creative Director (DNA)',
+        slash: 'Consultoría Estética',
+        icon: Eye,
+        strategy: 'Asegura que cada pixel transmita estatus y calidad nivel Awwwards.',
+        impact: {
+            db: ['N/A'],
+            files: ['index.css', 'tailwind.config.ts'],
+            core: ['Visual Identity', 'Motion Branding', 'Color Psychology']
+        },
+        steps: ['Diagnóstico de Tensión Visual.', 'Inyección de Paleta HSL Dinámica.', 'Auditoría de Micro-interacciones.', 'Pass/Fail de Calidad Estética.'],
+        rules: ['Prohibido el uso de componentes genéricos.', 'Cada demo es único, no se copia el Soul.']
+    },
+    {
+        id: 'skill-lead',
+        category: 'dna',
+        title: 'Factory Lead (DNA)',
+        slash: 'Arquitectura Maestra',
+        icon: GitBranch,
+        strategy: 'Consistencia absoluta en ecosistemas multi-página.',
+        impact: {
+            db: ['monitored_sites'],
+            files: ['layout.tsx', 'navigation.ts'],
+            core: ['Consistency Guard', 'Scale Logic', 'Style Lock']
+        },
+        steps: ['Encadenamiento de Style Lock.', 'Sincronización de Navegación Universal.', 'Auditoría de Inyectores de Datos.', 'Cierre de Arquitectura.'],
+        rules: ['No modificar el master una vez duplicado.', 'La navegación debe ser resiliente.']
+    },
+    {
+        id: 'skill-auditor',
+        category: 'dna',
+        title: 'Factory Auditor (DNA)',
+        slash: 'Control de Calidad',
+        icon: UserCheck,
+        strategy: 'El filtro final antes de la entrega al cliente.',
+        impact: {
+            db: ['site_status'],
+            files: ['qa_report.md'],
+            core: ['Technical Security Audit', 'Mobile Health Check', 'SEO Gate']
+        },
+        steps: ['Prueba de Stress en iPhone SE (393px).', 'Auditoría de Broken Links.', 'Verificación de Kill Switch.', 'Asignación de Score Final.'],
+        rules: ['Score < 8.0 = No se entrega.', 'Cero advertencias de consola en producción.']
+    },
+    {
+        id: 'skill-seo',
+        category: 'dna',
+        title: 'SEO Strategist (DNA)',
+        slash: 'Autoridad Algorítmica',
+        icon: Search,
+        strategy: 'Optimización para el futuro de la búsqueda (AEO/GEO).',
+        impact: {
+            db: ['N/A'],
+            files: ['SEOHead.tsx', 'JSON-LD.json'],
+            core: ['AEO Optimization', 'Schema Architecture', 'Answer Grounding']
+        },
+        steps: ['Inyección de Schema LocalBusiness.', 'Optimización de Answer Boxes.', 'Auditoría de Headings Semánticos.', 'Indexación Automática.'],
+        rules: ['Priorizar legibilidad para LLMs (Search Grounding).', 'Imágenes con ALTs descriptivos obligatorios.']
+    },
     {
         id: 'factory-brand',
         category: 'factory',
@@ -417,18 +472,20 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
         strategy: 'Optimiza el sitio para cumplir estándares de PWA Builder (Score 40+) y habilitar modo offline real.',
         impact: {
             db: ['N/A'],
-            files: ['sw.js', 'manifest.json', 'offline.html'],
-            core: ['Offline Support', 'Image Precision Engine']
+            files: ['sw.js', 'manifest.json', 'offline.html', 'public/prospectos/[nombre]/'],
+            core: ['Offline Support', 'Image Precision Engine', 'Service Worker Resilience']
         },
         steps: [
             'Redimensionamiento de iconos (512, 192, 96) y screenshots vía Sharp.',
             'Inyección de Service Worker resiliente con Promise.allSettled.',
             'Configuración de manifest.json con isolación de subcarpetas.',
-            'Validación de Bypass en Middleware de Next.js.'
+            'Validación de Bypass en Middleware de Next.js.',
+            'Test de Score en PWA Builder (objetivo: 40/44).'
         ],
         rules: [
             'El Service Worker debe instalarse incluso si fallan assets secundarios.',
-            'Asegurar el scope exacto para evitar colisiones entre prospectos.'
+            'Asegurar el scope exacto para evitar colisiones entre prospectos.',
+            'Iconos deben ser maskable para evitar cortes en Samsung/Pixel.'
         ]
     },
     {
@@ -440,7 +497,7 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
         strategy: 'Convierte el PWA en una App Nativa Android (APK) eliminando las barras del navegador.',
         impact: {
             db: ['N/A'],
-            files: ['assetlinks.json', 'signing.keystore'],
+            files: ['assetlinks.json', 'signing.keystore', '.well-known/'],
             core: ['Native Integration', 'Domain Authority Handshake']
         },
         steps: [
@@ -455,8 +512,6 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
         ]
     },
 ];
-
-
 
 export default function AyudaPage() {
     const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>(WORKFLOW_DATABASE[0].id);
@@ -474,120 +529,144 @@ export default function AyudaPage() {
         , [searchQuery]);
 
     return (
-        <div className="flex h-screen bg-[#050505] text-white overflow-hidden font-sans">
-            {/* COLUMN 1: SIDEBAR TÉCNICO (300px) */}
-            <aside className="w-[300px] border-r border-white/5 flex flex-col bg-[#080808]">
-                <div className="p-6 border-b border-white/5 space-y-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
-                            <BookOpen size={18} />
+        <div className="flex h-screen bg-[#020202] text-white overflow-hidden font-sans">
+            {/* COLUMN 1: SIDEBAR TÉCNICO (320px) */}
+            <aside className="w-[320px] border-r border-white/5 flex flex-col bg-[#050505]">
+                <div className="p-8 border-b border-white/5 space-y-5">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                            <BookOpen size={20} />
                         </div>
-                        <h1 className="text-sm font-black uppercase tracking-[0.2em] italic">Ayuda H0</h1>
+                        <div>
+                            <h1 className="text-xs font-black uppercase tracking-[0.3em] italic text-cyan-400">Manual H0</h1>
+                            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">V3.5 // Master Database</p>
+                        </div>
                     </div>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={14} />
+                    <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-all duration-500" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-cyan-400 transition-colors" size={14} />
                         <input
                             type="text"
-                            placeholder="Buscar Workflow..."
+                            placeholder="Buscar Protocolo o Skill..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs focus:border-cyan-500/50 outline-none transition-all font-medium"
+                            className="w-full bg-[#080808] border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-[13px] focus:border-cyan-500/30 focus:bg-black outline-none transition-all font-medium placeholder:text-zinc-600 relative z-10"
                         />
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
-                    {(['factory', 'worker', 'maintenance'] as WorkflowCategory[]).map(cat => (
-                        <div key={cat} className="space-y-3">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 px-2">
-                                {cat === 'factory' ? '🏭 Factory Pipeline' :
-                                    cat === 'worker' ? '🤖 Active Workers' :
-                                        '🔧 Maintenance Fleet'}
-                            </h3>
-                            <div className="space-y-1">
-                                {filteredWorkflows.filter(w => w.category === cat).map(w => (
-                                    <button
-                                        key={w.id}
-                                        onClick={() => setSelectedWorkflowId(w.id)}
-                                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all group ${selectedWorkflowId === w.id
-                                            ? 'bg-white/10 border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.5)]'
-                                            : 'hover:bg-white/5 border border-transparent'
-                                            }`}
-                                    >
-                                        <w.icon size={18} className={selectedWorkflowId === w.id ? 'text-cyan-400' : 'text-zinc-500 group-hover:text-zinc-300'} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-[13px] font-black tracking-tight leading-none mb-1">{w.title}</div>
-                                            <div className="text-[11px] font-mono text-zinc-500 truncate">{w.slash}</div>
-                                        </div>
-                                        {selectedWorkflowId === w.id && <ChevronRight size={16} className="text-cyan-400" />}
-                                    </button>
-                                ))}
+                <div className="flex-1 overflow-y-auto px-5 py-8 space-y-10 custom-scrollbar">
+                    {(['dna', 'factory', 'worker', 'maintenance'] as WorkflowCategory[]).map(cat => {
+                        const items = filteredWorkflows.filter(w => w.category === cat);
+                        if (items.length === 0) return null;
+                        return (
+                            <div key={cat} className="space-y-4">
+                                <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] px-3 flex items-center gap-3 ${cat === 'dna' ? 'text-amber-500' :
+                                        cat === 'factory' ? 'text-cyan-500' :
+                                            cat === 'worker' ? 'text-purple-500' :
+                                                'text-green-500'
+                                    }`}>
+                                    <span className="w-1 h-1 rounded-full bg-current" />
+                                    {cat === 'dna' ? 'Human-AI DNA Skills' :
+                                        cat === 'factory' ? 'Factory Pipeline' :
+                                            cat === 'worker' ? 'Active Workers' :
+                                                'Maintenance Fleet'}
+                                </h3>
+                                <div className="space-y-1.5">
+                                    {items.map(w => (
+                                        <button
+                                            key={w.id}
+                                            onClick={() => setSelectedWorkflowId(w.id)}
+                                            className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left transition-all group relative duration-300 ${selectedWorkflowId === w.id
+                                                ? 'bg-gradient-to-r from-white/10 to-transparent border border-white/10 shadow-2xl'
+                                                : 'hover:bg-white/5 border border-transparent opacity-60 hover:opacity-100'
+                                                }`}
+                                        >
+                                            {selectedWorkflowId === w.id && (
+                                                <motion.div
+                                                    layoutId="active-pill"
+                                                    className="absolute left-0 w-1 h-6 bg-cyan-500 rounded-full"
+                                                />
+                                            )}
+                                            <div className={`p-2 rounded-xl transition-all duration-300 ${selectedWorkflowId === w.id ? 'bg-cyan-500/10 text-cyan-400' : 'bg-black/40 text-zinc-600 group-hover:text-zinc-200'}`}>
+                                                <w.icon size={16} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`text-[13px] font-black tracking-tight leading-none mb-1.5 ${selectedWorkflowId === w.id ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-100'}`}>
+                                                    {w.title}
+                                                </div>
+                                                <div className="text-[10px] font-mono text-zinc-600 truncate uppercase tracking-widest">{w.slash}</div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </aside>
 
-            {/* COLUMN 2: CUERPO DE DOCUMENTACIÓN (EXPANDABLE) */}
-            <main className="flex-1 overflow-y-auto bg-[#050505] p-12 lg:p-20 custom-scrollbar relative">
-                <div className="max-w-4xl mx-auto space-y-16">
+            {/* COLUMN 2: CUERPO DE DOCUMENTACIÓN */}
+            <main className="flex-1 overflow-y-auto bg-black p-12 lg:p-24 custom-scrollbar relative">
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/5 blur-[120px] rounded-full -mr-[400px] -mt-[400px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/5 blur-[100px] rounded-full -ml-[300px] -mb-[300px] pointer-events-none" />
+
+                <div className="max-w-4xl mx-auto space-y-24 relative z-10">
                     {/* Header Workflow */}
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3 mb-2">
-                            <span className="h-px w-8 bg-cyan-500" />
-                            <span className="text-cyan-500 text-[10px] font-black uppercase tracking-[0.4em]">{currentWorkflow.category} PROTOCOL</span>
+                    <div className="space-y-8">
+                        <div className="flex items-center gap-4">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] ${currentWorkflow.category === 'dna' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
+                                    'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'
+                                }`}>
+                                {currentWorkflow.category} Protocol
+                            </span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-zinc-800" />
+                            <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em]">Revision // 2026.02</span>
                         </div>
-                        <h2 className="text-6xl font-black italic uppercase tracking-tighter text-white leading-[0.9]">
+
+                        <h2 className="text-7xl md:text-8xl font-black italic uppercase tracking-tighter text-white leading-[0.85]">
                             {currentWorkflow.title}
                         </h2>
-                        <div className="flex items-center gap-4">
-                            <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-full font-mono text-xs text-cyan-400">
-                                {currentWorkflow.slash}
+
+                        <div className="flex flex-wrap items-center gap-6 pt-4">
+                            <div className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl group cursor-pointer hover:border-cyan-500/50 transition-all duration-500">
+                                <Command size={14} className="text-cyan-500" />
+                                <span className="font-mono text-sm font-black text-cyan-400 leading-none">{currentWorkflow.slash}</span>
                             </div>
-                            <div className="text-zinc-500 text-xs font-medium uppercase tracking-widest">
-                                Rev. 2026.02 // Hoja Cero Standard
+                            <div className="flex items-center gap-2 text-zinc-500 text-[11px] font-black uppercase tracking-[0.3em]">
+                                <Activity size={14} className="text-emerald-500" />
+                                Status: Active & Operational
                             </div>
                         </div>
                     </div>
 
                     {/* Estrategia Comercial */}
-                    <section className="space-y-6">
-                        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-3">
-                            <Target size={14} /> Estrategia Comercial
-                        </h3>
-                        <p className="text-xl leading-relaxed text-zinc-100 font-bold tracking-tight">
-                            {currentWorkflow.strategy}
-                        </p>
+                    <section className="space-y-8 p-12 bg-white/[0.02] border border-white/5 rounded-[3rem] relative group hover:border-white/10 transition-colors duration-700">
+                        <div className="absolute top-8 left-8 p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-black transition-all duration-500">
+                            <Target size={20} />
+                        </div>
+                        <div className="pl-16 space-y-4">
+                            <h3 className="text-xs font-black uppercase tracking-[0.4em] text-cyan-500/60">Value Proposition</h3>
+                            <p className="text-2xl md:text-3xl leading-snug text-zinc-100 font-bold tracking-tight">
+                                {currentWorkflow.strategy}
+                            </p>
+                        </div>
                     </section>
 
-                    {/* Protocolo de Inyección */}
-                    <section className="space-y-6">
-                        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-zinc-500 flex items-center gap-3">
-                            <Terminal size={14} /> Protocolo de Inyección
+                    {/* Protocolo de Inyección / Pasos */}
+                    <section className="space-y-12">
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-zinc-600 flex items-center gap-4">
+                            <Terminal size={14} /> Execution Protocol // Steps
                         </h3>
-                        <div className="space-y-6">
+                        <div className="grid grid-cols-1 gap-4">
                             {currentWorkflow.steps.map((step, i) => (
-                                <div key={i} className="flex gap-8 group">
-                                    <span className="text-cyan-500 font-mono text-sm mt-1.5 font-black">0{i + 1}.</span>
-                                    <div className="flex-1 pb-6 border-b border-white/5 group-last:border-none text-lg text-zinc-200 font-medium leading-[1.6]">
-                                        {step.split(/(\[.*?\]\(.*?\))/g).map((part, index) => {
-                                            const match = part.match(/\[(.*?)\]\((.*?)\)/);
-                                            if (match) {
-                                                const isExternal = match[2].startsWith('http');
-                                                return (
-                                                    <a
-                                                        key={index}
-                                                        href={match[2]}
-                                                        target={isExternal ? "_blank" : undefined}
-                                                        rel={isExternal ? "noopener noreferrer" : undefined}
-                                                        className="text-cyan-400 underline decoration-cyan-400/30 hover:decoration-cyan-400 transition-all font-black mx-1"
-                                                    >
-                                                        {match[1]}
-                                                    </a>
-                                                );
-                                            }
-                                            return part;
-                                        })}
+                                <div key={i} className="group flex items-center gap-8 p-8 bg-zinc-900/40 border border-white/5 rounded-[2.5rem] hover:bg-zinc-900/60 hover:border-cyan-500/20 transition-all duration-500">
+                                    <span className="text-3xl font-black italic text-zinc-800 group-hover:text-cyan-500/40 transition-colors duration-500">
+                                        0{i + 1}
+                                    </span>
+                                    <div className="text-lg text-zinc-300 font-bold leading-relaxed tracking-tight">
+                                        {step}
                                     </div>
                                 </div>
                             ))}
@@ -595,59 +674,83 @@ export default function AyudaPage() {
                     </section>
 
                     {/* Reglas de Oro */}
-                    <section className="p-10 bg-zinc-900/50 border border-white/5 rounded-[2.5rem] space-y-6 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[80px] rounded-full -mr-32 -mt-32" />
-                        <h4 className="text-amber-500 text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-3 relative z-10">
-                            <Shield size={14} /> Reglas de Oro (Inviolables)
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
+                    <section className="p-16 bg-gradient-to-br from-amber-500/10 via-black to-black border border-amber-500/20 rounded-[4rem] space-y-12 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 blur-[100px] rounded-full -mr-32 -mt-32" />
+
+                        <div className="flex items-center gap-5">
+                            <div className="p-4 rounded-[1.5rem] bg-amber-500 text-black shadow-xl shadow-amber-500/20">
+                                <Shield size={24} />
+                            </div>
+                            <div>
+                                <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Reglas de Oro</h4>
+                                <p className="text-[10px] text-amber-500 font-black uppercase tracking-[0.4em] mt-1">Inviolables // Standard Hoja Cero</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
                             {currentWorkflow.rules.map((rule, i) => (
-                                <div key={i} className="flex items-start gap-4">
-                                    <div className="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0" />
-                                    <p className="text-base text-zinc-300 font-bold leading-relaxed tracking-tight">
+                                <div key={i} className="flex items-start gap-4 group/rule">
+                                    <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2.5 flex-shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.8)] group-hover/rule:scale-150 transition-transform duration-300" />
+                                    <p className="text-lg text-zinc-400 font-bold leading-relaxed tracking-tight group-hover/rule:text-zinc-100 transition-colors duration-300">
                                         {rule}
                                     </p>
                                 </div>
                             ))}
                         </div>
                     </section>
-                </div>
 
-                <div className="mt-20 text-center text-zinc-800 text-[9px] font-black uppercase tracking-[0.8em] py-12">
-                    Hoja Cero Studio // Manual de Ingeniería // No More MVPs
+                    {/* Footer Auth */}
+                    <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div className="text-[10px] text-zinc-700 font-black uppercase tracking-[0.8em]">
+                            Hoja Cero Studio // Master Protocol
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="px-5 py-2 rounded-full border border-white/5 text-[9px] font-bold uppercase tracking-widest text-zinc-500">
+                                Auth: Daniel G.
+                            </div>
+                            <div className="px-5 py-2 rounded-full border border-cyan-500/20 text-[9px] font-bold uppercase tracking-widest text-cyan-500/60">
+                                AI Partner: Jarvis V3
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
 
-            {/* COLUMN 3: METADATOS TÉCNICOS (350px) */}
-            <aside className="w-[350px] border-l border-white/5 bg-[#080808] p-8 hidden xl:flex flex-col gap-10">
-                <div className="space-y-10">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-400 border-b border-white/5 pb-4">
-                        Huella Técnica
-                    </h3>
+            {/* COLUMN 3: METADATOS TÉCNICOS (380px) */}
+            <aside className="w-[380px] border-l border-white/5 bg-[#050505] p-10 hidden xl:flex flex-col gap-12 overflow-y-auto custom-scrollbar">
+                <div className="space-y-12">
+                    <div className="space-y-4">
+                        <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-400 flex items-center gap-3">
+                            <Activity size={14} className="text-cyan-500" /> Huella Técnica
+                        </h3>
+                        <p className="text-[10px] text-zinc-600 font-medium leading-relaxed uppercase tracking-wider">
+                            Impacto del protocolo en infra y archivos núcleo.
+                        </p>
+                    </div>
 
                     {/* Database */}
-                    <div className="space-y-5">
-                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-zinc-100">
-                            <Database size={14} className="text-cyan-400" /> Supabase Impact
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white">
+                            <Database size={14} className="text-cyan-500" /> Supabase Impact
                         </div>
                         <div className="flex flex-wrap gap-2.5">
                             {currentWorkflow.impact.db.map(db => (
-                                <span key={db} className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl font-mono text-[11px] text-cyan-50/70">
+                                <div key={db} className="px-4 py-3 bg-black border border-white/10 rounded-2xl font-mono text-[11px] text-cyan-50/70 hover:border-cyan-500/30 transition-colors">
                                     {db}
-                                </span>
+                                </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Files */}
-                    <div className="space-y-5">
-                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-zinc-100">
-                            <Code size={14} className="text-cyan-400" /> Nuclear Files
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white">
+                            <Code size={14} className="text-cyan-500" /> Nuclear Files
                         </div>
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-3">
                             {currentWorkflow.impact.files.map(file => (
-                                <div key={file} className="px-4 py-3 bg-zinc-950 border border-white/10 rounded-2xl font-mono text-[11px] text-zinc-100 flex items-center gap-3 shadow-inner">
-                                    <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
+                                <div key={file} className="px-6 py-4 bg-zinc-900/30 border border-white/5 rounded-3xl font-mono text-[11px] text-zinc-400 flex items-center gap-4 hover:bg-zinc-900/50 hover:border-cyan-500/20 transition-all duration-300 group">
+                                    <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)] group-hover:scale-125 transition-transform" />
                                     {file}
                                 </div>
                             ))}
@@ -655,15 +758,15 @@ export default function AyudaPage() {
                     </div>
 
                     {/* Core Systems */}
-                    <div className="space-y-5 pt-4 border-t border-white/5">
-                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-zinc-100">
-                            <Zap size={14} className="text-amber-500" /> Core Engine
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white">
+                            <Zap size={14} className="text-purple-500" /> Core Engine
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                             {currentWorkflow.impact.core.map(sys => (
-                                <div key={sys} className="p-5 bg-zinc-900/50 border border-white/10 rounded-[2rem]">
-                                    <div className="text-[11px] font-black uppercase tracking-widest text-white mb-2">{sys}</div>
-                                    <div className="text-[10px] text-zinc-400 font-medium leading-relaxed">
+                                <div key={sys} className="p-6 bg-gradient-to-br from-zinc-900/50 to-black border border-white/5 rounded-[2.5rem] group hover:border-purple-500/20 transition-all">
+                                    <div className="text-[12px] font-black uppercase tracking-widest text-white mb-2 group-hover:text-purple-400 transition-colors">{sys}</div>
+                                    <div className="text-[11px] text-zinc-500 font-medium leading-relaxed">
                                         Protocolo activo vinculado al motor central de Hoja Cero.
                                     </div>
                                 </div>
@@ -672,15 +775,21 @@ export default function AyudaPage() {
                     </div>
                 </div>
 
-                <div className="mt-auto space-y-6">
-                    <div className="p-6 bg-cyan-500 text-black rounded-[2rem] space-y-3 shadow-[0_0_50px_rgba(6,182,212,0.1)]">
-                        <div className="flex items-center gap-3">
-                            <Info size={16} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Transferencia ID</span>
+                <div className="mt-auto pt-10 border-t border-white/5">
+                    <div className="p-10 bg-gradient-to-br from-cyan-600 to-blue-700 text-white rounded-[3.5rem] shadow-2xl shadow-cyan-500/20 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 blur-[50px] rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000" />
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center">
+                                <Info size={24} />
+                            </div>
+                            <span className="text-xs font-black uppercase tracking-[0.2em]">Autoridad Final</span>
                         </div>
-                        <p className="text-[11px] font-bold leading-tight">
-                            Este manual es la autoridad final para Daniel y sucesores. Cada cambio en un workflow debe ser documentado aquí.
+                        <p className="text-[13px] font-bold leading-snug relative z-10 text-cyan-50">
+                            Este manual es la autoridad final para Daniel y sucesores. Cada cambio en un protocolo debe ser documentado y auditado.
                         </p>
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] opacity-60 relative z-10">
+                            Protocolo H0-MASTER-V3
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -688,7 +797,7 @@ export default function AyudaPage() {
             {/* CSS para Scrollbar */}
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
+                    width: 6px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-track {
                     background: transparent;
@@ -704,4 +813,3 @@ export default function AyudaPage() {
         </div>
     );
 }
-
