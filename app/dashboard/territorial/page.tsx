@@ -26,22 +26,25 @@ const PLANS = [
     },
     {
         id: 2,
-        name: 'Estrategia Comercial',
-        price: '$350.000',
-        description: 'Análisis completo 10 secciones',
-        icon: BarChart3,
-        color: 'from-purple-600 to-pink-600',
-        features: ['Todo lo de Plan 1', 'Avatar profundo del cliente', 'Auditoría digital competidores', 'Scan de apps delivery', 'Matriz de riesgo 🚦', 'Estrategia de lanzamiento 3 fases', 'Proyección financiera'],
-        popular: true
-    },
-    {
-        id: 3,
-        name: 'Inversión & Desarrollo',
-        price: '$600.000',
-        description: 'Dossier para inversores',
+        name: 'Plan Premium',
+        price: '$400.000',
+        description: 'Estrategia + Inversión completa',
         icon: TrendingUp,
-        color: 'from-orange-600 to-red-600',
-        features: ['Tesis de inversión', 'Análisis macro-entorno', 'Inteligencia de mercado', 'Escenarios de desarrollo', 'Modelo financiero (Cap Rate, NOI)', 'Stress Test', 'Estrategia de salida']
+        color: 'from-purple-600 to-pink-600',
+        features: [
+            '✅ Todo lo de Plan 1',
+            '📊 Análisis Comercial Profundo:',
+            '  • Avatar profundo del cliente',
+            '  • Auditoría digital competidores',
+            '  • Matriz de riesgo 🚦',
+            '  • Estrategia de lanzamiento',
+            '  • Proyección financiera',
+            '💰 Análisis de Inversión:',
+            '  • Factibilidad normativa',
+            '  • Modelo financiero (Cap Rate, NOI)',
+            '  • Tenant mix recomendado'
+        ],
+        popular: true
     }
 ];
 
