@@ -6,25 +6,41 @@
  */
 
 export interface Plan2PromptData {
-    address: string;
-    comuna: string;
-    gse: { gse: string; ingreso: string; descripcion: string } | null;
-    metro: { station: string; line: string; distance: number } | null;
-    competitors: any[];
-    anchors: any[];
-    business_type: string;
-    oceanoAzul?: string;
-    oceanoRojo?: string;
-    saturation?: any;
-    // Datos enriquecidos (Plan 350k)
-    ticketPromedio?: { promedio: number; rango: { min: number; max: number }; nota: string };
-    frecuenciaCompra?: { frecuencia: string; veces_por_mes: number; nota: string };
-    hotHours?: Array<{ hora: string; tipo: string; volumen: string }>;
-    parkingAnalysis?: { tipo_calle: string; estacionamiento_estimado: string; recomendacion_modelo: string; nota: string };
+  address: string;
+  comuna: string;
+  gse: { gse: string; ingreso: string; descripcion: string } | null;
+  metro: { station: string; line: string; distance: number } | null;
+  competitors: any[];
+  anchors: any[];
+  business_type: string;
+  oceanoAzul?: string;
+  oceanoRojo?: string;
+  saturation?: any;
+  // Estimadores (nuevos)
+  estimadores?: {
+    flujo: {
+      flujo_diario_estimado: number;
+      flujo_mensual_estimado: number;
+      confianza: string;
+      factores: string[];
+    };
+    ticket: {
+      ticket_promedio_clp: number;
+      ticket_promedio_uf: number;
+      rango_min_clp: number;
+      rango_max_clp: number;
+      confianza: string;
+    };
+    ventas: {
+      ventas_mensuales_clp: number;
+      ventas_mensuales_uf: number;
+      clientes_mensuales: number;
+    };
+  } | null;
 }
 
 export function generatePlan2Prompt(data: Plan2PromptData): string {
-    return `Eres un consultor estratégico senior de HojaCero Chile. Genera un ANÁLISIS COMERCIAL COMPLETO que expanda y profundice el análisis inicial del Plan 1, manteniendo la misma calidad y estilo consultor profesional.
+  return `Eres un consultor estratégico senior de HojaCero Chile. Genera un ANÁLISIS COMERCIAL COMPLETO que expanda y profundice el análisis inicial del Plan 1, manteniendo la misma calidad y estilo consultor profesional.
 
 ## FORMATO CONSULTOR PROFESIONAL (SIGUE ESTE ESTILO):
 - Usa un tono más analítico y estratégico que el Plan 1
@@ -47,16 +63,25 @@ export function generatePlan2Prompt(data: Plan2PromptData): string {
 - Anclas: ${data.anchors?.length || 0}
 - Rubro: ${data.business_type}
 - Datos del Plan 1: ${JSON.stringify({
-        oceanoAzul: data.oceanoAzul,
-        oceanoRojo: data.oceanoRojo,
-        saturation: data.saturation
-    })}
+    oceanoAzul: data.oceanoAzul,
+    oceanoRojo: data.oceanoRojo,
+    saturation: data.saturation
+  })}
 
 ## DATOS ENRIQUECIDOS (PLAN 350K):
-- Ticket Promedio Estimado: ${data.ticketPromedio ? `$${data.ticketPromedio.promedio.toLocaleString('es-CL')} CLP (rango: $${data.ticketPromedio.rango.min.toLocaleString('es-CL')} - $${data.ticketPromedio.rango.max.toLocaleString('es-CL')})` : 'No disponible'}
-- Frecuencia de Compra: ${data.frecuenciaCompra ? `${data.frecuenciaCompra.frecuencia} (${data.frecuenciaCompra.veces_por_mes} veces/mes)` : 'No disponible'}
-- Horarios de Oro: ${data.hotHours ? JSON.stringify(data.hotHours) : 'No disponible'}
-- Análisis de Estacionamiento: ${data.parkingAnalysis ? `${data.parkingAnalysis.tipo_calle} - ${data.parkingAnalysis.estacionamiento_estimado}. Modelo recomendado: ${data.parkingAnalysis.recomendacion_modelo}` : 'No disponible'}
+${data.estimadores ? `
+- Flujo Peatonal Estimado: ${data.estimadores.flujo.flujo_diario_estimado} personas/día (${data.estimadores.flujo.flujo_mensual_estimado}/mes)
+  Confianza: ${data.estimadores.flujo.confianza.toUpperCase()}
+  Factores: ${data.estimadores.flujo.factores.join(', ')}
+  
+- Ticket Promedio Estimado: $${data.estimadores.ticket.ticket_promedio_clp.toLocaleString('es-CL')} CLP (${data.estimadores.ticket.ticket_promedio_uf} UF)
+  Rango: $${data.estimadores.ticket.rango_min_clp.toLocaleString('es-CL')} - $${data.estimadores.ticket.rango_max_clp.toLocaleString('es-CL')} CLP
+  Confianza: ${data.estimadores.ticket.confianza.toUpperCase()}
+  
+- Ventas Mensuales Proyectadas: $${data.estimadores.ventas.ventas_mensuales_clp.toLocaleString('es-CL')} CLP (${data.estimadores.ventas.ventas_mensuales_uf} UF)
+  Clientes estimados: ${data.estimadores.ventas.clientes_mensuales}/mes
+  Tasa de conversión: 15%
+` : '- Estimadores no disponibles (requiere Plan 2 o superior)'}
 
 CRITICAL GUIDANCE ON SATURATION:
 - OCEANOS AZULES / NULA / BAJA: Son áreas de alta oportunidad estratégica.

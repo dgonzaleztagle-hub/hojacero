@@ -16,6 +16,7 @@ import { generatePlan1Prompt } from '@/lib/territorial/prompts/plan1-prompt';
 import { generatePlan2Prompt } from '@/lib/territorial/prompts/plan2-prompt';
 import { generatePlan3Prompt } from '@/lib/territorial/prompts/plan3-prompt';
 import { getPortalInmobiliarioData } from '@/lib/scrapers/portal-inmobiliario-cached';
+import { estimarFlujoPeatonal, estimarTicketPromedio, estimarVentasMensuales } from '@/lib/territorial/estimators/flow-ticket-estimators';
 
 // ============================================
 // MOTOR TERRITORIAL HOJACERO v2.0
@@ -1101,6 +1102,43 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 6.6. Estimadores de Flujo y Ticket (Plan 2 y 3)
+    let estimadores = null;
+    if (plan_type === 2 || plan_type === '2' || plan_type === 3 || plan_type === '3') {
+      console.log('📊 Calculando estimadores de flujo y ticket...');
+
+      // Estimar flujo peatonal
+      const flujoEstimado = estimarFlujoPeatonal(
+        gse.gse,
+        100, // Metros cuadrados estimados (ajustar según local)
+        !!metro,
+        metro?.distance
+      );
+
+      // Estimar ticket promedio
+      const ticketEstimado = estimarTicketPromedio(
+        business_type,
+        gse.gse
+      );
+
+      // Estimar ventas mensuales
+      const ventasEstimadas = estimarVentasMensuales(
+        flujoEstimado,
+        ticketEstimado,
+        0.15 // 15% tasa de conversión
+      );
+
+      estimadores = {
+        flujo: flujoEstimado,
+        ticket: ticketEstimado,
+        ventas: ventasEstimadas
+      };
+
+      console.log(`  ✅ Flujo estimado: ${flujoEstimado.flujo_diario_estimado}/día`);
+      console.log(`  ✅ Ticket promedio: $${ticketEstimado.ticket_promedio_clp.toLocaleString()} CLP`);
+      console.log(`  ✅ Ventas estimadas: ${ventasEstimadas.ventas_mensuales_uf} UF/mes`);
+    }
+
     // 7. Preparar datos para IA
     const dataForAI = {
       address,
@@ -1120,6 +1158,8 @@ export async function POST(req: NextRequest) {
       anchors_comerciales: territorialData.anchors, // Anclas comerciales específicas con nombres reales
       // Portal Inmobiliario (solo Plan 3)
       portal_inmobiliario: portalInmobiliarioData,
+      // Estimadores (Plan 2 y 3)
+      estimadores: estimadores,
     };
 
     // 8. Síntesis con Groq
