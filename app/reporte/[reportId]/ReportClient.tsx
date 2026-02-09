@@ -139,7 +139,22 @@ export function ReportClient({ report }: ReportClientProps) {
                 </>
             )}
 
-            {/* ========== PLAN 600K - SECCIONES DE INVERSIÓN ========== */}
+            {/* ========== PLAN 2 PREMIUM - ANÁLISIS DE INVERSIÓN ========== */}
+            {report.plan_type >= 2 && analysis.analisis_inversion && (
+                <>
+                    {/* Factibilidad Normativa */}
+                    {analysis.analisis_inversion.factibilidad_normativa && (
+                        <FactibilidadNormativaSection data={analysis.analisis_inversion.factibilidad_normativa} />
+                    )}
+
+                    {/* Modelo Financiero */}
+                    {analysis.analisis_inversion.modelo_financiero && (
+                        <ModeloFinancieroSection data={analysis.analisis_inversion.modelo_financiero} />
+                    )}
+                </>
+            )}
+
+            {/* ========== PLAN 3 LEGACY - SECCIONES ADICIONALES ========== */}
             {report.plan_type >= 3 && (
                 <>
                     {/* Macro-Entorno */}

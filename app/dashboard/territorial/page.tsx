@@ -456,6 +456,69 @@ const ReportPlan2 = ({ analysis, dimensiones }: { analysis: any; dimensiones: an
                 </Section>
             )}
 
+            {/* Análisis de Inversión (Plan 2 Premium) */}
+            {analysis.analisis_inversion && (
+                <>
+                    {/* Factibilidad Normativa */}
+                    {analysis.analisis_inversion.factibilidad_normativa && (
+                        <Section
+                            icon={<Shield className="w-6 h-6 text-blue-400" />}
+                            title="Factibilidad Normativa"
+                            gradient="from-blue-600/20 to-cyan-600/20"
+                            border="border-blue-500/30"
+                        >
+                            <div className="space-y-4">
+                                <div className="bg-yellow-600/10 border border-yellow-500/20 rounded-lg p-3">
+                                    <p className="text-xs text-yellow-400">{analysis.analisis_inversion.factibilidad_normativa.disclaimer}</p>
+                                </div>
+                                <DataBox label="Zonificación Estimada" value={analysis.analisis_inversion.factibilidad_normativa.zonificacion_estimada} />
+                                <DataBox label="Aptitud Comercial" value={analysis.analisis_inversion.factibilidad_normativa.aptitud_comercial} />
+                                {analysis.analisis_inversion.factibilidad_normativa.pasos_siguientes && (
+                                    <div>
+                                        <p className="text-xs text-blue-400 uppercase tracking-wider mb-2">📝 Pasos Siguientes</p>
+                                        <ul className="space-y-1">
+                                            {analysis.analisis_inversion.factibilidad_normativa.pasos_siguientes.map((paso: string, i: number) => (
+                                                <li key={i} className="text-xs text-zinc-300 flex items-start gap-2">
+                                                    <ChevronRight className="w-3 h-3 text-blue-400 shrink-0 mt-0.5" />
+                                                    {paso}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </Section>
+                    )}
+
+                    {/* Modelo Financiero */}
+                    {analysis.analisis_inversion.modelo_financiero && (
+                        <Section
+                            icon={<DollarSign className="w-6 h-6 text-green-400" />}
+                            title="Modelo Financiero"
+                            gradient="from-green-600/20 to-emerald-600/20"
+                            border="border-green-500/30"
+                        >
+                            <div className="space-y-4">
+                                <div className="bg-yellow-600/10 border border-yellow-500/20 rounded-lg p-3">
+                                    <p className="text-xs text-yellow-400">{analysis.analisis_inversion.modelo_financiero.disclaimer}</p>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <DataBox label="Precio Adquisición (UF)" value={analysis.analisis_inversion.modelo_financiero.precio_adquisicion_uf} />
+                                    <DataBox label="Habilitación (UF)" value={analysis.analisis_inversion.modelo_financiero.habilitacion_uf} />
+                                    <DataBox label="Inversión Total (UF)" value={analysis.analisis_inversion.modelo_financiero.inversion_total_uf} highlight />
+                                    <DataBox label="Arriendo Mensual (UF)" value={analysis.analisis_inversion.modelo_financiero.arriendo_mensual_uf} />
+                                </div>
+                                <div className="bg-gradient-to-r from-green-600/30 to-emerald-600/30 rounded-xl p-4 border border-green-500/30">
+                                    <p className="text-xs text-green-400 uppercase">Cap Rate Proyectado</p>
+                                    <p className="text-4xl font-black text-white">{analysis.analisis_inversion.modelo_financiero.cap_rate}%</p>
+                                    <p className="text-xs text-zinc-400 mt-1">{analysis.analisis_inversion.modelo_financiero.interpretacion_cap_rate}</p>
+                                </div>
+                            </div>
+                        </Section>
+                    )}
+                </>
+            )}
+
             {/* Conclusión */}
             {analysis.conclusion && (
                 <Section
