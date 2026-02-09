@@ -554,112 +554,21 @@ CRITICAL GUIDANCE ON SATURATION:
 }
 
 function getPromptPlan2(data: any): string {
-  return `Eres un consultor estratégico senior de HojaCero Chile. Genera un ANÁLISIS COMERCIAL COMPLETO que expanda y profundice el análisis inicial del Plan 1, manteniendo la misma calidad y estilo consultor profesional.
-
-## FORMATO CONSULTOR PROFESIONAL (SIGUE ESTE ESTILO):
-- Usa un tono más analítico y estratégico que el Plan 1
-- Incluye datos cuantitativos específicos
-- Mantiene el enfoque práctico pero con mayor profundidad
-- Usa el mismo estilo de Gastón con análisis detallados
-
-## RELACIÓN CON PLAN 1:
-- El Plan 2 debe expandir cada sección del Plan 1 con mayor profundidad
-- Debe mantener la coherencia con los hallazgos del Plan 1
-- Debe añadir capas de análisis que el Plan 1 no cubrió
-
-## DATOS RECOPILADOS:
-- Dirección: ${data.address}
-- Comuna: ${data.comuna}
-- GSE: ${data.gse?.gse} (${data.gse?.descripcion})
-- Ingreso zona: ${data.gse?.ingreso}
-- Metro: ${data.metro ? `${data.metro.station} (L${data.metro.line}, ${data.metro.distance}m)` : 'No detectado'}
-- Competidores: ${data.competitors?.length || 0}
-- Anclas: ${data.anchors?.length || 0}
-- Rubro: ${data.business_type}
-- Datos del Plan 1: ${JSON.stringify({
+  // Usar el módulo actualizado que incluye análisis de inversión
+  return generatePlan2Prompt({
+    address: data.address,
+    comuna: data.comuna,
+    gse: data.gse,
+    metro: data.metro,
+    competitors: data.competitors || [],
+    anchors: data.anchors || [],
+    business_type: data.business_type,
     oceanoAzul: data.oceanoAzul,
     oceanoRojo: data.oceanoRojo,
-    saturation: data.saturation
-  })}
-
-CRITICAL GUIDANCE ON SATURATION:
-- OCEANOS AZULES / NULA / BAJA: Son áreas de alta oportunidad estratégica.
-- OCEANOS ROJOS / MEDIA / ALTA: Son "ZONAS DE MUERTE". Si el rubro (${data.business_type}) cae aquí, tu auditoría digital debe ser SPARTANA: busca fallas críticas en los líderes para encontrar un hueco de supervivencia, de lo contrario, advierte contra la inversión.
-
-## GENERA EXACTAMENTE ESTE JSON SIGUIENDO EL ESTILO CONSULTOR PROFESIONAL:
-
-{
-  "resumen_ejecutivo": {
-    "score_viabilidad": [1-10],
-    "nivel_riesgo": "[BAJO/MEDIO/ALTO]",
-    "vision_general": "[Párrafo ejecutivo de 3-4 líneas que conecte con el análisis del Plan 1 pero con mayor profundidad]"
-  },
-  "demografia_profunda": {
-    "avatar_pagador": {
-      "descripcion": "[Quién paga: edad, género, ocupación con datos específicos]",
-      "comportamiento": "[Cómo compra, cuándo, frecuencia con ejemplos concretos]"
-    },
-    "avatar_influenciador": {
-      "descripcion": "[Quién influye en la decisión con datos demográficos específicos]",
-      "rol": "[Cómo influye en el proceso de compra]"
-    },
-    "ticket_promedio_zona": "[Estimación basada en GSE con rangos específicos]",
-    "frecuencia_compra": "[diaria/semanal/quincenal/mensual con datos concretos]"
-  },
-  "flujo_accesibilidad": {
-    "ultima_milla": "[Análisis detallado del acceso con datos de tiempo/distancia]",
-    "estacionamiento": "[Disponibilidad y tipo con números específicos]",
-    "horarios_oro": [
-      {"hora": "[hora específica]", "tipo_venta": "[tipo de venta en ese horario]", "volumen": "[estimación]"},
-      {"hora": "[hora específica]", "tipo_venta": "[tipo de venta en ese horario]", "volumen": "[estimación]"}
-    ]
-  },
-  "auditoria_digital": {
-    "competidor_1": {
-      "nombre": "[Nombre específico encontrado en análisis]",
-      "presencia": "[Descripción detallada de presencia digital con plataformas específicas]",
-      "debilidad": "[Debilidad digital específica detectada]",
-      "oportunidad": "[Oportunidad específica para superarlo]"
-    },
-    "competidor_2": {
-      "nombre": "[Nombre específico encontrado en análisis]",
-      "presencia": "[Descripción detallada]",
-      "debilidad": "[Debilidad específica]",
-      "oportunidad": "[Oportunidad específica]"
-    },
-    "conclusion_digital": "[Resumen del gap digital a explotar con oportunidades concretas]"
-  },
-  "matriz_riesgo": {
-    "regulatorio": {"nivel": "[BAJO/MEDIO/ALTO]", "descripcion": "[Detalles específicos de regulaciones/permisos]"},
-    "economico": {"nivel": "[BAJO/MEDIO/ALTO]", "descripcion": "[Detalles específicos de sensibilidad económica]"},
-    "competencia": {"nivel": "[BAJO/MEDIO/ALTO]", "descripcion": "[Detalles específicos de amenaza competitiva]"}
-  },
-  "estrategia_lanzamiento": {
-    "fase_1_hype": {
-      "nombre": "PRE-LANZAMIENTO (Semana -2 a 0)",
-      "acciones": ["Acción específica con plataforma", "Acción específica con canal", "Acción específica con táctica"]
-    },
-    "fase_2_marcha_blanca": {
-      "nombre": "MARCHA BLANCA (Semana 1-2)",
-      "acciones": ["Acción específica con métrica", "Acción específica con objetivo"]
-    },
-    "fase_3_retencion": {
-      "nombre": "RETENCIÓN (Mes 2+)",
-      "acciones": ["Acción específica con herramienta", "Acción específica con estrategia"]
-    }
-  },
-  "proyeccion_financiera": {
-    "pedidos_lunes_jueves": "[Estimación diaria con rango]",
-    "pedidos_viernes_sabado": "[Estimación diaria con rango]",
-    "ticket_promedio": [número estimado en CLP],
-    "venta_mensual": [número estimado en CLP],
-    "nota": "Proyección basada en análisis del Plan 1 y datos de mercado específicos"
-  },
-  "conclusion": {
-    "veredicto": "[ORO/PLATA/BRONCE/RIESGO]",
-    "mensaje": "[Mensaje final de 2-3 líneas que conecte con el Plan 1 pero indique la profundidad adicional]"
-  }
-}`;
+    saturation: data.saturation,
+    estimadores: data.estimadores,
+    portal_inmobiliario: data.portal_inmobiliario
+  });
 }
 
 function getPromptPlan3(data: any): string {
