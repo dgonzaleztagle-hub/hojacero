@@ -34,6 +34,10 @@ interface WorkflowDetail {
     icon: any;
 }
 
+const MonitorPlay = ({ size, className }: { size?: number, className?: string }) => (
+    <PlayCircle size={size} className={className} />
+);
+
 const WORKFLOW_DATABASE: WorkflowDetail[] = [
     {
         id: 'skill-creative',
@@ -562,9 +566,9 @@ export default function AyudaPage() {
                         return (
                             <div key={cat} className="space-y-4">
                                 <h3 className={`text-[10px] font-black uppercase tracking-[0.4em] px-3 flex items-center gap-3 ${cat === 'dna' ? 'text-amber-500' :
-                                        cat === 'factory' ? 'text-cyan-500' :
-                                            cat === 'worker' ? 'text-purple-500' :
-                                                'text-green-500'
+                                    cat === 'factory' ? 'text-cyan-500' :
+                                        cat === 'worker' ? 'text-purple-500' :
+                                            'text-green-500'
                                     }`}>
                                     <span className="w-1 h-1 rounded-full bg-current" />
                                     {cat === 'dna' ? 'Human-AI DNA Skills' :
@@ -617,7 +621,7 @@ export default function AyudaPage() {
                     <div className="space-y-8">
                         <div className="flex items-center gap-4">
                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] ${currentWorkflow.category === 'dna' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
-                                    'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'
+                                'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'
                                 }`}>
                                 {currentWorkflow.category} Protocol
                             </span>
