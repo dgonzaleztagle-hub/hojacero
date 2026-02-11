@@ -162,16 +162,16 @@ export default function CAMSolutionsMVP() {
                             transition={{ duration: 1 }}
                             className="relative"
                         >
-                            <div className="aspect-square bg-gradient-to-tr from-cyan-500/10 to-transparent rounded-[3rem] border border-white/10 flex items-center justify-center relative overflow-hidden group p-1">
+                            <div className="aspect-square bg-gradient-to-tr from-cyan-500/10 to-transparent rounded-[3rem] border border-white/10 flex items-center justify-center relative overflow-hidden group p-8">
                                 <img
-                                    src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1000"
-                                    alt="3Shape E4 Dental Tech"
-                                    className="w-full h-full object-cover rounded-[2.5rem] opacity-90 group-hover:scale-105 transition-transform duration-1000"
+                                    src="https://implantplaza.hu/uploads/products/styles/800x800/3-shape-e4-3d-scanner-dental-system-premium-incl-labcare-61af2c299bff5.jpg"
+                                    alt="3Shape E4 Scanner"
+                                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-1000"
                                 />
-                                {/* Overlay para resaltar el texto */}
-                                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/80 to-transparent pt-20" />
+                                {/* Overlay sutil para el fondo */}
+                                <div className="absolute inset-0 bg-[#0f172a]/20 pointer-events-none" />
 
-                                <div className="absolute bottom-10 left-0 right-0 text-center z-10">
+                                <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/80 to-transparent flex flex-col justify-end pb-8 text-center ring-inset">
                                     <h3 className="text-white text-3xl font-bold mb-1 tracking-[0.2em]">3SHAPE E4</h3>
                                     <p className="text-cyan-400 text-[10px] uppercase tracking-[0.4em] font-bold">The Gold Standard</p>
                                 </div>
