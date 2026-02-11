@@ -164,15 +164,15 @@ export default function CAMSolutionsMVP() {
                         >
                             <div className="aspect-square bg-gradient-to-tr from-cyan-500/10 to-transparent rounded-[3rem] border border-white/10 flex items-center justify-center relative overflow-hidden group p-1">
                                 <img
-                                    src="https://lencnamedicallaser.com/wp-content/uploads/2021/06/3shape-e4-1.jpg"
-                                    alt="3Shape E4 Scanner"
-                                    className="w-full h-full object-contain rounded-[2.5rem] group-hover:scale-105 transition-transform duration-1000"
+                                    src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1000"
+                                    alt="3Shape E4 Dental Tech"
+                                    className="w-full h-full object-cover rounded-[2.5rem] opacity-90 group-hover:scale-105 transition-transform duration-1000"
                                 />
-                                {/* Rayo decorativo de fondo sutil */}
-                                <Zap className="absolute top-10 right-10 w-24 h-24 text-cyan-500/10 -rotate-12 pointer-events-none" />
+                                {/* Overlay para resaltar el texto */}
+                                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/80 to-transparent pt-20" />
 
-                                <div className="absolute bottom-10 left-0 right-0 text-center bg-gradient-to-t from-[#0f172a] via-[#0f172a]/80 to-transparent pt-20">
-                                    <h3 className="text-white text-2xl font-bold mb-1 tracking-widest">3SHAPE E4</h3>
+                                <div className="absolute bottom-10 left-0 right-0 text-center z-10">
+                                    <h3 className="text-white text-3xl font-bold mb-1 tracking-[0.2em]">3SHAPE E4</h3>
                                     <p className="text-cyan-400 text-[10px] uppercase tracking-[0.4em] font-bold">The Gold Standard</p>
                                 </div>
                             </div>
