@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const supabase = createClient();
+        const supabase = await createClient();
 
         // Get payment config
         const { data: config } = await supabase

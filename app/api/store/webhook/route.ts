@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
             ? await request.json()
             : await request.text();
 
-        const supabase = createClient();
+        const supabase = await createClient();
 
         // Detectar tipo de webhook según estructura
         const webhookData = typeof body === 'string' ? parseWebhookData(body) : body;

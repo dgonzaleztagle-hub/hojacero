@@ -6,8 +6,8 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_123456789'); // Dumm
 
 export async function POST(request: Request) {
     try {
-        const supabase = createClient();
-        const { data: { user }, error: authError } = await (await supabase).auth.getUser();
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {
             return NextResponse.json(
