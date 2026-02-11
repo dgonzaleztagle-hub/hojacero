@@ -11,7 +11,7 @@ import {
     Cpu, Target, Activity, Flame, Megaphone,
     Code, Fingerprint, Eye, Globe, Lock,
     CheckCircle2, AlertTriangle, Info,
-    Settings2, ShieldCheck,
+    Settings2, ShieldCheck, CreditCard,
     Server, GitBranch, Share2, ClipboardList,
     Monitor, Smartphone, Brain, BarChart
 } from 'lucide-react';
@@ -312,6 +312,38 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
         rules: ['Local Abierto/Cerrado dinámico.', 'Layout coherente.']
     },
     {
+        id: 'worker-store-pro',
+        category: 'worker',
+        title: 'Worker Store Pro',
+        slash: '/worker-store-pro',
+        icon: Box,
+        strategy: 'E-commerce modular inyectable en sitios de clientes.',
+        description: 'Inyecta el H0 Store Engine completo: panel de administración de productos, storefront público con carrito, técnicas de alta conversión configurables y checkout vía WhatsApp. Arquitectura modular y vibe-agnostic que se adapta automáticamente al diseño del sitio. Incluye upload de imágenes a Supabase Storage, presets de conversión (Premium/Direct) y componentes reutilizables para iteración rápida.',
+        impact: {
+            db: ['h0_store_categories', 'h0_store_products', 'h0_store_conversion_settings', 'h0_store_images (bucket)'],
+            files: ['app/admin/tienda/', 'app/tienda/', 'components/store/', 'lib/store/'],
+            core: ['Product Management', 'Conversion Engineering', 'Cart Logic', 'Image Upload']
+        },
+        steps: ['Preguntas interactivas (nombre, categorías, WhatsApp, slug).', 'Inserción de categorías en DB.', 'Configuración de conversión (preset según negocio).', 'Inyección de archivos (admin + storefront + componentes).', 'Creación de config del cliente.', 'Verificación de bucket Storage.'],
+        rules: ['First-shot quality, easy iteration.', 'Vibe-agnostic: hereda diseño del sitio.', 'Carrito en LocalStorage (rápido, sin auth).', 'Preset según tipo de negocio (joyería=premium, retail=direct).']
+    },
+    {
+        id: 'worker-store-payments',
+        category: 'worker',
+        title: 'Worker Store Payments',
+        slash: '/worker-store-payments',
+        icon: CreditCard,
+        strategy: 'Sistema de pasarelas de pago inyectable para Store Engine.',
+        description: 'Inyecta sistema completo de pagos con tarjeta (Mercado Pago, Flow, Transbank) en un Store Engine existente. Incluye SDKs de las 3 pasarelas, panel de configuración en /admin/tienda/pagos, API routes para crear pagos y webhooks, CheckoutButton dinámico, página de confirmación y guía pública para que el cliente configure sus credenciales de forma autónoma. Credenciales encriptadas con AES-256-GCM, webhooks automáticos y modo test para pruebas sin cobros reales.',
+        impact: {
+            db: ['h0_store_payment_config', 'h0_store_orders (campos: payment_id, paid_at, delivery_status)'],
+            files: ['lib/store/payment-gateways.ts', 'lib/store/encryption.ts', 'app/api/store/create-payment/', 'app/api/store/webhook/', 'components/store/CheckoutButton.tsx', 'app/admin/tienda/pagos/', 'app/guias/configurar-pagos/'],
+            core: ['Payment Gateway Integration', 'Webhook Handling', 'Credential Encryption', 'Client Self-Service']
+        },
+        steps: ['Ejecutar migración SQL (payment_config + campos en orders).', 'Generar PAYMENT_ENCRYPTION_KEY automáticamente.', 'Actualizar .env.local con clave y SITE_URL.', 'Copiar SDKs (payment-gateways.ts, encryption.ts).', 'Copiar API routes (create-payment, webhook).', 'Copiar componentes (CheckoutButton, pago-exitoso).', 'Copiar panel de configuración (/admin/tienda/pagos).', 'Copiar guía pública (/guias/configurar-pagos).', 'Mostrar URL de guía para compartir con cliente.'],
+        rules: ['Pre-requisito: Store Engine ya instalado (/worker-store-pro).', 'Worker independiente, no parte del Store Engine base.', 'Cliente configura sus propias credenciales vía guía pública.', 'Compartir URL: https://dominio.cl/guias/configurar-pagos', 'Modo test obligatorio antes de producción.', 'Credenciales NUNCA en código, siempre encriptadas en BD.']
+    },
+    {
         id: 'worker-maintain',
         category: 'worker',
         title: 'Worker Maintain',
@@ -572,6 +604,81 @@ export default function AyudaPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Guía Pública para Clientes (solo para worker-store-payments) */}
+                    {currentWorkflow.id === 'worker-store-payments' && (
+                        <div className="pt-12 border-t border-border">
+                            <section className="space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <Globe className="text-primary" size={20} />
+                                    <h3 className="text-sm font-bold uppercase tracking-widest">
+                                        Guía Pública para Clientes
+                                    </h3>
+                                </div>
+
+                                <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-2xl border-2 border-blue-200 dark:border-blue-800">
+                                    <div className="space-y-4">
+                                        <div className="flex items-start gap-3">
+                                            <Info className="text-blue-600 dark:text-blue-400 mt-1 shrink-0" size={20} />
+                                            <div className="space-y-2">
+                                                <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                                                    Después de ejecutar este worker, comparte esta URL con tu cliente:
+                                                </p>
+                                                <div className="flex items-center gap-2 p-3 bg-white dark:bg-gray-900 rounded-lg border border-blue-300 dark:border-blue-700">
+                                                    <code className="flex-1 text-sm font-mono text-blue-700 dark:text-blue-300 break-all">
+                                                        https://[dominio-cliente]/guias/configurar-pagos
+                                                    </code>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText('https://[dominio-cliente]/guias/configurar-pagos');
+                                                            alert('URL copiada al portapapeles');
+                                                        }}
+                                                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded transition-colors"
+                                                    >
+                                                        Copiar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="pl-8 space-y-2">
+                                            <p className="text-xs text-blue-800 dark:text-blue-200 font-medium">
+                                                Esta guía incluye:
+                                            </p>
+                                            <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                                                <li className="flex items-center gap-2">
+                                                    <CheckCircle2 size={12} className="text-green-600 dark:text-green-400" />
+                                                    Paso a paso para configurar Mercado Pago, Flow y Transbank
+                                                </li>
+                                                <li className="flex items-center gap-2">
+                                                    <CheckCircle2 size={12} className="text-green-600 dark:text-green-400" />
+                                                    Generación de claves de encriptación
+                                                </li>
+                                                <li className="flex items-center gap-2">
+                                                    <CheckCircle2 size={12} className="text-green-600 dark:text-green-400" />
+                                                    Configuración de webhooks
+                                                </li>
+                                                <li className="flex items-center gap-2">
+                                                    <CheckCircle2 size={12} className="text-green-600 dark:text-green-400" />
+                                                    Modo test vs producción
+                                                </li>
+                                                <li className="flex items-center gap-2">
+                                                    <CheckCircle2 size={12} className="text-green-600 dark:text-green-400" />
+                                                    Troubleshooting común
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="pt-3 border-t border-blue-200 dark:border-blue-800">
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 italic">
+                                                💡 El cliente podrá configurar sus pasarelas de forma autónoma sin necesitar tu ayuda técnica
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    )}
 
                     {/* Huella Técnica */}
                     <div className="pt-12 border-t border-border">

@@ -45,6 +45,12 @@ export default function DesignLabPage() {
             description: "High-end typography reveal using clipping masks.",
             status: "Verified",
         },
+        {
+            id: "h0_store",
+            title: "H0 Store Engine",
+            description: "Infinite attributes white-label e-commerce core + Nebula Vibe.",
+            status: "Ready",
+        },
         // Future experiments will go here
     ];
 

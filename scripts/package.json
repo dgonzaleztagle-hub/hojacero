@@ -1,0 +1,12 @@
+{
+    "name": "h0-store-engine-injector",
+    "version": "1.0.0",
+    "description": "Script de inyección automática del H0 Store Engine",
+    "type": "module",
+    "scripts": {
+        "inject-store": "node scripts/inject-store-engine.js"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.39.0"
+    }
+}
