@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/utils/supabase/client';
 import { CreditCard, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 type PaymentMethod = 'mercadopago' | 'flow' | 'transbank';
