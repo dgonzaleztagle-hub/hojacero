@@ -51,24 +51,30 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
     </span>
 )
 
-const ProductCard = ({ title, metric, description, icon: Icon, price }: any) => (
+const ProductCard = ({ title, metric, description, icon: Icon, price, image }: any) => (
     <motion.div
         whileHover={{ y: -5 }}
-        className="bg-[#1e293b]/40 border border-slate-700/50 p-8 rounded-[2rem] backdrop-blur-sm group hover:border-cyan-500/40 transition-all flex flex-col justify-between"
+        className="bg-[#1e293b]/40 border border-slate-700/50 rounded-[2rem] backdrop-blur-sm group hover:border-cyan-500/40 transition-all overflow-hidden flex flex-col h-full"
     >
-        <div>
+        {image && (
+            <div className="h-48 w-full overflow-hidden relative">
+                <img src={image} alt={title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1e293b] to-transparent opacity-60" />
+            </div>
+        )}
+        <div className="p-8 flex-1 flex flex-col">
             <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Icon className="w-6 h-6 text-cyan-400" />
             </div>
             <h3 className="text-2xl font-semibold text-white mb-2">{title}</h3>
             <p className="text-cyan-500 font-bold text-sm mb-4">{metric}</p>
-            <p className="text-slate-400 text-sm leading-relaxed mb-6">{description}</p>
-        </div>
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-700/30">
-            <span className="text-white font-bold">{price}</span>
-            <button className="text-cyan-400 p-2 hover:bg-cyan-500/10 rounded-full transition-colors">
-                <ArrowRight className="w-5 h-5" />
-            </button>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6 flex-1">{description}</p>
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-700/30">
+                <span className="text-white font-bold">{price}</span>
+                <button className="text-cyan-400 p-2 hover:bg-cyan-500/10 rounded-full transition-colors">
+                    <ArrowRight className="w-5 h-5" />
+                </button>
+            </div>
         </div>
     </motion.div>
 )
@@ -156,20 +162,18 @@ export default function CAMSolutionsMVP() {
                             transition={{ duration: 1 }}
                             className="relative"
                         >
-                            <div className="aspect-square bg-gradient-to-tr from-cyan-500/10 to-transparent rounded-[3rem] border border-white/10 flex items-center justify-center relative overflow-hidden group">
-                                {/* Rayo decorativo de fondo */}
-                                <Zap className="absolute w-64 h-64 text-cyan-500/5 -rotate-12 group-hover:scale-110 transition-transform duration-1000" />
-                                <div className="relative text-center p-12">
-                                    <div className="relative inline-block mb-6">
-                                        <Microscope className="w-24 h-24 text-cyan-400" />
-                                        <motion.div
-                                            animate={{ opacity: [0.2, 0.5, 0.2] }}
-                                            transition={{ repeat: Infinity, duration: 2 }}
-                                            className="absolute inset-x-0 -bottom-2 h-1 bg-cyan-400 blur-sm"
-                                        />
-                                    </div>
-                                    <h3 className="text-white text-2xl font-bold mb-2 uppercase tracking-widest">3Shape E4</h3>
-                                    <p className="text-slate-500 text-sm uppercase tracking-[0.2em]">The Professional Choice</p>
+                            <div className="aspect-square bg-gradient-to-tr from-cyan-500/10 to-transparent rounded-[3rem] border border-white/10 flex items-center justify-center relative overflow-hidden group p-1">
+                                <img
+                                    src="https://lencnamedicallaser.com/wp-content/uploads/2021/06/3shape-e4-1.jpg"
+                                    alt="3Shape E4 Scanner"
+                                    className="w-full h-full object-contain rounded-[2.5rem] group-hover:scale-105 transition-transform duration-1000"
+                                />
+                                {/* Rayo decorativo de fondo sutil */}
+                                <Zap className="absolute top-10 right-10 w-24 h-24 text-cyan-500/10 -rotate-12 pointer-events-none" />
+
+                                <div className="absolute bottom-10 left-0 right-0 text-center bg-gradient-to-t from-[#0f172a] via-[#0f172a]/80 to-transparent pt-20">
+                                    <h3 className="text-white text-2xl font-bold mb-1 tracking-widest">3SHAPE E4</h3>
+                                    <p className="text-cyan-400 text-[10px] uppercase tracking-[0.4em] font-bold">The Gold Standard</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -189,25 +193,28 @@ export default function CAMSolutionsMVP() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <ProductCard
-                                title="Fresas Roland"
-                                metric="Carburo de alta vida útil"
-                                description="Especialmente diseñadas para fresado Roland. Larga duración y acabado superficial excelente."
-                                icon={Settings2}
-                                price="Desde $24.990"
+                                title="3Shape E4 Scanner"
+                                metric="9 segundos por arco"
+                                description="Productividad clínica sin precedentes con 4 cámaras de 5MP. Exactitud certificada ISO."
+                                icon={Microscope}
+                                price="Cotizar Demo"
+                                image="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&q=80&w=800" // Referencia a tecnología dental
                             />
                             <ProductCard
-                                title="Bloques Wax"
-                                metric="98mm / Diversos colores"
-                                description="Cera para quemado sin residuos. Excelente procesabilidad y propiedad anti-estática."
-                                icon={Box}
-                                price="Desde $12.500"
+                                title="Fresas Roland Zirconia"
+                                metric="Vitta & Amann Girrbach"
+                                description="Recubrimiento de diamante para una vida útil extendida. Fresado suave y sin vibraciones."
+                                icon={Settings2}
+                                price="Desde $24.990"
+                                image="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800" // Referencia industrial
                             />
                             <ProductCard
                                 title="PMMA Multilayer"
-                                metric="Dureza 700-1200 MPa"
-                                description="Resina PMMA para provisorios con degradado natural. Hasta 40mm de espesor."
-                                icon={Cpu}
-                                price="Cotizar Stock"
+                                metric="High Translucency"
+                                description="Degradado natural de color para restauraciones temporales de estética superior."
+                                icon={Box}
+                                price="Desde $12.500"
+                                image="https://images.unsplash.com/photo-1551033406-611cf9a28f67?auto=format&fit=crop&q=80&w=800" // Referencia laboratorio
                             />
                         </div>
                     </div>
