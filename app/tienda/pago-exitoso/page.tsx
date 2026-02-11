@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { CheckCircle2, Loader2, XCircle, MessageCircle } from 'lucide-react';
@@ -20,7 +20,7 @@ interface OrderData {
     }>;
 }
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get('order_id');
 
@@ -201,3 +201,16 @@ export default function PaymentSuccessPage() {
         </div>
     );
 }
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex flex-col items-center justify-center p-4">
+                <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
+            </div>
+        }>
+            <PaymentSuccessContent />
+        </Suspense>
+    );
+}
+
