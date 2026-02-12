@@ -7,6 +7,7 @@ import ServiceSelector from "@/components/aplicaciones/acargoo/ServiceSelector";
 import BookingCalendar from "@/components/aplicaciones/acargoo/BookingCalendar";
 import BookingForm from "@/components/aplicaciones/acargoo/BookingForm";
 import BookingConfirmation from "@/components/aplicaciones/acargoo/BookingConfirmation";
+import { AcargooTracker } from "@/components/aplicaciones/acargoo/AcargooTracker";
 
 type BookingStep = "hero" | "service" | "calendar" | "details" | "confirmation";
 
@@ -42,6 +43,7 @@ export default function AcargooPage() {
 
     return (
         <div className="min-h-screen">
+            <AcargooTracker />
             <AnimatePresence mode="wait">
                 {step === "hero" && (
                     <motion.div
