@@ -192,11 +192,19 @@ export default function BiocromLanding() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 pt-8 md:pt-12 border-t border-white/10 max-w-4xl">
                             <div className="flex flex-col">
                                 <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">10+</span>
-                                <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Años de Expertis</span>
+                                <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Años de Experiencia</span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">0%</span>
                                 <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Margen de Error</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">24h</span>
+                                <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Respuesta Máx</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">500+</span>
+                                <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Servicios/Año</span>
                             </div>
                         </div>
                     </motion.div>
@@ -391,10 +399,10 @@ export default function BiocromLanding() {
             {/* --- CTA FINAL --- */}
             <section id="contacto" className="py-20 md:py-60 bg-[#C3001D] relative overflow-hidden text-center">
                 <div className="relative z-10 max-w-7xl mx-auto px-6 text-white">
-                    <h2 className="text-5xl md:text-[14rem] font-black tracking-tighter mb-12 md:mb-20 leading-[0.9] md:leading-[0.75] uppercase">PRECISIÓN<br />AL LÍMITE.</h2>
+                    <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-12 md:mb-20 leading-[0.9] md:leading-[0.85] uppercase">PRECISIÓN<br />AL LÍMITE.</h2>
                     <div className="flex flex-col md:flex-row gap-6 md:gap-12 justify-center items-center">
                         <a href="tel:+56950069920" className="bg-white text-[#0B1F3A] px-10 md:px-24 py-6 md:py-10 rounded-full font-black text-xl md:text-3xl flex items-center gap-4 md:gap-8 hover:scale-110 transition-all shadow-4xl group">
-                            <Phone size={30} className="md:w-[40px] md:h-[40px] group-hover:rotate-12 transition-transform" /> +56 9 50XX XXXX
+                            <Phone size={30} className="md:w-[40px] md:h-[40px] group-hover:rotate-12 transition-transform" /> +56 9 5006 9920
                         </a>
                         <a href="mailto:ventas@biocrom.cl" className="bg-transparent border-2 md:border-4 border-white text-white px-10 md:px-24 py-6 md:py-10 rounded-full font-black text-xl md:text-3xl flex items-center gap-4 md:gap-8 hover:bg-white hover:text-[#C3001D] transition-all">
                             <Mail size={30} className="md:w-[40px] md:h-[40px]" /> ventas@biocrom.cl
