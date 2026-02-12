@@ -101,9 +101,9 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
                                 value={formData.pickup}
                                 onChange={(e) => handleChange("pickup", e.target.value)}
                                 placeholder="Ej: Av. Providencia 1234, Providencia"
-                                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 ${errors.pickup
-                                        ? "border-red-500 focus:border-red-500"
-                                        : "border-slate-200 focus:border-[#ff9900]"
+                                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 text-slate-900 ${errors.pickup
+                                    ? "border-red-500 focus:border-red-500"
+                                    : "border-slate-200 focus:border-[#ff9900]"
                                     } outline-none`}
                             />
                             {errors.pickup && (
@@ -119,9 +119,9 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
                                 value={formData.delivery}
                                 onChange={(e) => handleChange("delivery", e.target.value)}
                                 placeholder="Ej: Av. Las Condes 9876, Las Condes"
-                                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 ${errors.delivery
-                                        ? "border-red-500 focus:border-red-500"
-                                        : "border-slate-200 focus:border-[#ff9900]"
+                                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 text-slate-900 ${errors.delivery
+                                    ? "border-red-500 focus:border-red-500"
+                                    : "border-slate-200 focus:border-[#ff9900]"
                                     } outline-none`}
                             />
                             {errors.delivery && (
@@ -142,7 +142,7 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
                         onChange={(e) => handleChange("description", e.target.value)}
                         placeholder="Describe lo que necesitas transportar (opcional)"
                         rows={4}
-                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-[#ff9900] outline-none transition-all duration-300 resize-none"
+                        className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-[#ff9900] text-slate-900 outline-none transition-all duration-300 resize-none"
                     />
                 </div>
 
@@ -162,9 +162,9 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
                                 placeholder="Juan Pérez"
-                                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 ${errors.name
-                                        ? "border-red-500 focus:border-red-500"
-                                        : "border-slate-200 focus:border-[#ff9900]"
+                                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 text-slate-900 ${errors.name
+                                    ? "border-red-500 focus:border-red-500"
+                                    : "border-slate-200 focus:border-[#ff9900]"
                                     } outline-none`}
                             />
                             {errors.name && (
@@ -181,9 +181,9 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
                                     value={formData.phone}
                                     onChange={(e) => handleChange("phone", e.target.value)}
                                     placeholder="+56 9 1234 5678"
-                                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 ${errors.phone
-                                            ? "border-red-500 focus:border-red-500"
-                                            : "border-slate-200 focus:border-[#ff9900]"
+                                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 text-slate-900 ${errors.phone
+                                        ? "border-red-500 focus:border-red-500"
+                                        : "border-slate-200 focus:border-[#ff9900]"
                                         } outline-none`}
                                 />
                                 {errors.phone && (
@@ -199,9 +199,9 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
                                     value={formData.email}
                                     onChange={(e) => handleChange("email", e.target.value)}
                                     placeholder="juan@ejemplo.com"
-                                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 ${errors.email
-                                            ? "border-red-500 focus:border-red-500"
-                                            : "border-slate-200 focus:border-[#ff9900]"
+                                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-300 text-slate-900 ${errors.email
+                                        ? "border-red-500 focus:border-red-500"
+                                        : "border-slate-200 focus:border-[#ff9900]"
                                         } outline-none`}
                                 />
                                 {errors.email && (
