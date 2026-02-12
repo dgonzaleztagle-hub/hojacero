@@ -198,14 +198,6 @@ export default function BiocromLanding() {
                                 <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">0%</span>
                                 <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Margen de Error</span>
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">24h</span>
-                                <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Respuesta Máx</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">500+</span>
-                                <span className="text-[9px] md:text-[10px] uppercase font-bold text-[#C3001D] tracking-[0.3em] mt-2 md:mt-3">Servicios/Año</span>
-                            </div>
                         </div>
                     </motion.div>
                 </div>
