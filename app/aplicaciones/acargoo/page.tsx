@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AcargooHero from "@/components/aplicaciones/acargoo/AcargooHero";
-import ServiceSelector from "@/components/aplicaciones/acargoo/ServiceSelector";
-import BookingCalendar from "@/components/aplicaciones/acargoo/BookingCalendar";
-import BookingForm from "@/components/aplicaciones/acargoo/BookingForm";
-import BookingConfirmation from "@/components/aplicaciones/acargoo/BookingConfirmation";
-import { AcargooTracker } from "@/components/aplicaciones/acargoo/AcargooTracker";
+import AcargooHero from "../../../components/aplicaciones/acargoo/AcargooHero";
+import ServiceSelector from "../../../components/aplicaciones/acargoo/ServiceSelector";
+import BookingCalendar from "../../../components/aplicaciones/acargoo/BookingCalendar";
+import BookingForm from "../../../components/aplicaciones/acargoo/BookingForm";
+import BookingConfirmation from "../../../components/aplicaciones/acargoo/BookingConfirmation";
+import { AcargooTracker } from "../../../components/aplicaciones/acargoo/AcargooTracker";
 
 type BookingStep = "hero" | "service" | "calendar" | "details" | "confirmation";
 
@@ -66,7 +66,7 @@ export default function AcargooPage() {
                         transition={{ duration: 0.3 }}
                     >
                         <ServiceSelector
-                            onSelect={(service) => {
+                            onSelect={(service: { id: string; name: string; icon: string }) => {
                                 updateBookingData({ service });
                                 goToStep("calendar");
                             }}
@@ -85,7 +85,7 @@ export default function AcargooPage() {
                     >
                         <BookingCalendar
                             selectedService={bookingData.service}
-                            onSelectSlot={(date, time) => {
+                            onSelectSlot={(date: string, time: string) => {
                                 updateBookingData({ date, time });
                                 goToStep("details");
                             }}
@@ -104,7 +104,7 @@ export default function AcargooPage() {
                     >
                         <BookingForm
                             bookingData={bookingData}
-                            onSubmit={(formData) => {
+                            onSubmit={(formData: Partial<BookingData>) => {
                                 updateBookingData(formData);
                                 goToStep("confirmation");
                             }}
