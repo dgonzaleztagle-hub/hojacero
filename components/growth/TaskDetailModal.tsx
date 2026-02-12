@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Clock, Upload, Link as LinkIcon, Save, Loader2, Repeat, CheckCircle2, Trash2, Image as ImageIcon, Rocket } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { GrowthTask } from './types';
+import { useDashboard } from '@/app/dashboard/DashboardContext';
 
 interface TaskDetailModalProps {
     task: GrowthTask;
@@ -28,6 +29,8 @@ const DAYS_OF_WEEK = [
 ];
 
 export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProps) {
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -230,14 +233,14 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className={`border rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto transition-colors ${isDark ? 'bg-zinc-900 border-white/10' : 'bg-white border-gray-200'}`} onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-white/5 sticky top-0 bg-zinc-900">
+                <div className={`flex items-center justify-between p-6 border-b sticky top-0 z-10 transition-colors ${isDark ? 'border-white/5 bg-zinc-900' : 'border-gray-100 bg-white'}`}>
                     <div>
-                        <h2 className="text-lg font-bold text-white">{task.title}</h2>
-                        <span className="text-xs text-purple-400 uppercase font-bold">{task.category}</span>
+                        <h2 className={`text-lg font-bold transition-colors ${isDark ? 'text-white' : 'text-gray-900'}`}>{task.title}</h2>
+                        <span className="text-xs text-purple-600 uppercase font-bold">{task.category}</span>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors">
+                    <button onClick={onClose} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5 text-zinc-400 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'}`}>
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -245,19 +248,19 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                 {/* Content */}
                 <div className="p-6 space-y-6">
                     {/* Enable/Disable Toggle */}
-                    <div className="flex items-center justify-between bg-zinc-800/50 p-4 rounded-xl">
-                        <span className="text-sm text-white">Tarea Activa</span>
+                    <div className={`flex items-center justify-between p-4 rounded-xl transition-colors ${isDark ? 'bg-zinc-800/50' : 'bg-gray-50 border border-gray-100'}`}>
+                        <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-700'}`}>Tarea Activa</span>
                         <button
                             onClick={() => setIsEnabled(!isEnabled)}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${isEnabled ? 'bg-green-500' : 'bg-zinc-700'}`}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${isEnabled ? 'bg-green-500' : isDark ? 'bg-zinc-700' : 'bg-gray-300'}`}
                         >
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isEnabled ? 'left-7' : 'left-1'}`} />
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${isEnabled ? 'left-7' : 'left-1'}`} />
                         </button>
                     </div>
 
                     {/* Date & Time */}
                     <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                        <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
                             <Calendar className="w-4 h-4 inline mr-1" /> Fecha y Hora
                         </label>
                         <div className="grid grid-cols-2 gap-3">
@@ -265,15 +268,15 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                                 type="date"
                                 value={dueDate}
                                 onChange={(e) => setDueDate(e.target.value)}
-                                className="bg-zinc-800 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-purple-500 outline-none"
+                                className={`border rounded-xl py-3 px-4 outline-none focus:border-purple-500 transition-all ${isDark ? 'bg-zinc-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}
                             />
                             <div className="relative">
-                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                                <Clock className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`} />
                                 <input
                                     type="time"
                                     value={dueTime}
                                     onChange={(e) => setDueTime(e.target.value)}
-                                    className="w-full bg-zinc-800 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:border-purple-500 outline-none"
+                                    className={`w-full border rounded-xl py-3 pl-10 pr-4 outline-none focus:border-purple-500 transition-all ${isDark ? 'bg-zinc-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}
                                 />
                             </div>
                         </div>
@@ -281,14 +284,14 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
 
                     {/* Recurrence */}
                     <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                        <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
                             <Repeat className="w-4 h-4 inline mr-1" /> Recurrencia
                         </label>
                         <div className="space-y-3">
                             <select
                                 value={recurrenceType}
                                 onChange={(e) => setRecurrenceType(e.target.value)}
-                                className="w-full bg-zinc-800 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-purple-500 outline-none"
+                                className={`w-full border rounded-xl py-3 px-4 outline-none focus:border-purple-500 transition-all ${isDark ? 'bg-zinc-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}
                             >
                                 {RECURRENCE_OPTIONS.map(opt => (
                                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -299,7 +302,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                                 <select
                                     value={recurrenceDay}
                                     onChange={(e) => setRecurrenceDay(parseInt(e.target.value))}
-                                    className="w-full bg-zinc-800 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-purple-500 outline-none"
+                                    className={`w-full border rounded-xl py-3 px-4 outline-none focus:border-purple-500 transition-all ${isDark ? 'bg-zinc-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}
                                 >
                                     {DAYS_OF_WEEK.map(day => (
                                         <option key={day.value} value={day.value}>{day.label}</option>
@@ -309,14 +312,14 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
 
                             {recurrenceType === 'monthly' && (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-zinc-400">Día del mes:</span>
+                                    <span className={`text-sm ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>Día del mes:</span>
                                     <input
                                         type="number"
                                         min="1"
                                         max="28"
                                         value={recurrenceDay}
                                         onChange={(e) => setRecurrenceDay(parseInt(e.target.value))}
-                                        className="w-20 bg-zinc-800 border border-white/10 rounded-xl py-2 px-3 text-white text-center focus:border-purple-500 outline-none"
+                                        className={`w-20 border rounded-xl py-2 px-3 text-center outline-none focus:border-purple-500 transition-all ${isDark ? 'bg-zinc-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900 shadow-sm'}`}
                                     />
                                 </div>
                             )}
@@ -324,24 +327,24 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                     </div>
 
                     {/* Value Evaluation / ROI Section */}
-                    <div className="bg-purple-600/5 border border-purple-500/20 p-5 rounded-2xl space-y-3">
-                        <label className="flex items-center gap-2 text-xs font-bold text-purple-400 uppercase tracking-wider">
+                    <div className={`p-5 rounded-2xl space-y-3 transition-colors ${isDark ? 'bg-purple-600/5 border border-purple-500/20' : 'bg-purple-50 border border-purple-100'}`}>
+                        <label className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
                             <Rocket className="w-4 h-4" /> Impacto y Evaluación de Valor
                         </label>
                         <textarea
-                            className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm text-white h-28 resize-none focus:outline-none focus:border-purple-500/50 transition-all placeholder:text-zinc-600"
+                            className={`w-full border rounded-xl p-4 text-sm h-28 resize-none outline-none focus:border-purple-500/50 transition-all ${isDark ? 'bg-black/40 border-white/10 text-white placeholder:text-zinc-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm'}`}
                             placeholder="Ej: Bajamos el CPL en 20% o corregimos un error que bloqueaba ventas..."
                             value={impactNotes}
                             onChange={(e) => setImpactNotes(e.target.value)}
                         />
-                        <p className="text-[10px] text-zinc-500 leading-tight">
+                        <p className={`text-[10px] leading-tight ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
                             Este reporte es la base de la demostración de valor mensual para el cliente. Sé específico y tangible.
                         </p>
                     </div>
 
                     {/* Evidence */}
                     <div>
-                        <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                        <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
                             <Upload className="w-4 h-4 inline mr-1" /> Evidencia de Trabajo
                         </label>
                         <div className="space-y-3">
@@ -350,7 +353,11 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                                 onDrop={handleDrop}
                                 onDragOver={(e) => e.preventDefault()}
                                 onClick={() => fileInputRef.current?.click()}
-                                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${uploading ? 'border-purple-500 bg-purple-500/10' : 'border-white/10 hover:border-purple-500/50 hover:bg-purple-500/5'
+                                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${uploading
+                                        ? 'border-purple-500 bg-purple-500/10'
+                                        : isDark
+                                            ? 'border-white/10 hover:border-purple-500/50 hover:bg-purple-500/5'
+                                            : 'border-gray-200 bg-gray-50 hover:border-purple-500/50 hover:bg-purple-50/50'
                                     }`}
                             >
                                 <input
@@ -363,45 +370,45 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                                 {uploading ? (
                                     <div className="flex flex-col items-center gap-2">
                                         <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-                                        <span className="text-sm text-purple-400">Subiendo...</span>
+                                        <span className="text-sm text-purple-400 font-bold">Subiendo...</span>
                                     </div>
                                 ) : evidenceUrl ? (
                                     <div className="space-y-2">
                                         {evidenceUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                            <img src={evidenceUrl} alt="Evidencia" className="max-h-32 mx-auto rounded-lg" />
+                                            <img src={evidenceUrl} alt="Evidencia" className="max-h-32 mx-auto rounded-lg shadow-lg" />
                                         ) : (
-                                            <div className="flex items-center justify-center gap-2 text-green-400">
+                                            <div className="flex items-center justify-center gap-2 text-green-500">
                                                 <CheckCircle2 className="w-5 h-5" />
-                                                <span className="text-sm">Archivo subido</span>
+                                                <span className="text-sm font-bold">Archivo subido</span>
                                             </div>
                                         )}
-                                        <p className="text-xs text-zinc-500 truncate max-w-[300px] mx-auto">{evidenceUrl}</p>
+                                        <p className={`text-xs truncate max-w-[300px] mx-auto ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>{evidenceUrl}</p>
                                         <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); setEvidenceUrl(''); }}
-                                            className="text-xs text-red-400 hover:text-red-300"
+                                            className="text-xs text-red-500 hover:text-red-400 font-bold"
                                         >
                                             Eliminar
                                         </button>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-2">
-                                        <ImageIcon className="w-8 h-8 text-zinc-600" />
-                                        <span className="text-sm text-zinc-400">Arrastra una imagen o haz click para subir</span>
-                                        <span className="text-xs text-zinc-600">PNG, JPG, WEBP, PDF (max 5MB)</span>
+                                        <ImageIcon className={`w-8 h-8 ${isDark ? 'text-zinc-700' : 'text-gray-300'}`} />
+                                        <span className={`text-sm font-medium ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>Arrastra una imagen o haz click para subir</span>
+                                        <span className={`text-xs ${isDark ? 'text-zinc-600' : 'text-gray-400'}`}>PNG, JPG, WEBP, PDF (max 5MB)</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* URL Fallback */}
                             <div className="relative">
-                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                                <LinkIcon className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`} />
                                 <input
                                     type="url"
                                     value={evidenceUrl}
                                     onChange={(e) => setEvidenceUrl(e.target.value)}
                                     placeholder="O pega una URL externa..."
-                                    className="w-full bg-zinc-800 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-zinc-600 focus:border-purple-500 outline-none text-sm"
+                                    className={`w-full border rounded-xl py-3 pl-10 pr-4 outline-none focus:border-purple-500 transition-all text-sm ${isDark ? 'bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm'}`}
                                 />
                             </div>
 
@@ -411,19 +418,19 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                                 onChange={(e) => setEvidenceNotes(e.target.value)}
                                 placeholder="Notas sobre el trabajo realizado..."
                                 rows={3}
-                                className="w-full bg-zinc-800 border border-white/10 rounded-xl py-3 px-4 text-white placeholder:text-zinc-600 focus:border-purple-500 outline-none resize-none"
+                                className={`w-full border rounded-xl py-3 px-4 outline-none focus:border-purple-500 transition-all resize-none ${isDark ? 'bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 shadow-sm'}`}
                             />
                         </div>
                     </div>
 
                     {/* Status Info */}
                     {task.status === 'done' && task.completed_at && (
-                        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                            <div className="flex items-center gap-2 text-green-400">
+                        <div className={`border rounded-xl p-4 transition-colors ${isDark ? 'bg-green-500/10 border-green-500/20' : 'bg-green-50 border-green-100'}`}>
+                            <div className="flex items-center gap-2 text-green-600 font-bold">
                                 <CheckCircle2 className="w-5 h-5" />
-                                <span className="font-bold">Completada</span>
+                                <span>Completada</span>
                             </div>
-                            <p className="text-xs text-green-400/70 mt-1">
+                            <p className="text-xs text-green-600/70 mt-1">
                                 {new Date(task.completed_at).toLocaleString()}
                             </p>
                         </div>
@@ -431,11 +438,11 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-white/5 flex justify-between">
+                <div className={`p-6 border-t flex justify-between transition-colors ${isDark ? 'border-white/5 bg-zinc-900/50' : 'border-gray-100 bg-gray-50'}`}>
                     <button
                         onClick={handleDelete}
                         disabled={deleting}
-                        className="flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+                        className={`flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
                     >
                         {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                         Eliminar
@@ -445,9 +452,9 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                         <button
                             onClick={handleComplete}
                             disabled={saving}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-colors ${task.status === 'done'
-                                ? 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                                : 'bg-green-600 hover:bg-green-500 text-white'
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all active:scale-95 ${task.status === 'done'
+                                ? (isDark ? 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300')
+                                : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-500/20'
                                 }`}
                         >
                             <CheckCircle2 className="w-4 h-4" />
@@ -457,7 +464,7 @@ export function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProp
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="flex items-center gap-2 px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-colors"
+                            className="flex items-center gap-2 px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-purple-500/25 active:scale-95"
                         >
                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             Guardar

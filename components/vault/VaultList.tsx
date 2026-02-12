@@ -3,6 +3,8 @@
 import { Cliente } from './types';
 import VaultCard from './VaultCard';
 
+import { useDashboard } from '@/app/dashboard/DashboardContext';
+
 interface VaultListProps {
     clientes: Cliente[];
     selectedId: string | null;
@@ -11,11 +13,14 @@ interface VaultListProps {
 }
 
 export default function VaultList({ clientes, selectedId, onSelect, isLoading }: VaultListProps) {
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
+
     if (isLoading) {
         return (
             <div className="grid grid-cols-1 gap-4 animate-pulse">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-32 bg-zinc-900/50 rounded-xl border border-white/5"></div>
+                    <div key={i} className={`h-32 rounded-xl border ${isDark ? 'bg-zinc-900/50 border-white/5' : 'bg-gray-100 border-gray-100'}`}></div>
                 ))}
             </div>
         );

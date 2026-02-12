@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { generateTerritorialPDF } from '@/lib/pdf-generator';
+import { useDashboard } from '@/app/dashboard/DashboardContext';
 
 const PLANS = [
     {
@@ -732,64 +733,98 @@ const ReportPlan3 = ({ analysis, dimensiones }: { analysis: any; dimensiones: an
 // COMPONENTES DE UI
 // ============================================
 
-const Section = ({ icon, title, gradient, border, children }: { icon: React.ReactNode; title: string; gradient: string; border: string; children: React.ReactNode }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={cn("bg-gradient-to-br rounded-2xl p-4 border", gradient, border)}
-    >
-        <div className="flex items-center gap-2 mb-3">
-            {icon}
-            <h3 className="text-base font-bold text-white">{title}</h3>
+const Section = ({ icon, title, gradient, border, children }: { icon: React.ReactNode; title: string; gradient: string; border: string; children: React.ReactNode }) => {
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn("bg-gradient-to-br rounded-2xl p-4 border transition-colors", gradient, border)}
+        >
+            <div className="flex items-center gap-2 mb-3">
+                {icon}
+                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+            </div>
+            {children}
+        </motion.div>
+    );
+};
+
+const Badge = ({ color, children }: { color: string; children: React.ReactNode }) => {
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
+    return (
+        <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border transition-colors",
+            isDark
+                ? `bg-${color}-600/20 text-${color}-400 border-${color}-500/30`
+                : `bg-${color}-100 text-${color}-700 border-${color}-200`
+        )}>
+            {children}
+        </span>
+    );
+};
+
+const DataBox = ({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) => {
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
+    return (
+        <div className={cn("rounded-lg p-2.5 border transition-colors",
+            isDark
+                ? highlight ? "bg-black/40 border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.1)]" : "bg-black/30 border-white/10"
+                : highlight ? "bg-green-50 border-green-200 shadow-sm" : "bg-gray-50 border-gray-100"
+        )}>
+            <p className={`text-[10px] uppercase tracking-wide ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>{label}</p>
+            <p className={cn("text-sm font-bold mt-0.5",
+                highlight
+                    ? isDark ? "text-green-400" : "text-green-600"
+                    : isDark ? "text-white" : "text-gray-900"
+            )}>{value || 'N/A'}</p>
         </div>
-        {children}
-    </motion.div>
-);
+    );
+};
 
-const Badge = ({ color, children }: { color: string; children: React.ReactNode }) => (
-    <span className={cn("px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide", `bg-${color}-600/20 text-${color}-400 border border-${color}-500/30`)}>
-        {children}
-    </span>
-);
-
-const DataBox = ({ label, value, highlight }: { label: string; value: any; highlight?: boolean }) => (
-    <div className={cn("bg-black/30 rounded-lg p-2.5 border", highlight ? "border-green-500/30" : "border-white/10")}>
-        <p className="text-[10px] text-zinc-500 uppercase tracking-wide">{label}</p>
-        <p className={cn("text-sm font-bold mt-0.5", highlight ? "text-green-400" : "text-white")}>{value || 'N/A'}</p>
-    </div>
-);
-
-const Insight = ({ text, isPositive, isWarning }: { text: string; isPositive?: boolean; isWarning?: boolean }) => (
-    <div className={cn(
-        "flex items-start gap-2 p-2.5 rounded-lg border",
-        isPositive ? "bg-green-600/10 border-green-500/20" :
-            isWarning ? "bg-yellow-600/10 border-yellow-500/20" :
-                "bg-blue-600/10 border-blue-500/20"
-    )}>
-        <Lightbulb className={cn("w-3.5 h-3.5 shrink-0 mt-0.5", isPositive ? "text-green-400" : isWarning ? "text-yellow-400" : "text-blue-400")} />
-        <p className="text-xs text-zinc-300 leading-relaxed">{text}</p>
-    </div>
-);
+const Insight = ({ text, isPositive, isWarning }: { text: string; isPositive?: boolean; isWarning?: boolean }) => {
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
+    return (
+        <div className={cn(
+            "flex items-start gap-2 p-2.5 rounded-lg border transition-colors",
+            isPositive
+                ? isDark ? "bg-green-600/10 border-green-500/20" : "bg-green-50 border-green-100" :
+                isWarning
+                    ? isDark ? "bg-yellow-600/10 border-yellow-500/20" : "bg-yellow-50 border-yellow-100" :
+                    isDark ? "bg-blue-600/10 border-blue-500/20" : "bg-blue-50 border-blue-100"
+        )}>
+            <Lightbulb className={cn("w-3.5 h-3.5 shrink-0 mt-0.5",
+                isPositive ? isDark ? "text-green-400" : "text-green-600" :
+                    isWarning ? isDark ? "text-yellow-400" : "text-yellow-600" :
+                        isDark ? "text-blue-400" : "text-blue-600"
+            )} />
+            <p className={`text-xs leading-relaxed ${isDark ? 'text-zinc-300' : 'text-gray-600'}`}>{text}</p>
+        </div>
+    );
+};
 
 const ViabilityBadge = ({ level }: { level: string }) => {
     const config: Record<string, { color: string; bg: string }> = {
-        'MUY ALTA': { color: 'text-green-400', bg: 'bg-green-600' },
-        'ALTA': { color: 'text-emerald-400', bg: 'bg-emerald-600' },
-        'MEDIA': { color: 'text-yellow-400', bg: 'bg-yellow-600' },
-        'BAJA': { color: 'text-red-400', bg: 'bg-red-600' },
-        'ORO': { color: 'text-yellow-400', bg: 'bg-gradient-to-r from-yellow-500 to-amber-500' },
-        'PLATA': { color: 'text-zinc-300', bg: 'bg-gradient-to-r from-zinc-400 to-zinc-500' },
-        'BRONCE': { color: 'text-orange-400', bg: 'bg-gradient-to-r from-orange-600 to-amber-700' },
-        'RIESGO': { color: 'text-red-400', bg: 'bg-red-600' },
-        'STRONG BUY': { color: 'text-green-400', bg: 'bg-green-600' },
-        'BUY': { color: 'text-emerald-400', bg: 'bg-emerald-600' },
-        'HOLD': { color: 'text-yellow-400', bg: 'bg-yellow-600' },
-        'SELL': { color: 'text-red-400', bg: 'bg-red-600' },
+        'MUY ALTA': { color: 'text-white', bg: 'bg-green-600' },
+        'ALTA': { color: 'text-white', bg: 'bg-emerald-600' },
+        'MEDIA': { color: 'text-white', bg: 'bg-yellow-600' },
+        'BAJA': { color: 'text-white', bg: 'bg-red-600' },
+        'ORO': { color: 'text-white', bg: 'bg-gradient-to-r from-yellow-500 to-amber-500' },
+        'PLATA': { color: 'text-white', bg: 'bg-gradient-to-r from-zinc-400 to-zinc-500' },
+        'BRONCE': { color: 'text-white', bg: 'bg-gradient-to-r from-orange-600 to-amber-700' },
+        'RIESGO': { color: 'text-white', bg: 'bg-red-600' },
+        'STRONG BUY': { color: 'text-white', bg: 'bg-green-600' },
+        'BUY': { color: 'text-white', bg: 'bg-emerald-600' },
+        'HOLD': { color: 'text-white', bg: 'bg-yellow-600' },
+        'SELL': { color: 'text-white', bg: 'bg-red-600' },
     };
-    const c = config[level?.toUpperCase()] || { color: 'text-zinc-400', bg: 'bg-zinc-600' };
+    const c = config[level?.toUpperCase()] || { color: 'text-white', bg: 'bg-zinc-600' };
 
     return (
-        <span className={cn("px-4 py-2 rounded-xl font-black text-sm uppercase text-white", c.bg)}>
+        <span className={cn("px-4 py-2 rounded-xl font-black text-xs uppercase shadow-sm", c.bg, c.color)}>
             {level}
         </span>
     );
@@ -800,6 +835,8 @@ const ViabilityBadge = ({ level }: { level: string }) => {
 // ============================================
 
 export default function TerritorialPage() {
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
     const [selectedPlan, setSelectedPlan] = useState(1);
     const [address, setAddress] = useState('');
     const [businessType, setBusinessType] = useState('restaurant');
@@ -865,17 +902,17 @@ export default function TerritorialPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-8">
+        <div className={`min-h-screen p-8 transition-colors ${isDark ? 'bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 text-white' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900'}`}>
             <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full">
-                        <Sparkles className="w-4 h-4 text-blue-400" />
-                        <span className="text-xs font-black uppercase tracking-wider text-blue-400">Inteligencia Territorial v2.0</span>
+                    <div className={`inline-flex items-center gap-2 px-4 py-2 border rounded-full ${isDark ? 'bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-blue-500/30 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600 shadow-sm'}`}>
+                        <Sparkles className="w-4 h-4" />
+                        <span className="text-xs font-black uppercase tracking-wider">Inteligencia Territorial v2.0</span>
                     </div>
-                    <h1 className="text-3xl font-black text-white tracking-tight">Motor de Análisis Territorial</h1>
-                    <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Reportes profesionales estilo consultor con datos reales — Costo $0</p>
+                    <h1 className={`text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Motor de Análisis Territorial</h1>
+                    <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>Reportes profesionales estilo consultor con datos reales — <span className="text-blue-500 font-bold">Costo $0</span></p>
                 </motion.div>
 
                 {/* Selector de Planes */}
@@ -890,32 +927,34 @@ export default function TerritorialPage() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 className={cn(
-                                    "relative p-6 rounded-3xl border-2 transition-all text-left overflow-hidden group",
-                                    isSelected ? "border-white/30 bg-white/5" : "border-white/10 bg-white/[0.02] hover:border-white/20"
+                                    "relative p-6 rounded-3xl border-2 transition-all text-left overflow-hidden group shadow-sm",
+                                    isSelected
+                                        ? isDark ? "border-white/30 bg-white/5" : "border-blue-500 bg-blue-50/30"
+                                        : isDark ? "border-white/10 bg-white/[0.02] hover:border-white/20" : "border-gray-100 bg-white hover:border-gray-200"
                                 )}
                             >
                                 {plan.popular && (
-                                    <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full">
+                                    <div className="absolute top-4 right-4 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full shadow-lg">
                                         <span className="text-[10px] font-black uppercase text-white">Popular</span>
                                     </div>
                                 )}
                                 <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-4 bg-gradient-to-br", plan.color)}>
                                     <Icon className="w-6 h-6 text-white" />
                                 </div>
-                                <h3 className="text-lg font-black text-white mb-1">{plan.name}</h3>
-                                <p className="text-xl font-black text-white mb-2">{plan.price}</p>
-                                <p className="text-sm text-zinc-400 mb-4">{plan.description}</p>
+                                <h3 className={`text-lg font-black mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
+                                <p className={`text-xl font-black mb-2 ${isDark ? 'text-white' : 'text-blue-600'}`}>{plan.price}</p>
+                                <p className={`text-sm mb-4 ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>{plan.description}</p>
                                 <ul className="space-y-1">
                                     {plan.features.slice(0, 4).map((feature, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                                            <CheckCircle2 className="w-3 h-3 text-green-400 shrink-0 mt-0.5" />
-                                            <span>{feature}</span>
+                                        <li key={i} className="flex items-start gap-2 text-xs">
+                                            <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0 mt-0.5" />
+                                            <span className={isDark ? 'text-zinc-300' : 'text-gray-600'}>{feature}</span>
                                         </li>
                                     ))}
-                                    {plan.features.length > 4 && <li className="text-xs text-zinc-500">+{plan.features.length - 4} más...</li>}
+                                    {plan.features.length > 4 && <li className={`text-xs ml-5 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>+{plan.features.length - 4} más...</li>}
                                 </ul>
                                 {isSelected && (
-                                    <motion.div layoutId="selected-plan" className="absolute inset-0 border-2 border-white rounded-3xl pointer-events-none" />
+                                    <motion.div layoutId="selected-plan" className={`absolute inset-0 border-2 rounded-3xl pointer-events-none ${isDark ? 'border-white' : 'border-blue-500'}`} />
                                 )}
                             </motion.button>
                         );
@@ -923,12 +962,12 @@ export default function TerritorialPage() {
                 </motion.div>
 
                 {/* Input */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className={`border rounded-[32px] p-8 space-y-6 shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'}`}>
                     {/* Rubro */}
                     <div>
                         <div className="flex items-center gap-3 mb-4">
                             <Building2 className="w-6 h-6 text-orange-400" />
-                            <h2 className="text-lg font-bold text-white">Giro Comercial</h2>
+                            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Giro Comercial</h2>
                         </div>
                         <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                             {BUSINESS_TYPES.map((type) => (
@@ -938,8 +977,8 @@ export default function TerritorialPage() {
                                     className={cn(
                                         "px-3 py-2 rounded-xl text-xs font-bold transition-all border",
                                         businessType === type.id
-                                            ? "bg-orange-500 text-white border-orange-500"
-                                            : "bg-black/40 text-zinc-400 border-white/10 hover:border-white/30"
+                                            ? "bg-orange-500 text-white border-orange-500 shadow-md"
+                                            : isDark ? "bg-black/40 text-zinc-400 border-white/10 hover:border-white/30" : "bg-gray-50 text-gray-500 border-gray-100 hover:border-gray-200"
                                     )}
                                 >
                                     {type.name}
@@ -952,35 +991,35 @@ export default function TerritorialPage() {
                     <div>
                         <div className="flex items-center gap-3 mb-4">
                             <MapPin className="w-6 h-6 text-blue-400" />
-                            <h2 className="text-lg font-bold text-white">Ubicación</h2>
+                            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Ubicación</h2>
                         </div>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col md:flex-row gap-4">
                             <input
                                 type="text"
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
                                 placeholder="Ej: Av. Providencia 1234, Santiago"
-                                className="flex-1 px-6 py-4 bg-black/40 border border-white/10 rounded-2xl text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500/50"
+                                className={`flex-1 px-6 py-4 border rounded-2xl focus:outline-none transition-all ${isDark ? 'bg-black/40 border-white/10 text-white placeholder:text-zinc-500 focus:border-blue-500/50' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-300 shadow-inner'}`}
                                 disabled={isAnalyzing}
                             />
                             <button
                                 onClick={handleAnalyze}
                                 disabled={isAnalyzing || !address.trim()}
                                 className={cn(
-                                    "px-8 py-4 rounded-2xl font-black uppercase tracking-wider text-sm transition-all flex items-center gap-3",
+                                    "px-8 py-4 rounded-2xl font-black uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-3",
                                     isAnalyzing || !address.trim()
-                                        ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-                                        : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/20 active:scale-95"
+                                        ? isDark ? "bg-zinc-800 text-zinc-600 cursor-not-allowed" : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                                        : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 shadow-md shadow-blue-500/10"
                                 )}
                             >
                                 {isAnalyzing ? (<><Loader2 className="w-5 h-5 animate-spin" />Analizando...</>) : (<><Zap className="w-5 h-5" />Analizar</>)}
                             </button>
                         </div>
                         {error && (
-                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-3">
-                                <AlertCircle className="w-5 h-5 text-red-400" />
-                                <p className="text-sm text-red-300">{error}</p>
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className={`mt-4 p-4 border rounded-xl flex items-center gap-3 ${isDark ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-red-50 border-red-100 text-red-600'}`}>
+                                <AlertCircle className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
+                                <p className="text-sm">{error}</p>
                             </motion.div>
                         )}
                     </div>
@@ -991,18 +1030,18 @@ export default function TerritorialPage() {
                     {currentReport && (
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
                             {/* Header del Reporte */}
-                            <div className="bg-gradient-to-r from-white/5 to-white/[0.02] border border-white/10 rounded-3xl p-6 flex items-center justify-between">
+                            <div className={`border rounded-[32px] p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm ${isDark ? 'bg-gradient-to-r from-white/5 to-white/[0.02] border-white/10' : 'bg-white border-gray-100'}`}>
                                 <div>
-                                    <p className="text-xs text-zinc-500 uppercase tracking-wider">Reporte Generado</p>
-                                    <h2 className="text-2xl font-black text-white">{currentReport.address}</h2>
-                                    <p className="text-sm text-zinc-400">Comuna: {currentReport.comuna} | Plan {currentReport.plan_type}</p>
+                                    <p className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>Reporte Generado</p>
+                                    <h2 className={`text-2xl font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentReport.address}</h2>
+                                    <p className={`text-sm ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>Comuna: {currentReport.comuna} | Plan {currentReport.plan_type}</p>
                                 </div>
-                                <div className="flex gap-3">
+                                <div className="flex flex-col sm:flex-row gap-3">
                                     {/* Botón Ver Reporte Interactivo */}
                                     <Link
                                         href={`/reporte/${currentReport.id}`}
                                         target="_blank"
-                                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-bold text-white flex items-center gap-2 hover:shadow-lg hover:shadow-blue-500/20 transition-all"
+                                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-bold text-white flex items-center gap-2 hover:shadow-lg hover:shadow-blue-500/20 transition-all shadow-md shadow-blue-500/10"
                                     >
                                         <ExternalLink className="w-5 h-5" />
                                         Ver Reporte Interactivo
@@ -1029,7 +1068,7 @@ export default function TerritorialPage() {
                                                 alert('Error al generar el PDF. Intenta nuevamente.');
                                             }
                                         }}
-                                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-bold text-white flex items-center gap-2 hover:shadow-lg hover:shadow-green-500/20 transition-all"
+                                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl font-bold text-white flex items-center gap-2 hover:shadow-lg hover:shadow-green-500/20 transition-all shadow-md shadow-green-500/10"
                                     >
                                         <Download className="w-5 h-5" />
                                         Descargar PDF
@@ -1038,9 +1077,11 @@ export default function TerritorialPage() {
                             </div>
 
                             {/* Contenido del Reporte según Plan */}
-                            {currentReport.plan_type === 1 && <ReportPlan1 analysis={currentReport.analysis} dimensiones={currentReport.dimensiones} mapUrl={currentReport.map_url} />}
-                            {currentReport.plan_type === 2 && <ReportPlan2 analysis={currentReport.analysis} dimensiones={currentReport.dimensiones} />}
-                            {currentReport.plan_type === 3 && <ReportPlan3 analysis={currentReport.analysis} dimensiones={currentReport.dimensiones} />}
+                            <div className="pb-20">
+                                {currentReport.plan_type === 1 && <ReportPlan1 analysis={currentReport.analysis} dimensiones={currentReport.dimensiones} mapUrl={currentReport.map_url} />}
+                                {currentReport.plan_type === 2 && <ReportPlan2 analysis={currentReport.analysis} dimensiones={currentReport.dimensiones} />}
+                                {currentReport.plan_type === 3 && <ReportPlan3 analysis={currentReport.analysis} dimensiones={currentReport.dimensiones} />}
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

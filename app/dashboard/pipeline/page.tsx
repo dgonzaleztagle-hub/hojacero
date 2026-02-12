@@ -2,14 +2,16 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { Loader2, KanbanSquare, ClipboardList } from 'lucide-react';
+import { Loader2, KanbanSquare, ClipboardList, Archive } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRadar } from '@/hooks/useRadar';
 import { PipelineBoard } from '@/components/pipeline/Board';
 import { RadarLeadModal } from '@/components/radar/RadarLeadModal';
 import { ManualEntryModal } from '@/components/radar/ManualEntryModal';
+import { CementerioModal } from '@/components/pipeline/CementerioModal_v2';
 import { TargetIcon } from '@/components/radar/shared';
 import { createClient } from '@/utils/supabase/client';
+import { useDashboard } from '@/app/dashboard/DashboardContext';
 
 function PipelineContent() {
     // 1. Initialize Hook
@@ -23,8 +25,12 @@ function PipelineContent() {
         userRole, setIsManualModalOpen
     } = radar;
 
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
+
     // Local state for real-time visits
     const [visitCounts, setVisitCounts] = useState<Record<string, number>>({});
+    const [isCementerioOpen, setIsCementerioOpen] = useState(false);
     const supabase = createClient();
 
     useEffect(() => {
@@ -68,52 +74,53 @@ function PipelineContent() {
         return (
             <div className="flex flex-col items-center justify-center h-[50vh] text-center space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-                <p className="text-zinc-500">Cargando acceso...</p>
+                <p className={isDark ? 'text-zinc-500' : 'text-gray-500'}>Cargando acceso...</p>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-2rem)] space-y-4 animate-in fade-in duration-500 max-w-full mx-auto pb-0 px-4">
+        <div className="flex flex-col h-[calc(100vh-2rem)] animate-in fade-in duration-500 -mx-4 md:-mx-8 w-auto overflow-hidden">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-2 border-b border-white/10 pb-4">
-                <div>
-                    <h1 className="text-3xl font-light text-white tracking-tight flex items-center gap-3">
-                        <KanbanSquare className="w-8 h-8 text-green-400" />
+            <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 border-b pb-6 mb-4 px-4 md:px-8 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                <div className="space-y-1">
+                    <h1 className={`text-4xl font-black tracking-tight flex items-center gap-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <KanbanSquare className="w-10 h-10 text-green-400" />
                         PIPELINE
-                        <span className="text-xs bg-green-500/20 text-green-500 px-2 py-0.5 rounded border border-green-500/30">Deals</span>
+                        <span className="text-[10px] bg-green-500 text-black px-2 py-0.5 rounded font-black uppercase tracking-tighter">Deals</span>
                     </h1>
-                    <p className="text-zinc-500 mt-2 text-sm max-w-xl">
+                    <p className={`text-sm font-medium ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
                         Gestión de Oportunidades • Seguimiento • Cierre de Ventas
                     </p>
                 </div>
 
-                {pipelineLeads.length > 0 && (
-                    <div className="flex gap-3 text-xs font-mono items-center">
-                        <div className="bg-zinc-900 border border-green-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                            <span className="text-green-400 font-bold">{pipelineLeads.length}</span>
-                            <span className="text-zinc-500">Oportunidades Activas</span>
-                        </div>
-                        <button
-                            onClick={() => setIsManualModalOpen(true)}
-                            className="bg-white text-black hover:bg-zinc-200 p-2 md:px-4 md:py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] ml-2"
-                            title="Ingresar Dato Manual"
-                        >
-                            <ClipboardList className="w-4 h-4" />
-                            <span className="hidden md:inline">Ingresar Dato</span>
-                        </button>
+                <div className="flex gap-4 text-xs font-mono items-center pr-6">
+                    <button
+                        onClick={() => setIsCementerioOpen(true)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all border ${isDark
+                            ? 'text-zinc-400 border-white/5 hover:text-zinc-200 hover:bg-white/5 hover:border-white/10'
+                            : 'text-gray-600 border-gray-200 bg-white hover:text-gray-900 hover:border-gray-300 hover:shadow-sm'
+                            }`}
+                        title="Ver Leads Perdidos"
+                    >
+                        <Archive className={`w-4 h-4 ${isDark ? 'text-zinc-600 group-hover:text-zinc-400' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                        <span className="hidden md:inline">Cementerio</span>
+                    </button>
+
+                    <div className={`border px-4 py-2 rounded-xl flex items-center gap-3 ${isDark ? 'bg-zinc-900/50 border-white/5 shadow-inner' : 'bg-white border-gray-200 shadow-sm'}`}>
+                        <span className="text-green-500 font-black text-base">{pipelineLeads.length}</span>
+                        <span className={`uppercase tracking-widest text-[9px] font-bold ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Activas</span>
                     </div>
-                )}
-                {pipelineLeads.length === 0 && (
                     <button
                         onClick={() => setIsManualModalOpen(true)}
-                        className="bg-white text-black hover:bg-zinc-200 p-2 md:px-4 md:py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-xl active:scale-95 ${isDark ? 'bg-white text-black hover:bg-zinc-200 shadow-white/5' : 'bg-black text-white hover:bg-zinc-800 shadow-black/10'
+                            }`}
                         title="Ingresar Dato Manual"
                     >
                         <ClipboardList className="w-4 h-4" />
                         <span className="hidden md:inline">Ingresar Dato</span>
                     </button>
-                )}
+                </div>
             </div>
 
             {/* Pipeline Board */}
@@ -134,9 +141,11 @@ function PipelineContent() {
             </div>
 
             {/* Lead Detail Modal */}
-            {selectedLead && (
-                <RadarLeadModal radar={radar} />
-            )}
+            {
+                selectedLead && (
+                    <RadarLeadModal radar={radar} />
+                )
+            }
 
             <ManualEntryModal
                 isOpen={radar.isManualModalOpen}
@@ -145,7 +154,14 @@ function PipelineContent() {
                     fetchPipeline(); // Refresh pipeline
                 }}
             />
-        </div>
+
+            <CementerioModal
+                isOpen={isCementerioOpen}
+                onClose={() => setIsCementerioOpen(false)}
+                onRestore={() => fetchPipeline()}
+                isDark={isDark}
+            />
+        </div >
     );
 }
 

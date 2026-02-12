@@ -219,6 +219,20 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         }
     };
 
+    const handleLeadUpdate = (updatedLead: any) => {
+        // Update selected lead
+        setSelectedLead(updatedLead);
+
+        // Update Pipeline list
+        setPipelineLeads((prev: any[]) => prev.map((l: any) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
+
+        // Update Leads list
+        setLeads((prev: any[]) => prev.map((l: any) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
+
+        // Update History list (if applicable)
+        setHistoryLeads((prev: any[]) => prev.map((l: any) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setSelectedLead(null)}>
             <div className={`relative w-full h-[95vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl transition-colors md:w-[95vw] md:max-w-7xl ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border-gray-200'}`} onClick={(e) => e.stopPropagation()}>
@@ -487,14 +501,14 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     leadActivities={leadActivities}
                                     copyToClipboard={copyToClipboard}
                                     copiedField={copiedField}
-                                    onLeadUpdate={setSelectedLead}
+                                    onLeadUpdate={handleLeadUpdate}
                                 />
                             )}
                             {modalTab === 'forense' && (
                                 <ModalTabForense
                                     selectedLead={selectedLead}
                                     isDark={isDark}
-                                    onLeadUpdate={setSelectedLead}
+                                    onLeadUpdate={handleLeadUpdate}
                                     onDeepAnalyze={performDeepAnalysis}
                                     isDeepAnalyzing={isDeepAnalyzing}
                                     setModalTab={setModalTab}
@@ -513,33 +527,47 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                 <span className="text-sm font-bold text-white">{selectedLead.estado.replace(/_/g, ' ').toUpperCase()}</span>
                             </div>
                             <div className="flex gap-2">
-                                {selectedLead.estado === 'ready_to_contact' && (
+                                {(selectedLead.pipeline_stage === 'radar' || selectedLead.estado === 'ready_to_contact') && (
                                     <button onClick={async () => {
-                                        setIsSaving(true);
                                         const id = selectedLead.id || selectedLead.db_id;
-                                        await supabase.from('leads').update({ estado: 'in_contact', revisado_por: currentUser }).eq('id', id);
-                                        await logActivity(id, 'contacted', 'ready_to_contact', 'in_contact');
-                                        fetchPipeline();
-                                        setSelectedLead(null);
-                                        setIsSaving(false);
+                                        handleLeadUpdate({ ...selectedLead, pipeline_stage: 'contactado', estado: 'in_contact' });
+                                        try {
+                                            const { error } = await supabase.from('leads').update({
+                                                pipeline_stage: 'contactado',
+                                                estado: 'in_contact',
+                                                revisado_por: currentUser,
+                                                last_activity_at: new Date().toISOString()
+                                            }).eq('id', id);
+                                            if (error) throw error;
+                                            await logActivity(id, 'contacted', 'radar', 'contactado');
+                                        } catch (e) {
+                                            toast.error('Error al actualizar');
+                                            fetchPipeline(); // Rollback if error
+                                        }
                                     }} className="px-5 py-2.5 bg-cyan-500 text-black font-bold rounded-xl text-xs uppercase hover:bg-cyan-400 flex gap-2 shadow-lg transition-all">
                                         <MessageCircle className="w-4 h-4" /> Marcar Contactado
                                     </button>
                                 )}
-                                {selectedLead.estado === 'in_contact' && (
-                                    <button onClick={async () => {
-                                        setIsSaving(true);
-                                        const id = selectedLead.id || selectedLead.db_id;
-                                        await supabase.from('leads').update({ estado: 'meeting_scheduled' }).eq('id', id);
-                                        await logActivity(id, 'meeting_booked', 'in_contact', 'meeting_scheduled');
-                                        fetchPipeline();
-                                        setSelectedLead(null);
-                                        setIsSaving(false);
+                                {(selectedLead.pipeline_stage === 'contactado' || selectedLead.estado === 'in_contact') && (
+                                    <button onClick={() => {
+                                        // Preparar datos del lead para pre-llenar la agenda
+                                        const leadData = {
+                                            empresa: selectedLead.nombre || selectedLead.title || '',
+                                            asistente: selectedLead.nombre_contacto || '',
+                                            whatsapp: selectedLead.telefono || selectedLead.whatsapp || '',
+                                            email: selectedLead.email || '',
+                                            sitio_web: selectedLead.sitio_web || selectedLead.website || '',
+                                            lead_id: selectedLead.id || selectedLead.db_id
+                                        };
+
+                                        // Redirigir a la agenda con los datos
+                                        const params = new URLSearchParams(leadData as any);
+                                        router.push(`/dashboard/agenda?${params.toString()}`);
                                     }} className="px-5 py-2.5 bg-indigo-500 text-white font-bold rounded-xl text-xs uppercase hover:bg-indigo-400 flex gap-2 shadow-lg transition-all">
                                         <Activity className="w-4 h-4" /> Agendar Reunión
                                     </button>
                                 )}
-                                {(selectedLead.estado === 'negotiation' || selectedLead.estado === 'proposal_sent') && (
+                                {(selectedLead.pipeline_stage === 'negociacion' || selectedLead.estado === 'negotiation' || selectedLead.estado === 'proposal_sent') && (
                                     <button onClick={() => setIsVictoryModalOpen(true)} className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-xl text-xs uppercase hover:shadow-lg flex gap-2 transition-all">
                                         <CheckCircle2 className="w-4 h-4" /> ¡Cerrar Venta!
                                     </button>

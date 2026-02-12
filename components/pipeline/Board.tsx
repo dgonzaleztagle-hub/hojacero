@@ -36,7 +36,7 @@ interface PipelineBoardProps {
 
 export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoardProps) => {
     const [items, setItems] = useState<BoardData>({
-        radar: [], contactado: [], reunion: [], negociacion: [], produccion: [], perdido: []
+        radar: [], contactado: [], reunion: [], negociacion: [], produccion: []
     });
     const [activeId, setActiveId] = useState<string | null>(null);
     const [originalContainer, setOriginalContainer] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
     // Sync Props to State
     useEffect(() => {
         const mappedData: BoardData = {
-            radar: [], contactado: [], reunion: [], negociacion: [], produccion: [], perdido: []
+            radar: [], contactado: [], reunion: [], negociacion: [], produccion: []
         };
 
         leads.forEach((l: any) => {
@@ -61,8 +61,7 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
                 else if (l.estado === 'in_contact') stage = 'contactado';
                 else if (l.estado === 'proposal_sent') stage = 'negociacion';
                 else if (l.estado === 'won') stage = 'produccion';
-                else if (l.estado === 'lost' || l.estado === 'discarded') stage = 'perdido';
-                else stage = 'radar';
+                else stage = 'radar'; // Default everything else to radar or filter out?
             }
             // Normalization if stage format differs
             stage = stage.toLowerCase();
@@ -79,6 +78,7 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
                     vibe: l.service_type === 'dev' ? 'Dev' :
                         (l.service_type === 'marketing' ? 'Mkt' :
                             (l.service_type === 'full' ? 'Full' : undefined)),
+                    leadType: l.source_data?.lead_type || (l.fuente === 'manual' && !l.sitio_web ? 'construction' : 'auditory'),
                     industry: l.categoria || l.rubro || 'Nicho',
                     visits: l.visits_count || 0,
                     assignedTo: l.revisado_por || l.scanned_by || 'Sistema',
@@ -314,14 +314,13 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
     const isMobile = useIsMobile();
 
 
-    const columnOrder = ['radar', 'contactado', 'reunion', 'negociacion', 'produccion', 'perdido'];
+    const columnOrder = ['radar', 'contactado', 'reunion', 'negociacion', 'produccion'];
     const columnTitles: Record<string, string> = {
         radar: 'Radar',
         contactado: 'Contactado',
         reunion: 'Reunión',
         negociacion: 'Negociación',
         produccion: 'Producción',
-        perdido: 'Perdido'
     };
 
     if (isMobile) {
@@ -366,17 +365,23 @@ export const PipelineBoard = ({ leads, onTicketClick, onLeadMove }: PipelineBoar
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="flex flex-1 h-full gap-3 overflow-x-auto pb-2 items-stretch select-none scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+            <div className="flex flex-1 h-full gap-2 overflow-x-auto pb-6 items-stretch select-none scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent pr-8">
                 <Column id="radar" title="Radar" count={items.radar?.length || 0} items={items.radar || []} />
                 <Column id="contactado" title="Contactado" count={items.contactado?.length || 0} items={items.contactado || []} />
                 <Column id="reunion" title="Reunión" count={items.reunion?.length || 0} items={items.reunion || []} />
                 <Column id="negociacion" title="Negociación" count={items.negociacion?.length || 0} items={items.negociacion || []} />
                 <Column id="produccion" title="Producción" count={items.produccion?.length || 0} items={items.produccion || []} />
-                <Column id="perdido" title="Perdido" count={items.perdido?.length || 0} items={items.perdido || []} />
             </div>
 
-            <DragOverlay>
-                {activeItem ? <Ticket {...activeItem} /> : null}
+            <DragOverlay dropAnimation={{
+                duration: 250,
+                easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+            }}>
+                {activeItem ? (
+                    <div className="scale-105 rotate-2 shadow-2xl transition-transform duration-200">
+                        <Ticket {...activeItem} />
+                    </div>
+                ) : null}
             </DragOverlay>
 
             <VictoryModal

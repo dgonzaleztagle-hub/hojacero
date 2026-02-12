@@ -56,12 +56,12 @@ export default function Sidebar() {
         { label: 'RADAR', href: '/dashboard/radar', icon: Target },
         { label: 'PIPELINE', href: '/dashboard/pipeline', icon: KanbanSquare },
         { label: 'AGENDA', href: '/dashboard/agenda', icon: Calendar, badge: agendaCount, badgeColor: 'cyan' },
-        { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket, isBeta: true },
+        { label: 'GROWTH', href: '/dashboard/growth', icon: Rocket },
         { label: 'VAULT', href: '/dashboard/vault', icon: Lock },
         { label: 'FLOTA', href: '/dashboard/fleet', icon: Shield },
         { label: 'INBOX', href: '/dashboard/inbox', icon: Mail, badge: unreadCount },
-        { label: 'ADS FACTORY', href: '/dashboard/ads-factory', icon: Megaphone, isBeta: true },
-        { label: 'TERRITORIAL', href: '/dashboard/territorial', icon: Globe, isBeta: true },
+        { label: 'ADS FACTORY', href: '/dashboard/ads-factory', icon: Megaphone },
+        { label: 'TERRITORIAL', href: '/dashboard/territorial', icon: Globe },
         { label: 'AYUDA', href: '/dashboard/ayuda', icon: BookOpen },
         { label: 'ACADEMY', href: '/dashboard/academy', icon: Cpu },
     ];
@@ -81,7 +81,7 @@ export default function Sidebar() {
 
             {/* Sidebar Drawer */}
             <aside className={`
-                w-64 h-screen border-r flex flex-col fixed left-0 top-0 z-50 transition-all duration-300 transform
+                w-52 h-screen border-r flex flex-col fixed left-0 top-0 z-50 transition-all duration-300 transform
                 ${isDark ? 'bg-black border-white/10' : 'bg-white border-gray-200'}
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
                 md:translate-x-0
@@ -114,24 +114,27 @@ export default function Sidebar() {
                                     ${isActive
                                         ? isDark
                                             ? 'bg-white/10 text-cyan-400 border border-cyan-400/20'
-                                            : 'bg-blue-50 text-blue-600 border border-blue-200'
+                                            : 'bg-blue-50 text-blue-600 border border-blue-200/50 shadow-sm'
                                         : isDark
-                                            ? 'text-zinc-400 hover:text-white hover:bg-white/5'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                            ? 'text-zinc-500 hover:text-white hover:bg-white/5'
+                                            : 'text-zinc-600 hover:text-gray-900 hover:bg-gray-50'
                                     }`}
                             >
-                                <item.icon className={`w-5 h-5 ${isActive
+                                <item.icon className={`w-5 h-5 transition-colors ${isActive
                                     ? isDark ? 'text-cyan-400' : 'text-blue-600'
-                                    : isDark ? 'text-zinc-500 group-hover:text-white' : 'text-gray-400 group-hover:text-gray-700'
+                                    : isDark ? 'text-zinc-600 group-hover:text-white' : 'text-zinc-400 group-hover:text-gray-900'
                                     }`} />
-                                <span className="tracking-wide flex-1">{item.label}</span>
+                                <span className={`tracking-wide flex-1 transition-colors ${isActive
+                                    ? isDark ? 'text-white' : 'text-blue-700 font-bold'
+                                    : ''
+                                    }`}>{item.label}</span>
                                 {item.isBeta && (
-                                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${isDark ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-100 text-blue-600'}`}>
+                                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-tighter ${isDark ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-100/50 text-blue-600 border border-blue-200/50'}`}>
                                         Beta
                                     </span>
                                 )}
                                 {badge && badge > 0 && (
-                                    <span className={`text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center ${badgeColor === 'cyan' ? 'bg-cyan-500' : 'bg-red-500'
+                                    <span className={`text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-sm ${badgeColor === 'cyan' ? 'bg-cyan-500' : 'bg-red-500'
                                         }`}>
                                         {badge}
                                     </span>

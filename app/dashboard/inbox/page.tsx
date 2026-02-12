@@ -6,7 +6,10 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import RichTextEditor from '@/components/inbox/RichTextEditor';
 
+import { useDashboard } from '@/app/dashboard/DashboardContext';
+
 interface Email {
+    // ... (rest should be fine)
     id: string;
     sender: string;
     recipient: string;
@@ -232,33 +235,36 @@ export default function InboxPage() {
         }
     };
 
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
+
     return (
-        <div className="flex h-[calc(100vh-6rem)] bg-zinc-950 text-white rounded-2xl overflow-hidden border border-zinc-800 relative">
+        <div className={`flex h-[calc(100vh-6rem)] rounded-2xl overflow-hidden border relative transition-colors ${isDark ? 'bg-zinc-950 text-white border-zinc-800' : 'bg-white text-gray-900 border-gray-200 shadow-sm'}`}>
             {/* Sidebar List */}
-            <div className={`flex-col bg-zinc-900/50 border-r border-zinc-800 md:flex w-full md:w-1/3 ${selectedEmail ? 'hidden' : 'flex'}`}>
-                <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
+            <div className={`flex-col border-r md:flex w-full md:w-1/3 transition-colors ${selectedEmail ? 'hidden' : 'flex'} ${isDark ? 'bg-zinc-900/50 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`p-4 border-b flex justify-between items-center transition-colors ${isDark ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'}`}>
                     <h2 className="font-semibold text-lg flex items-center gap-2">
-                        <Mail className="w-5 h-5 text-indigo-400" />
+                        <Mail className={`w-5 h-5 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
                         Buzón
                     </h2>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setComposing(true)}
-                            className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center gap-2 text-xs font-semibold"
+                            className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center gap-2 text-xs font-semibold shadow-lg shadow-indigo-500/20"
                             title="Redactar nuevo"
                         >
                             <Send className="w-3 h-3" />
                             <span className="hidden sm:inline">Redactar</span>
                         </button>
-                        <button onClick={fetchEmails} className="p-2 hover:bg-zinc-800 rounded-full transition-colors">
-                            <RefreshCw className={`w-4 h-4 text-zinc-400 ${loading ? 'animate-spin' : ''}`} />
+                        <button onClick={fetchEmails} className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-zinc-800' : 'hover:bg-gray-100'}`}>
+                            <RefreshCw className={`w-4 h-4 ${isDark ? 'text-zinc-400' : 'text-gray-500'} ${loading ? 'animate-spin' : ''}`} />
                         </button>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                     {emails.length === 0 && !loading && (
-                        <div className="p-8 text-center text-zinc-500">
+                        <div className={`p-8 text-center ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
                             No hay correos aún.
                         </div>
                     )}
@@ -270,20 +276,23 @@ export default function InboxPage() {
                                 setSelectedEmail(email);
                                 if (!email.is_read) markAsRead(email.id);
                             }}
-                            className={`p-4 border-b border-zinc-800/50 cursor-pointer transition-all hover:bg-zinc-800/50 ${selectedEmail?.id === email.id ? 'bg-zinc-800 border-l-4 border-l-indigo-500' : 'border-l-4 border-l-transparent'}`}
+                            className={`p-4 border-b cursor-pointer transition-all ${isDark
+                                ? selectedEmail?.id === email.id ? 'bg-zinc-800 border-l-4 border-l-indigo-500 border-zinc-800/50' : 'hover:bg-zinc-800/50 border-zinc-800/50 border-l-4 border-l-transparent'
+                                : selectedEmail?.id === email.id ? 'bg-indigo-50 border-l-4 border-l-indigo-600 border-gray-100 shadow-sm' : 'hover:bg-gray-100 border-gray-100 border-l-4 border-l-transparent'
+                                }`}
                         >
                             <div className="flex justify-between items-start mb-1">
-                                <span className={`text-sm font-medium ${!email.is_read ? 'text-white' : 'text-zinc-400'}`}>
+                                <span className={`text-sm font-medium ${!email.is_read ? isDark ? 'text-white' : 'text-gray-900' : isDark ? 'text-zinc-400' : 'text-gray-500'}`}>
                                     {email.sender}
                                 </span>
-                                <span className="text-xs text-zinc-500">
+                                <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>
                                     {new Date(email.created_at).toLocaleDateString()}
                                 </span>
                             </div>
-                            <h3 className={`text-sm mb-1 truncate ${!email.is_read ? 'font-semibold text-indigo-200' : 'text-zinc-300'}`}>
+                            <h3 className={`text-sm mb-1 truncate ${!email.is_read ? isDark ? 'font-semibold text-indigo-200' : 'font-bold text-indigo-700' : isDark ? 'text-zinc-300' : 'text-gray-600'}`}>
                                 {email.subject}
                             </h3>
-                            <p className="text-xs text-zinc-500 line-clamp-2">
+                            <p className={`text-xs line-clamp-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
                                 {getCleanBody(email.body_text)}
                             </p>
                         </div>
@@ -292,16 +301,16 @@ export default function InboxPage() {
             </div>
 
             {/* Email Detail View */}
-            <div className={`flex-col bg-zinc-950 md:flex flex-1 ${selectedEmail ? 'flex' : 'hidden'}`}>
+            <div className={`flex-col md:flex flex-1 transition-colors ${selectedEmail ? 'flex' : 'hidden'} ${isDark ? 'bg-zinc-950 text-white' : 'bg-white text-gray-900'}`}>
                 {selectedEmail ? (
                     <>
                         {/* Header */}
-                        <div className="p-4 md:p-6 border-b border-zinc-800 bg-zinc-900/30">
+                        <div className={`p-4 md:p-6 border-b transition-colors ${isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                             <div className="flex flex-col gap-4">
                                 {/* Mobile Back Button */}
                                 <button
                                     onClick={() => setSelectedEmail(null)}
-                                    className="md:hidden flex items-center gap-2 text-zinc-400 hover:text-white text-sm font-medium mb-2"
+                                    className={`md:hidden flex items-center gap-2 text-sm font-medium mb-2 ${isDark ? 'text-zinc-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
                                 >
                                     ← Volver a la lista
                                 </button>
@@ -309,21 +318,21 @@ export default function InboxPage() {
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                            <h1 className="text-lg md:text-xl font-bold text-white break-words">{selectedEmail.subject}</h1>
-                                            <span className="px-2 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700 shrink-0">Inbox</span>
+                                            <h1 className={`text-lg md:text-xl font-bold break-words ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedEmail.subject}</h1>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] border shrink-0 ${isDark ? 'bg-zinc-800 text-zinc-400 border-zinc-700' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>Inbox</span>
                                         </div>
-                                        <div className="flex items-center gap-3 text-sm text-zinc-400">
-                                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                                        <div className="flex items-center gap-3 text-sm">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
                                                 <User className="w-4 h-4" />
                                             </div>
                                             <div className="flex flex-col min-w-0">
-                                                <span className="text-white font-medium truncate">{selectedEmail.sender}</span>
-                                                <span className="text-zinc-500 text-xs">{new Date(selectedEmail.created_at).toLocaleString()}</span>
+                                                <span className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedEmail.sender}</span>
+                                                <span className={`text-xs ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>{new Date(selectedEmail.created_at).toLocaleString()}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex gap-2 shrink-0">
-                                        <button className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-red-400 transition-colors" title="Borrar">
+                                        <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-zinc-800 text-zinc-400 hover:text-red-400' : 'hover:bg-gray-100 text-gray-400 hover:text-red-500'}`} title="Borrar">
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -332,32 +341,32 @@ export default function InboxPage() {
                         </div>
 
                         {/* Body */}
-                        <div className="flex-1 p-4 md:p-8 overflow-y-auto font-sans text-zinc-300 leading-relaxed">
+                        <div className={`flex-1 p-4 md:p-8 overflow-y-auto font-sans leading-relaxed ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>
                             <div className="whitespace-pre-wrap word-break-break-word">
                                 {getCleanBody(selectedEmail.body_text)}
                             </div>
                         </div>
 
                         {/* Reply Area */}
-                        <div className="p-4 border-t border-zinc-800 bg-zinc-900/30">
+                        <div className={`p-4 border-t transition-colors ${isDark ? 'bg-zinc-900/30 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                             {replying ? (
-                                <div className="bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden shadow-xl animate-in slide-in-from-bottom-5">
-                                    <div className="p-3 bg-zinc-800/50 border-b border-zinc-700 flex justify-between items-center">
-                                        <span className="text-sm font-medium text-zinc-300">Respondiendo a {selectedEmail.sender}</span>
-                                        <button onClick={() => setReplying(false)} className="text-xs text-zinc-500 hover:text-white">Cancelar</button>
+                                <div className={`border rounded-xl overflow-hidden shadow-xl animate-in slide-in-from-bottom-5 ${isDark ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-gray-300'}`}>
+                                    <div className={`p-3 border-b flex justify-between items-center ${isDark ? 'bg-zinc-800/50 border-zinc-700' : 'bg-gray-100 border-gray-200'}`}>
+                                        <span className={`text-sm font-medium ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>Respondiendo a {selectedEmail.sender}</span>
+                                        <button onClick={() => setReplying(false)} className={`text-xs ${isDark ? 'text-zinc-500 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}>Cancelar</button>
                                     </div>
-                                    <div className="p-4 bg-zinc-950">
+                                    <div className={`p-4 ${isDark ? 'bg-zinc-950' : 'bg-white'}`}>
                                         <RichTextEditor
                                             value={replyBody}
                                             onChange={setReplyBody}
                                             placeholder="Escribe tu respuesta aquí..."
                                         />
                                     </div>
-                                    <div className="p-3 bg-zinc-800/50 border-t border-zinc-700 flex justify-end gap-3">
+                                    <div className={`p-3 border-t flex justify-end gap-3 ${isDark ? 'bg-zinc-800/50 border-zinc-700' : 'bg-gray-50 border-gray-200'}`}>
                                         <button
                                             onClick={handleSendReply}
                                             disabled={sending || !replyBody.trim()}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/10"
                                         >
                                             {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                             {sending ? 'Enviando...' : 'Enviar Respuesta'}
@@ -367,7 +376,7 @@ export default function InboxPage() {
                             ) : (
                                 <button
                                     onClick={() => setReplying(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-white text-black hover:bg-zinc-200 rounded-lg text-sm font-semibold transition-colors w-full md:w-auto justify-center"
+                                    className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-semibold transition-all w-full md:w-auto justify-center shadow-md ${isDark ? 'bg-white text-black hover:bg-zinc-200' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-500/20'}`}
                                 >
                                     <Reply className="w-4 h-4" />
                                     Responder
@@ -387,41 +396,41 @@ export default function InboxPage() {
 
             {/* Compose Modal */}
             {composing && (
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-                    <div className="bg-zinc-900 border border-zinc-700 w-full max-w-4xl rounded-xl shadow-2xl flex flex-col max-h-full h-[90vh] animate-in zoom-in-95">
-                        <div className="p-4 border-b border-zinc-700 flex justify-between items-center bg-zinc-900 rounded-t-xl">
-                            <h3 className="font-semibold text-white flex items-center gap-2">
-                                <Send className="w-4 h-4 text-indigo-400" />
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-6">
+                    <div className={`w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-full h-[90vh] animate-in zoom-in-95 border transition-colors ${isDark ? 'bg-zinc-900 border-zinc-700' : 'bg-white border-gray-200'}`}>
+                        <div className={`p-4 border-b flex justify-between items-center rounded-t-2xl ${isDark ? 'bg-zinc-900 border-zinc-700' : 'bg-gray-50 border-gray-100'}`}>
+                            <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                <Send className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
                                 Nuevo Mensaje
                             </h3>
-                            <button onClick={() => setComposing(false)} className="text-zinc-500 hover:text-white">
-                                ✕
+                            <button onClick={() => setComposing(false)} className={`transition-colors ${isDark ? 'text-zinc-500 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}>
+                                <Trash2 className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="p-6 flex flex-col gap-4 overflow-y-auto flex-1">
                             <div>
-                                <label className="block text-xs font-medium text-zinc-500 mb-1 uppercase tracking-wider">Para</label>
+                                <label className={`block text-[10px] font-bold mb-1 uppercase tracking-widest ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>Para</label>
                                 <input
                                     type="email"
                                     value={composeTo}
                                     onChange={(e) => setComposeTo(e.target.value)}
-                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-indigo-500 transition-colors"
+                                    className={`w-full rounded-xl px-4 py-3 outline-none transition-all border ${isDark ? 'bg-zinc-950 border-zinc-800 text-white focus:border-indigo-500' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-indigo-600 focus:bg-white'}`}
                                     placeholder="ejemplo@cliente.com"
                                     autoFocus
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-zinc-500 mb-1 uppercase tracking-wider">Asunto</label>
+                                <label className={`block text-[10px] font-bold mb-1 uppercase tracking-widest ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>Asunto</label>
                                 <input
                                     type="text"
                                     value={composeSubject}
                                     onChange={(e) => setComposeSubject(e.target.value)}
-                                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-indigo-500 transition-colors"
+                                    className={`w-full rounded-xl px-4 py-3 outline-none transition-all border ${isDark ? 'bg-zinc-950 border-zinc-800 text-white focus:border-indigo-500' : 'bg-gray-50 border-gray-200 text-gray-900 focus:border-indigo-600 focus:bg-white'}`}
                                     placeholder="Asunto del correo"
                                 />
                             </div>
                             <div className="flex-1 flex flex-col">
-                                <label className="block text-xs font-medium text-zinc-500 mb-1 uppercase tracking-wider">Mensaje</label>
+                                <label className={`block text-[10px] font-bold mb-1 uppercase tracking-widest ${isDark ? 'text-zinc-500' : 'text-gray-400'}`}>Mensaje</label>
                                 <div className="flex-1 min-h-[300px]">
                                     <RichTextEditor
                                         value={composeBody}
@@ -431,17 +440,17 @@ export default function InboxPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="p-4 border-t border-zinc-700 bg-zinc-900/50 rounded-b-xl flex justify-end gap-3">
+                        <div className={`p-4 border-t flex justify-end gap-3 rounded-b-2xl ${isDark ? 'bg-zinc-900/50 border-zinc-700' : 'bg-gray-50 border-gray-200'}`}>
                             <button
                                 onClick={() => setComposing(false)}
-                                className="px-4 py-2 text-zinc-400 hover:text-white text-sm font-medium transition-colors"
+                                className={`px-4 py-2 text-sm font-medium transition-colors ${isDark ? 'text-zinc-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleSendNewEmail}
                                 disabled={sending}
-                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
+                                className="px-8 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95"
                             >
                                 {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                 {sending ? 'Enviando...' : 'Enviar Correo'}

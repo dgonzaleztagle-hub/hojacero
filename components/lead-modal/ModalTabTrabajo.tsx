@@ -16,9 +16,11 @@ import { AgendaPanel } from './trabajo/AgendaPanel';
 import { ChatSystem } from './trabajo/ChatSystem';
 import { ActivityList } from './trabajo/ActivityList';
 import { TrackingPanel } from './trabajo/TrackingPanel';
-
+import { AssetVault } from './trabajo/AssetVault';
+import { IntelligenceLog } from './trabajo/IntelligenceLog';
 import { getLeadData } from '@/utils/radar-helpers';
 import { ChatMessage } from '@/hooks/useRadar';
+import { Brain, HardDrive } from 'lucide-react';
 
 // ... interface updates ...
 interface ModalTabTrabajoProps {
@@ -71,7 +73,7 @@ export const ModalTabTrabajo = ({
     onLeadUpdate
 }: ModalTabTrabajoProps) => {
     // Nav State
-    const [activeSubTab, setActiveSubTab] = useState<'comms' | 'activo' | 'seguimiento' | 'datos'>('comms');
+    const [activeSubTab, setActiveSubTab] = useState<'comms' | 'activo' | 'seguimiento' | 'assets' | 'investigacion' | 'datos'>('comms');
 
     // Report Logic
     const [isReportBuilderOpen, setIsReportBuilderOpen] = useState(false);
@@ -157,6 +159,29 @@ export const ModalTabTrabajo = ({
         }
     };
 
+    const handleContactSuccess = async () => {
+        // Optimistic refresh
+        if (onLeadUpdate) {
+            onLeadUpdate({
+                ...selectedLead,
+                pipeline_stage: 'contactado',
+                estado: 'in_contact'
+            });
+        }
+        // Force server sync
+        try {
+            const supabase = createClient();
+            await supabase.from('leads').update({
+                pipeline_stage: 'contactado',
+                estado: 'in_contact',
+                last_activity_at: new Date().toISOString()
+            }).eq('id', selectedLead.id || selectedLead.db_id);
+            toast.success('Lead movido a Contactado');
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     useEffect(() => {
         const initData = async () => {
             const supabase = createClient();
@@ -214,6 +239,7 @@ export const ModalTabTrabajo = ({
             });
             setAttachments([]);
             setAiTemplate({ content: '', type: null });
+            handleContactSuccess();
         } catch (e) {
             toast.error('Error al enviar el email');
         } finally {
@@ -243,6 +269,18 @@ export const ModalTabTrabajo = ({
                     className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'seguimiento' ? 'border-purple-500 text-purple-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                 >
                     📅 Seguimiento
+                </button>
+                <button
+                    onClick={() => setActiveSubTab('assets')}
+                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'assets' ? 'border-amber-500 text-amber-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                >
+                    <HardDrive className="w-4 h-4 inline mr-2" /> Activos
+                </button>
+                <button
+                    onClick={() => setActiveSubTab('investigacion')}
+                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'investigacion' ? 'border-purple-500 text-purple-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                >
+                    <Brain className="w-4 h-4 inline mr-2" /> Inteligencia
                 </button>
                 <button
                     onClick={() => setActiveSubTab('datos')}
@@ -287,6 +325,7 @@ export const ModalTabTrabajo = ({
                                     isDark={isDark}
                                     copyToClipboard={copyToClipboard}
                                     copiedField={copiedField}
+                                    onContactSuccess={handleContactSuccess}
                                 />
                             ) : (
                                 <EmailComposer
@@ -308,6 +347,7 @@ export const ModalTabTrabajo = ({
                                     isSendingEmail={isSendingEmail}
                                     copyToClipboard={copyToClipboard}
                                     copiedField={copiedField}
+                                    onContactSuccess={handleContactSuccess}
                                     getFullEmailBody={getFullEmailBody}
                                 />
                             )}
@@ -376,7 +416,29 @@ export const ModalTabTrabajo = ({
                     </div>
                 )}
 
-                {/* 4. DATOS (Contact Card) */}
+                {/* 4. ASSETS VAULT */}
+                {activeSubTab === 'assets' && (
+                    <div className="animate-in fade-in duration-300 overflow-y-auto">
+                        <AssetVault
+                            leadId={selectedLead.id || selectedLead.db_id}
+                            isDark={isDark}
+                            initialAssets={selectedLead.source_data?.assets || []}
+                        />
+                    </div>
+                )}
+
+                {/* 5. INTELLIGENCE LOG */}
+                {activeSubTab === 'investigacion' && (
+                    <div className="animate-in fade-in duration-300 overflow-y-auto">
+                        <IntelligenceLog
+                            leadId={selectedLead.id || selectedLead.db_id}
+                            isDark={isDark}
+                            initialNotes={selectedLead.source_data?.intelligence_log || []}
+                        />
+                    </div>
+                )}
+
+                {/* 6. DATOS (Contact Card) */}
                 {activeSubTab === 'datos' && (
                     <div className="animate-in fade-in duration-300">
                         <ContactCard

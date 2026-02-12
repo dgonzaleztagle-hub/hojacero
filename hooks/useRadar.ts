@@ -157,7 +157,7 @@ export function useRadar() {
     const fetchPipeline = async () => {
         const { data } = await supabase.from('leads')
             .select('*')
-            .in('estado', ['ready_to_contact', 'in_contact', 'proposal_sent', 'won', 'lost'])
+            .in('estado', ['ready_to_contact', 'in_contact', 'proposal_sent', 'meeting_scheduled', 'won', 'lost'])
             .not('pipeline_stage', 'eq', 'archived') // Simple filter to exclude archived
             .order('pipeline_order', { ascending: true })
             .order('created_at', { ascending: false });
@@ -441,6 +441,17 @@ export function useRadar() {
             checkAndOpen();
         }
     }, [searchParams, leads, pipelineLeads]);
+
+    // [SYNC FIX] Update selectedLead if it exists in updated pipelineLeads (e.g. after drag & drop)
+    useEffect(() => {
+        if (selectedLead && pipelineLeads.length > 0) {
+            const updated = pipelineLeads.find(l => (l.id === selectedLead.id || l.db_id === selectedLead.id));
+            // Only update if there is a difference to avoid loop, specifically check pipeline_stage or estado
+            if (updated && (updated.pipeline_stage !== selectedLead.pipeline_stage || updated.estado !== selectedLead.estado)) {
+                setSelectedLead((prev: any) => ({ ...prev, ...updated }));
+            }
+        }
+    }, [pipelineLeads]);
 
     // Realtime Chat
     useEffect(() => {

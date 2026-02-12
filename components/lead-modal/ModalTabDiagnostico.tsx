@@ -58,8 +58,99 @@ export const ModalTabDiagnostico = ({
 }: ModalTabDiagnosticoProps) => {
     return (
         <div className="grid grid-cols-1 gap-6">
-            {/* FORENSIC PULSE (Kimi Engine) */}
-            {(analysis.forensic || selectedLead.source_data?.scraped?.forensic) && (
+            {/* CONSTRUCTION HEADER (If applicable) */}
+            {selectedLead.source_data?.lead_type === 'construction' && (
+                <div className={`rounded-3xl p-8 border overflow-hidden relative transition-all ${isDark ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+                    <div className="absolute top-0 right-0 p-6 opacity-10">
+                        <Zap className="w-32 h-32 text-amber-500" />
+                    </div>
+
+                    <div className="relative space-y-6">
+                        <div className="flex items-center gap-3">
+                            <span className="px-3 py-1 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-amber-500/20">
+                                🏗️ Proyecto en Construcción
+                            </span>
+                            <span className="text-[10px] font-bold text-amber-500/60 uppercase tracking-widest">Lead Caliente</span>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h2 className={`text-2xl font-black tracking-tight ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                                {selectedLead.source_data?.concept || 'Visión por definir'}
+                            </h2>
+                            <p className="text-sm text-zinc-500 font-medium">Concepto del Proyecto</p>
+                        </div>
+
+                        {selectedLead.source_data?.references && (
+                            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-black/40 border-white/5' : 'bg-white border-gray-200'}`}>
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">Referentes / Competencia</span>
+                                <p className={`text-xs font-bold ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
+                                    {selectedLead.source_data.references}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* BRANDING SECTION */}
+                        {selectedLead.branding && (selectedLead.branding.logo_url || selectedLead.branding.palette) && (
+                            <div className={`p-5 rounded-2xl border space-y-4 ${isDark ? 'bg-black/40 border-white/5' : 'bg-white border-gray-200'}`}>
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block">🎨 Identidad Visual</span>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Logo */}
+                                    {selectedLead.branding.logo_url && (
+                                        <div className="space-y-2">
+                                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider block">Logo</span>
+                                            <div className={`p-4 rounded-xl border flex items-center justify-center ${isDark ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                                                <img
+                                                    src={selectedLead.branding.logo_url}
+                                                    alt="Logo"
+                                                    className="max-h-20 max-w-full object-contain"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Color Palette */}
+                                    {selectedLead.branding.palette && (
+                                        <div className="space-y-2">
+                                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider block">Paleta de Colores</span>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {Object.entries(selectedLead.branding.palette).map(([key, color]) => (
+                                                    <div key={key} className="space-y-1">
+                                                        <div
+                                                            className="h-12 rounded-lg border border-white/10 shadow-inner"
+                                                            style={{ backgroundColor: String(color) }}
+                                                        />
+                                                        <div className="flex items-center justify-between px-1">
+                                                            <span className="text-[8px] font-bold text-zinc-500 uppercase">{key}</span>
+                                                            <span className="text-[8px] font-mono text-zinc-400">{String(color)}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            {!selectedLead.branding.palette_approved && (
+                                                <p className="text-[9px] text-amber-500 italic mt-2">
+                                                    ⚠️ Paleta pendiente de aprobación
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {selectedLead.branding.generate_logo && !selectedLead.branding.logo_url && (
+                                    <div className={`p-3 rounded-lg border ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+                                        <p className="text-[9px] text-amber-600 font-medium">
+                                            💡 Generación de logo solicitada - Pendiente de diseño
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* FORENSIC PULSE (Kimi Engine) - Hide for projects */}
+            {selectedLead.source_data?.lead_type !== 'construction' && (analysis.forensic || selectedLead.source_data?.scraped?.forensic) && (
                 <div className={`rounded-3xl p-6 border flex flex-col items-center justify-center relative overflow-hidden transition-all ${isDark ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
                     <div className="absolute top-0 right-0 p-3">
                         <span className="flex h-2 w-2">
@@ -90,6 +181,7 @@ export const ModalTabDiagnostico = ({
                     </div>
                 </div>
             )}
+
             {/* AI ANALYSIS CARD */}
             <div className={`backdrop-blur-xl rounded-3xl p-6 border space-y-6 shadow-2xl relative overflow-hidden transition-colors ${isDark ? 'bg-zinc-900/40 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-5 mb-2">
@@ -113,7 +205,7 @@ export const ModalTabDiagnostico = ({
                     </div>
 
                     {/* Deep Analysis Button - triggers switch to Auditoría tab */}
-                    {!selectedLead.source_data?.deep_analysis ? (
+                    {!selectedLead.source_data?.deep_analysis && selectedLead.website ? (
                         <button
                             onClick={onDeepAnalyze}
                             disabled={isDeepAnalyzing}
@@ -122,17 +214,21 @@ export const ModalTabDiagnostico = ({
                             {isDeepAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
                             {isDeepAnalyzing ? 'Auditando...' : 'Auditoría Profunda'}
                         </button>
-                    ) : (
+                    ) : selectedLead.source_data?.deep_analysis ? (
                         <div className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-xl text-purple-400 text-[10px] font-bold uppercase">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Auditado
                         </div>
-                    )}
+                    ) : null}
                 </div>
 
                 {isDark && <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none"></div>}
 
                 <div className="space-y-4 relative">
-                    {(!analysis.analysisReport && !selectedLead.razon_ia) || selectedLead.razon_ia?.includes('Error AI') || analysis.analysisReport?.includes('Error AI') ? (
+                    {selectedLead.source_data?.lead_type === 'construction' ? (
+                        <p className={`text-sm leading-relaxed font-light ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
+                            Este proyecto se encuentra en fase de definición estratégica. No hay un sitio web previo para auditar, por lo que nos enfocaremos en la construcción del activo digital desde cero.
+                        </p>
+                    ) : (!analysis.analysisReport && !selectedLead.razon_ia) || selectedLead.razon_ia?.includes('Error AI') || analysis.analysisReport?.includes('Error AI') ? (
                         <div className="flex flex-col gap-3 py-4 text-center items-center">
                             <p className="text-sm text-zinc-400 leading-relaxed font-light">
                                 {(selectedLead.razon_ia?.includes('Error AI') || analysis.analysisReport?.includes('Error AI'))
@@ -165,8 +261,8 @@ export const ModalTabDiagnostico = ({
                     )}
                 </div>
 
-                {/* Opportunity Factors Grid */}
-                {analysis.scoreBreakdown && (
+                {/* Opportunity Factors Grid - Hide for construction */}
+                {selectedLead.source_data?.lead_type !== 'construction' && analysis.scoreBreakdown && (
                     <div className="grid grid-cols-5 gap-2 pt-4 border-t border-white/5">
                         {[
                             { key: 'webScore', icon: '🌐', label: 'WEB' },
@@ -197,55 +293,57 @@ export const ModalTabDiagnostico = ({
                         <p className="text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
                             {analysis.salesStrategy?.painPoints?.length > 0
                                 ? analysis.salesStrategy.painPoints.join(', ')
-                                : 'Sin pain points detectados'}
+                                : (selectedLead.source_data?.lead_type === 'construction' ? 'Falta de presencia digital, pérdida de autoridad.' : 'Sin pain points detectados')}
                         </p>
                     </div>
 
                     <div className={`col-span-2 p-4 rounded-xl border transition-all group ${isDark ? 'bg-black/20 border-white/5 hover:border-cyan-500/20' : 'bg-white border-gray-200 hover:border-blue-300'}`}>
                         <span className={`text-[10px] font-bold uppercase tracking-widest block mb-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Solución Propuesta</span>
                         <p className={`text-xs leading-relaxed transition-colors ${isDark ? 'text-zinc-400 group-hover:text-zinc-300' : 'text-gray-600 group-hover:text-gray-900'}`}>
-                            {analysis.salesStrategy?.proposedSolution || 'Pendiente análisis'}
+                            {analysis.salesStrategy?.proposedSolution || (selectedLead.source_data?.lead_type === 'construction' ? 'Construcción de activo maestro HojaCero.' : 'Pendiente análisis')}
                         </p>
                     </div>
 
                     <div className={`p-4 rounded-xl border transition-all group ${isDark ? 'bg-black/20 border-white/5 hover:border-cyan-500/20' : 'bg-white border-gray-200 hover:border-blue-300'}`}>
                         <span className={`text-[10px] font-bold uppercase tracking-widest block mb-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Canal Recomendado</span>
                         <p className={`text-xs leading-relaxed transition-colors ${isDark ? 'text-zinc-400 group-hover:text-zinc-300' : 'text-gray-600 group-hover:text-gray-900'}`}>
-                            {analysis.recommendedChannel || 'Email'}
+                            {analysis.recommendedChannel || 'Directo'}
                         </p>
                     </div>
                     <div className={`p-4 rounded-xl border transition-all group ${isDark ? 'bg-black/20 border-white/5 hover:border-cyan-500/20' : 'bg-white border-gray-200 hover:border-blue-300'}`}>
                         <span className={`text-[10px] font-bold uppercase tracking-widest block mb-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Valor Estimado</span>
                         <p className={`text-xs leading-relaxed transition-colors ${isDark ? 'text-zinc-400 group-hover:text-zinc-300' : 'text-gray-600 group-hover:text-gray-900'}`}>
-                            {analysis.salesStrategy?.estimatedValue || 'Medio'}
+                            {analysis.salesStrategy?.estimatedValue || 'Alto'}
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* TECH STACK CARD */}
-            <div className={`rounded-3xl p-5 border transition-colors ${isDark ? 'bg-zinc-900/20 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
-                <div className="flex items-center justify-between mb-4">
-                    <h4 className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
-                        <Zap className="w-3 h-3 text-yellow-500" /> Infraestructura Técnica
-                    </h4>
-                    <div className={`px-2 py-0.5 rounded-full border text-[8px] font-bold flex items-center gap-1 ${ld.hasSSL ? 'bg-green-500/10 border-green-500/20 text-green-600' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                        {ld.hasSSL ? 'SSL OK' : 'No Seguro'}
+            {/* TECH STACK CARD - Hide for construction */}
+            {selectedLead.source_data?.lead_type !== 'construction' && (
+                <div className={`rounded-3xl p-5 border transition-colors ${isDark ? 'bg-zinc-900/20 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h4 className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
+                            <Zap className="w-3 h-3 text-yellow-500" /> Infraestructura Técnica
+                        </h4>
+                        <div className={`px-2 py-0.5 rounded-full border text-[8px] font-bold flex items-center gap-1 ${ld.hasSSL ? 'bg-green-500/10 border-green-500/20 text-green-600' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                            {ld.hasSSL ? 'SSL OK' : 'No Seguro'}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        {(ld.techStack || []).length > 0 ? (
+                            (ld.techStack || []).map((tech: string, i: number) => (
+                                <span key={i} className={`px-2.5 py-1 border rounded-lg text-[10px] ${isDark ? 'bg-white/5 border-white/5 text-zinc-400' : 'bg-white border-gray-200 text-gray-600'}`}>
+                                    {tech}
+                                </span>
+                            ))
+                        ) : (
+                            <span className={`text-[10px] italic ${isDark ? 'text-zinc-600' : 'text-gray-400'}`}>Sin tecnologías detectadas</span>
+                        )}
                     </div>
                 </div>
-
-                <div className="flex flex-wrap gap-2">
-                    {(ld.techStack || []).length > 0 ? (
-                        (ld.techStack || []).map((tech: string, i: number) => (
-                            <span key={i} className={`px-2.5 py-1 border rounded-lg text-[10px] ${isDark ? 'bg-white/5 border-white/5 text-zinc-400' : 'bg-white border-gray-200 text-gray-600'}`}>
-                                {tech}
-                            </span>
-                        ))
-                    ) : (
-                        <span className={`text-[10px] italic ${isDark ? 'text-zinc-600' : 'text-gray-400'}`}>Sin tecnologías detectadas</span>
-                    )}
-                </div>
-            </div>
+            )}
         </div>
     );
 };

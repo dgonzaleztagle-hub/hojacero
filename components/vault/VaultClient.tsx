@@ -7,9 +7,12 @@ import { Cliente } from './types';
 import { getEstado } from './utils';
 import VaultList from './VaultList';
 import VaultDetail from './VaultDetail';
+import { useDashboard } from '@/app/dashboard/DashboardContext';
 
 export default function VaultClient() {
     const supabase = createClient();
+    const { theme } = useDashboard();
+    const isDark = theme === 'dark';
 
     // State
     const [clients, setClients] = useState<Cliente[]>([]);
@@ -107,8 +110,8 @@ export default function VaultClient() {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-white mb-1">VAULT</h1>
-                        <p className="text-zinc-500 text-sm">Gestión de Activos y Credenciales</p>
+                        <h1 className={`text-3xl font-bold tracking-tight mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>VAULT</h1>
+                        <p className={isDark ? 'text-zinc-500 text-sm' : 'text-gray-500 text-sm'}>Gestión de Activos y Credenciales</p>
                     </div>
                     <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition-all shadow-lg shadow-blue-900/20">
                         <Plus className="w-4 h-4" /> Nuevo Cliente
@@ -118,17 +121,21 @@ export default function VaultClient() {
                 {/* Filters & Search */}
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Tabs */}
-                    <div className="flex bg-zinc-900/50 p-1 rounded-lg border border-white/5 self-start">
+                    <div className={`flex p-1 rounded-lg border self-start ${isDark ? 'bg-zinc-900/50 border-white/5' : 'bg-gray-100 border-gray-200 shadow-inner'}`}>
                         <button
                             onClick={() => setActiveTab('activos')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'activos' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${activeTab === 'activos'
+                                ? isDark ? 'bg-zinc-800 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm'
+                                : isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Activos
                         </button>
                         <button
                             onClick={() => setActiveTab('criticos')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'criticos' ? 'bg-red-500/10 text-red-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'criticos'
+                                ? 'bg-red-500/10 text-red-500 shadow-sm'
+                                : isDark ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Críticos {criticalCount > 0 && <span className="bg-red-500 text-white text-[10px] px-1.5 rounded-full">{criticalCount}</span>}
@@ -137,13 +144,16 @@ export default function VaultClient() {
 
                     {/* Search */}
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                        <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-zinc-500' : 'text-gray-400'}`} />
                         <input
                             type="text"
                             placeholder="Buscar por nombre o dominio..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-zinc-900/50 border border-white/5 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 focus:bg-zinc-900 transition-all placeholder-zinc-600"
+                            className={`w-full border rounded-lg pl-10 pr-4 py-2 text-sm transition-all focus:outline-none focus:border-blue-500 ${isDark
+                                ? 'bg-zinc-900/50 border-white/5 text-white focus:bg-zinc-900 placeholder-zinc-600'
+                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                                }`}
                         />
                     </div>
                 </div>

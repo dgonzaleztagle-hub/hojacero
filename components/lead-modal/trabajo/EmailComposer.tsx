@@ -21,6 +21,7 @@ interface EmailComposerProps {
     isSendingEmail: boolean;
     copyToClipboard: (text: string, field: string) => void;
     copiedField: string | null;
+    onContactSuccess: () => Promise<void> | void;
     getFullEmailBody: () => string;
 }
 
@@ -43,6 +44,7 @@ export const EmailComposer = ({
     isSendingEmail,
     copyToClipboard,
     copiedField,
+    onContactSuccess,
     getFullEmailBody
 }: EmailComposerProps) => {
 

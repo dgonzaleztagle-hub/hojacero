@@ -169,7 +169,7 @@ const plans: Plan[] = [
         name: 'Express',
         description: 'Landing page premium en 48 hrs',
         monthlyPrice: null,
-        yearlyPrice: 150,
+        yearlyPrice: 150000,
         highlight: true,
         badge: 'Popular',
         features: [
@@ -187,7 +187,7 @@ const plans: Plan[] = [
         name: 'Auditoría',
         description: 'Diagnóstico completo de tu web',
         monthlyPrice: null,
-        yearlyPrice: 99,
+        yearlyPrice: 100000,
         highlight: false,
         features: [
             'Análisis técnico profundo',
@@ -219,10 +219,10 @@ const plans: Plan[] = [
 ];
 
 const addons = [
-    { name: 'Mantención', price: 25, unit: '/mes', icon: '⚙️' },
-    { name: 'SEO', price: 75, unit: '', icon: '📈' },
-    { name: 'Analytics', price: 50, unit: '', icon: '📊' },
-    { name: 'Dominio', price: 15, unit: '/año', icon: '🌐' },
+    { name: 'Mantención', price: 25000, unit: '/mes', icon: '⚙️' },
+    { name: 'SEO', price: 75000, unit: '', icon: '📈' },
+    { name: 'Analytics', price: 50000, unit: '', icon: '📊' },
+    { name: 'Dominio', price: 15000, unit: '/año', icon: '🌐' },
 ];
 
 // Reveal text animation 
@@ -483,7 +483,7 @@ export default function PricingPage() {
                                                         <span className="text-5xl lg:text-6xl font-display font-bold">
                                                             $<AnimatedCounter to={plan.yearlyPrice} duration={1.5} />
                                                         </span>
-                                                        <span className="text-zinc-500">USD</span>
+                                                        <span className="text-zinc-500">CLP</span>
                                                     </div>
                                                 ) : (
                                                     <div className="text-5xl font-display font-light text-zinc-400">
@@ -492,7 +492,7 @@ export default function PricingPage() {
                                                 )}
                                                 <p className="text-xs text-zinc-600 mt-2">Pago único</p>
                                                 {plan.id === 'express' && (
-                                                    <p className="text-xs text-cyan-400/80 mt-1">+ $25/mes mantención opcional</p>
+                                                    <p className="text-xs text-cyan-400/80 mt-1">+ $25.000/mes mantención opcional</p>
                                                 )}
                                             </div>
 
