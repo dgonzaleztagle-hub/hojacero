@@ -308,14 +308,14 @@ export default function BiocromLanding() {
                             <h3 className="text-4xl md:text-6xl font-black mb-6 md:mb-8 tracking-tighter italic uppercase">Rigor Analítico <br className="hidden md:block" /><span className="text-[#C3001D]">Certificable.</span></h3>
                             <p className="text-white/50 text-xl md:text-2xl font-sans font-light leading-relaxed">Entregamos Informes de Trazabilidad completos, fundamentales para auditorías bajo normativas ISO y sanitarias.</p>
                         </div>
-                        <div className="relative z-10 grid grid-cols-2 gap-10 md:gap-20 lg:border-l border-white/10 lg:pl-20">
-                            <div className="text-center">
-                                <span className="text-5xl md:text-8xl font-black font-mono tracking-tighter text-[#C3001D]">500+</span>
-                                <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-white/40 mt-3 md:mt-4 block leading-tight">Services / Año</span>
+                        <div className="relative z-10 grid grid-cols-2 gap-16 md:gap-32 lg:border-l border-white/10 lg:pl-20">
+                            <div className="text-center space-y-3">
+                                <span className="text-4xl md:text-7xl font-black font-mono text-[#C3001D] block">500+</span>
+                                <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-white/40 block leading-tight">Services / Año</span>
                             </div>
-                            <div className="text-center">
-                                <span className="text-5xl md:text-8xl font-black font-mono tracking-tighter text-[#C3001D]">24h</span>
-                                <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-white/40 mt-3 md:mt-4 block leading-tight">Response Máx</span>
+                            <div className="text-center space-y-3">
+                                <span className="text-4xl md:text-7xl font-black font-mono text-[#C3001D] block">24h</span>
+                                <span className="text-[9px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-white/40 block leading-tight">Response Máx</span>
                             </div>
                         </div>
                     </div>
@@ -363,23 +363,23 @@ export default function BiocromLanding() {
             </section>
 
             {/* --- FAQ TÉCNICO (RECUPERADO: AEO) --- */}
-            <section id="faq" className="py-40 bg-[#0B1F3A] relative">
+            <section id="faq" className="py-24 md:py-32 bg-[#0B1F3A] relative">
                 <div className="max-w-4xl mx-auto px-6">
-                    <div className="text-center mb-16 md:mb-32">
-                        <h2 className="text-5xl md:text-9xl font-black text-white tracking-tighter italic uppercase">Consultas<br /><span className="text-[#C3001D]">Técnicas.</span></h2>
+                    <div className="text-center mb-12 md:mb-20">
+                        <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter italic uppercase">Consultas<br /><span className="text-[#C3001D]">Técnicas.</span></h2>
                     </div>
-                    <div className="space-y-10">
+                    <div className="space-y-6 md:space-y-8">
                         {[
                             { q: "¿Atienden sistemas de todas las marcas?", a: "Absolutamente. Nuestra ingeniería es experta en ecosistemas Agilent, Waters, Shimadzu y otros, operando bajo manual de fábrica." },
                             { q: "¿Sus informes son válidos para auditorías ISO?", a: "Sí. Generamos Informes de Trazabilidad Técnica diseñados específicamente para cumplimiento de ISO 9001/17025." },
                             { q: "¿Qué tiempo de respuesta tienen?", a: "Contamos con una política de 12/24h para emergencias en terreno, asegurando el mínimo downtime analítico." }
                         ].map((item) => (
-                            <details key={item.q} className="group border border-white/10 rounded-[2rem] md:rounded-[3rem] bg-white/[0.03] overflow-hidden transition-all hover:bg-white/[0.06] cursor-pointer">
-                                <summary className="flex items-center justify-between p-8 md:p-12 list-none font-bold text-xl md:text-3xl tracking-tighter text-white">
+                            <details key={item.q} className="group border border-white/10 rounded-2xl md:rounded-3xl bg-white/[0.03] overflow-hidden transition-all hover:bg-white/[0.06] cursor-pointer">
+                                <summary className="flex items-center justify-between p-6 md:p-8 list-none font-bold text-lg md:text-xl tracking-tight text-white">
                                     {item.q}
-                                    <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-[#C3001D] group-open:rotate-90 transition-transform" />
+                                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#C3001D] group-open:rotate-90 transition-transform flex-shrink-0 ml-4" />
                                 </summary>
-                                <div className="px-8 md:px-12 pb-8 md:pb-12 text-gray-400 text-lg md:text-2xl font-sans font-light leading-relaxed italic border-t border-white/5 pt-6 md:pt-8">
+                                <div className="px-6 md:px-8 pb-6 md:pb-8 text-gray-400 text-sm md:text-base font-sans font-light leading-relaxed italic border-t border-white/5 pt-4 md:pt-6">
                                     {item.a}
                                 </div>
                             </details>
@@ -389,30 +389,30 @@ export default function BiocromLanding() {
             </section>
 
             {/* --- CTA FINAL --- */}
-            <section id="contacto" className="py-20 md:py-60 bg-[#C3001D] relative overflow-hidden text-center">
+            <section id="contacto" className="py-16 md:py-32 bg-[#C3001D] relative overflow-hidden text-center">
                 <div className="relative z-10 max-w-7xl mx-auto px-6 text-white">
-                    <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-12 md:mb-20 leading-[0.9] md:leading-[0.85] uppercase">PRECISIÓN<br />AL LÍMITE.</h2>
-                    <div className="flex flex-col md:flex-row gap-6 md:gap-12 justify-center items-center">
-                        <a href="tel:+56950069920" className="bg-white text-[#0B1F3A] px-10 md:px-24 py-6 md:py-10 rounded-full font-black text-xl md:text-3xl flex items-center gap-4 md:gap-8 hover:scale-110 transition-all shadow-4xl group">
-                            <Phone size={30} className="md:w-[40px] md:h-[40px] group-hover:rotate-12 transition-transform" /> +56 9 5006 9920
+                    <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-10 md:mb-16 leading-[0.9] md:leading-[0.85] uppercase">PRECISIÓN<br />AL LÍMITE.</h2>
+                    <div className="flex flex-col md:flex-row gap-5 md:gap-8 justify-center items-center">
+                        <a href="tel:+56950069920" className="bg-white text-[#0B1F3A] px-8 md:px-12 py-4 md:py-5 rounded-full font-black text-base md:text-xl flex items-center gap-3 md:gap-4 hover:scale-105 transition-all shadow-2xl group">
+                            <Phone size={20} className="md:w-[24px] md:h-[24px] group-hover:rotate-12 transition-transform" /> +56 9 5006 9920
                         </a>
-                        <a href="mailto:ventas@biocrom.cl" className="bg-transparent border-2 md:border-4 border-white text-white px-10 md:px-24 py-6 md:py-10 rounded-full font-black text-xl md:text-3xl flex items-center gap-4 md:gap-8 hover:bg-white hover:text-[#C3001D] transition-all">
-                            <Mail size={30} className="md:w-[40px] md:h-[40px]" /> ventas@biocrom.cl
+                        <a href="mailto:ventas@biocrom.cl" className="bg-transparent border-2 border-white text-white px-8 md:px-12 py-4 md:py-5 rounded-full font-black text-base md:text-xl flex items-center gap-3 md:gap-4 hover:bg-white hover:text-[#C3001D] transition-all">
+                            <Mail size={20} className="md:w-[24px] md:h-[24px]" /> ventas@biocrom.cl
                         </a>
                     </div>
                 </div>
             </section>
 
             {/* --- FOOTER --- */}
-            <footer className="py-24 bg-black">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-20">
-                    <Image src="/biocrom_logo_real.png" alt="Logo" width={220} height={60} className="brightness-0 invert opacity-40" />
-                    <div className="flex gap-16 text-[11px] font-bold uppercase tracking-[0.4em] text-white/30">
+            <footer className="py-12 md:py-16 bg-[#0B1F3A] border-t border-white/10">
+                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8 md:gap-12">
+                    <Image src="/biocrom_logo_real.png" alt="Logo" width={160} height={45} className="brightness-0 invert opacity-60" />
+                    <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
                         <a href="#" className="hover:text-[#C3001D] transition-colors">Norma ISO</a>
                         <a href="#" className="hover:text-[#C3001D] transition-colors">Privacidad</a>
                         <a href="#" className="hover:text-[#C3001D] transition-colors">Términos</a>
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-white/10">BIOCROM EIRL 2026 · HOJACERO FACTORY</p>
+                    <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/30">BIOCROM EIRL 2026 · <span className="text-[#C3001D]/60">HOJACERO</span></p>
                 </div>
             </footer>
 
