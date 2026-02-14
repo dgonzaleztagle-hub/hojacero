@@ -21,24 +21,17 @@ const INTRO_SEEN_KEY = 'hojacero_intro_seen';
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showIntro, setShowIntro] = useState(false);
-  const [showCanvas, setShowCanvas] = useState(false);
-
   // Check localStorage on mount
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
     const hasSeenIntro = localStorage.getItem(INTRO_SEEN_KEY);
-    if (hasSeenIntro || isMobile) {
-      // Ya vio el intro O es móvil → saltar directo
+    if (hasSeenIntro) {
+      // Ya vio el intro → saltar directo
       setLoading(false);
       setShowIntro(false);
     } else {
-      // Primera visita en desktop, mostrar intro
+      // Primera visita → mostrar intro (el video actúa como loading screen natural)
       setShowIntro(true);
     }
-
-    // Diferir Three.js para no bloquear el primer pintado
-    const timer = setTimeout(() => setShowCanvas(true), 100);
-    return () => clearTimeout(timer);
   }, []);
 
   const handleIntroComplete = () => {
@@ -55,8 +48,7 @@ export default function Home() {
       )}
 
       <main className="relative min-h-screen w-full">
-        {/* Three.js se carga después del primer pintado para no bloquear FCP */}
-        {showCanvas && <FluidBackground />}
+        <FluidBackground />
 
         {!loading && <Navbar />}
 

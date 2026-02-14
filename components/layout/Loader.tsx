@@ -60,12 +60,16 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
         >
             <video
                 ref={videoRef}
-                src="/logoanimado.mp4"
                 autoPlay
                 muted
                 playsInline
                 className="w-full h-full object-contain md:object-cover pointer-events-none"
-            />
+            >
+                <source src="/logoanimado.webm" type="video/webm" />
+                <source src="/logoanimado_opt.mp4" type="video/mp4" />
+                {/* Fallback to original if others fail, though they shouldn't */}
+                <source src="/logoanimado.mp4" type="video/mp4" />
+            </video>
         </div>
     );
 }
