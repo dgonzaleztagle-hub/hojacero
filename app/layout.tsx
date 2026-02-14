@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Syncopate } from "next/font/google";
 import "./globals.css";
-import 'mapbox-gl/dist/mapbox-gl.css';
+// mapbox-gl CSS movido a los componentes que lo usan (reportes territoriales)
 // ChatWidget ahora se importa solo en la landing page
 
 const spaceGrotesk = Space_Grotesk({

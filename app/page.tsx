@@ -7,10 +7,12 @@ import CustomCursor from '@/components/ui/CustomCursor';
 import Loader from '@/components/layout/Loader';
 import Navbar from '@/components/layout/Navbar';
 import Hero from '@/components/sections/Hero';
-import Services from '@/components/sections/Services';
-import Portfolio from '@/components/sections/Portfolio';
-import Cta from '@/components/sections/Cta';
 import { ChatWidget } from '@/components/sales-agent/ChatWidget';
+
+// Secciones below-the-fold cargadas lazy para reducir bundle inicial
+const Services = dynamic(() => import('@/components/sections/Services'), { ssr: false });
+const Portfolio = dynamic(() => import('@/components/sections/Portfolio'), { ssr: false });
+const Cta = dynamic(() => import('@/components/sections/Cta'), { ssr: false });
 
 const FluidBackground = dynamic(() => import('@/components/canvas/FluidBackground'), {
   ssr: false,
