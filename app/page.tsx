@@ -21,12 +21,14 @@ const INTRO_SEEN_KEY = 'hojacero_intro_seen';
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showIntro, setShowIntro] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Check localStorage on mount
   useEffect(() => {
-    const isMobile = window.innerWidth < 768;
+    const mobile = window.innerWidth < 768;
+    setIsMobile(mobile);
     const hasSeenIntro = localStorage.getItem(INTRO_SEEN_KEY);
-    if (hasSeenIntro || isMobile) {
+    if (hasSeenIntro || mobile) {
       // Ya vio el intro O es móvil → saltar directo
       setLoading(false);
       setShowIntro(false);
@@ -50,7 +52,13 @@ export default function Home() {
       )}
 
       <main className="relative min-h-screen w-full">
-        <FluidBackground />
+        {/* Three.js solo en desktop — en móvil usa gradiente CSS (600KB menos de JS) */}
+        {!isMobile ? (
+          <FluidBackground />
+        ) : (
+          <div className="fixed top-0 left-0 w-full h-full -z-10 bg-black"
+            style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(0,240,255,0.05) 0%, black 70%)' }} />
+        )}
 
         {!loading && <Navbar />}
 
