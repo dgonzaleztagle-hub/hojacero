@@ -23,14 +23,16 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(false);
   // Check localStorage on mount
   useEffect(() => {
+    const isMobile = window.innerWidth < 768;
     const hasSeenIntro = localStorage.getItem(INTRO_SEEN_KEY);
-    if (hasSeenIntro) {
-      // Ya vio el intro → saltar directo
+
+    if (isMobile && !hasSeenIntro) {
+      // Primera visita en móvil → mostrar intro (actúa como escudo de performance)
+      setShowIntro(true);
+    } else {
+      // Desktop O ya visto → saltar directo para máxima velocidad
       setLoading(false);
       setShowIntro(false);
-    } else {
-      // Primera visita → mostrar intro (el video actúa como loading screen natural)
-      setShowIntro(true);
     }
   }, []);
 
