@@ -9,7 +9,7 @@
         },
         {
             "path": "/api/vault/killswitch/verify-all",
-            "schedule": "0 */6 * * *"
+            "schedule": "0 0 * * *"
         }
     ]
 }
