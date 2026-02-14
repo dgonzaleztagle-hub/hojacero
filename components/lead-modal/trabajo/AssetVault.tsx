@@ -1,17 +1,43 @@
 
 import React, { useState, useRef } from 'react';
-import { Upload, File, Link as LinkIcon, Trash2, Loader2, Plus, Image as ImageIcon, FileText } from 'lucide-react';
+import { File, Link as LinkIcon, Trash2, Loader2, Plus, Image as ImageIcon, FileText } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
+
+type LeadAsset = {
+    id: string;
+    type: 'file' | 'link';
+    label: string;
+    url: string;
+    mimeType?: string;
+    created_at: string;
+};
 
 interface AssetVaultProps {
     leadId: string;
     isDark: boolean;
-    initialAssets?: any[];
+    initialAssets?: unknown[];
 }
 
 export function AssetVault({ leadId, isDark, initialAssets = [] }: AssetVaultProps) {
-    const [assets, setAssets] = useState<any[]>(initialAssets);
+    const normalizedInitialAssets: LeadAsset[] = initialAssets.reduce<LeadAsset[]>((acc, asset, idx) => {
+        if (!asset || typeof asset !== 'object') return acc;
+        const record = asset as Record<string, unknown>;
+        const type: LeadAsset['type'] = record.type === 'link' ? 'link' : 'file';
+        const label = typeof record.label === 'string' ? record.label : '';
+        const url = typeof record.url === 'string' ? record.url : '';
+        if (!label || !url) return acc;
+        acc.push({
+            id: typeof record.id === 'string' ? record.id : `${Date.now()}-${idx}`,
+            type,
+            label,
+            url,
+            mimeType: typeof record.mimeType === 'string' ? record.mimeType : undefined,
+            created_at: typeof record.created_at === 'string' ? record.created_at : new Date().toISOString()
+        });
+        return acc;
+    }, []);
+    const [assets, setAssets] = useState<LeadAsset[]>(normalizedInitialAssets);
     const [uploading, setUploading] = useState(false);
     const [showAddLink, setShowAddLink] = useState(false);
     const [newLink, setNewLink] = useState({ label: '', url: '' });
@@ -27,7 +53,7 @@ export function AssetVault({ leadId, isDark, initialAssets = [] }: AssetVaultPro
             const fileName = `${leadId}-${Date.now()}.${fileExt}`;
             const filePath = `leads/${leadId}/assets/${fileName}`;
 
-            const { data, error } = await supabase.storage
+            const { error } = await supabase.storage
                 .from('lead-assets')
                 .upload(filePath, file);
 
@@ -37,7 +63,7 @@ export function AssetVault({ leadId, isDark, initialAssets = [] }: AssetVaultPro
                 .from('lead-assets')
                 .getPublicUrl(filePath);
 
-            const newAsset = {
+            const newAsset: LeadAsset = {
                 id: Date.now().toString(),
                 type: 'file',
                 label: file.name,
@@ -60,7 +86,7 @@ export function AssetVault({ leadId, isDark, initialAssets = [] }: AssetVaultPro
 
     const handleAddLink = async () => {
         if (!newLink.label || !newLink.url) return;
-        const newAsset = {
+        const newAsset: LeadAsset = {
             id: Date.now().toString(),
             type: 'link',
             label: newLink.label,
@@ -75,7 +101,7 @@ export function AssetVault({ leadId, isDark, initialAssets = [] }: AssetVaultPro
         toast.success('Link agregado');
     };
 
-    const saveAssets = async (newAssets: any[]) => {
+    const saveAssets = async (newAssets: LeadAsset[]) => {
         // We store assets in the source_data of the lead for simplicity or a separate table if preferred
         // For now, let's use the leads table and update the source_data path 'assets'
         const { data: lead } = await supabase.from('leads').select('source_data').eq('id', leadId).single();

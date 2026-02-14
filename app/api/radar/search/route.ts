@@ -5,10 +5,66 @@ import { createClient as createAdminClient } from '@supabase/supabase-js'; // Fo
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
+interface PlaceResult {
+    title: string;
+    website?: string;
+    category?: string;
+    rating?: number;
+    userRatingCount?: number;
+    phoneNumber?: string;
+    address?: string;
+}
+
+interface LeadForUI {
+    analysis: {
+        score?: number;
+    };
+    [key: string]: unknown;
+}
+
+const isValidApiKey = (key?: string) => {
+    if (!key) return false;
+    const trimmed = key.trim();
+    if (!trimmed) return false;
+    if (trimmed === 're_123' || trimmed === 'sk_test') return false;
+    if (trimmed.toLowerCase().startsWith('placeholder')) return false;
+    return true;
+};
+
+const parseConcurrency = (rawValue: string | undefined, fallback: number): number => {
+    if (!rawValue) return fallback;
+    const parsed = Number.parseInt(rawValue, 10);
+    if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+    return Math.min(parsed, 6);
+};
+
+const RADAR_PROCESS_CONCURRENCY = parseConcurrency(process.env.RADAR_PROCESS_CONCURRENCY, 1);
+
+async function processWithConcurrency<T, R>(
+    items: T[],
+    concurrency: number,
+    worker: (item: T, index: number) => Promise<R>
+): Promise<Array<PromiseSettledResult<R>>> {
+    const results: Array<PromiseSettledResult<R>> = new Array(items.length);
+
+    for (let i = 0; i < items.length; i += concurrency) {
+        const chunk = items.slice(i, i + concurrency);
+        const chunkResults = await Promise.allSettled(
+            chunk.map((item, offset) => worker(item, i + offset))
+        );
+
+        chunkResults.forEach((result, offset) => {
+            results[i + offset] = result;
+        });
+    }
+
+    return results;
+}
+
 // ========================
 // SCRAPER: Extract contacts from website
 // ========================
-async function scrapeContactInfo(websiteUrl: string): Promise<{
+async function scrapeContactInfo(websiteUrl: string | undefined): Promise<{
     emails: string[];
     whatsapp: string | null;
     instagram: string | null;
@@ -21,7 +77,7 @@ async function scrapeContactInfo(websiteUrl: string): Promise<{
         whatsapp: null as string | null,
         instagram: null as string | null,
         facebook: null as string | null,
-        hasSSL: websiteUrl?.startsWith('https'),
+        hasSSL: Boolean(websiteUrl && websiteUrl.startsWith('https')),
         techStack: [] as string[],
     };
 
@@ -86,8 +142,9 @@ async function scrapeContactInfo(websiteUrl: string): Promise<{
 
         console.log(`📧 SCRAPER [${websiteUrl}]: emails=${result.emails.length}, wa=${!!result.whatsapp}, ig=${!!result.instagram}`);
 
-    } catch (e: any) {
-        console.warn(`⚠️ Scraper failed for ${websiteUrl}: ${e.message}`);
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'unknown error';
+        console.warn(`⚠️ Scraper failed for ${websiteUrl}: ${message}`);
     }
 
     return result;
@@ -96,6 +153,18 @@ async function scrapeContactInfo(websiteUrl: string): Promise<{
 export async function POST(req: Request) {
     try {
         const { query, location, scannedBy } = await req.json();
+
+        const hasSerper = isValidApiKey(SERPER_API_KEY);
+        const hasGroq = isValidApiKey(GROQ_API_KEY);
+
+        if (!hasSerper) {
+            return NextResponse.json({
+                success: false,
+                error: 'Missing or invalid API keys',
+                missing: ['SERPER_API_KEY'],
+                requires: 'SERPER_API_KEY'
+            }, { status: 503 });
+        }
 
         // Use Admin Client to ensure persistence (bypassing RLS)
         // Ensure the environment variable matches exactly what was added to Vercel
@@ -123,7 +192,7 @@ export async function POST(req: Request) {
         const serperResponse = await fetch('https://google.serper.dev/places', {
             method: 'POST',
             headers: {
-                'X-API-KEY': SERPER_API_KEY || '',
+                'X-API-KEY': SERPER_API_KEY as string,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ q: searchTerm, gl: 'cl', hl: 'es', num: 25 }),
@@ -134,7 +203,7 @@ export async function POST(req: Request) {
         }
 
         const serperData = await serperResponse.json();
-        const places = serperData.places || [];
+        const places: PlaceResult[] = serperData.places || [];
         console.log(`📡 RADAR: Found ${places.length} raw results.`);
 
         // 2. FILTER DUPLICATES (Check DB)
@@ -143,7 +212,7 @@ export async function POST(req: Request) {
             .select('nombre, sitio_web, direccion');
 
         // Helper to normalize content for comparison
-        const normalizeUrl = (url: string | null) => {
+        const normalizeUrl = (url: string | null | undefined) => {
             if (!url) return '';
             return url.toLowerCase()
                 .replace(/^https?:\/\//, '')
@@ -157,7 +226,7 @@ export async function POST(req: Request) {
             return name.toLowerCase().trim();
         };
 
-        const newPlaces = places.filter((place: any) => {
+        const newPlaces = places.filter((place: PlaceResult) => {
             const placeParams = {
                 url: normalizeUrl(place.website),
                 name: normalizeName(place.title)
@@ -189,12 +258,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, leads: [], message: 'No se encontraron nuevos leads en esta zona.' });
         }
 
-        // 3. ANALYZE & PERSIST (Parallel)
-        const processedLeads: any[] = [];
+        // 3. ANALYZE & PERSIST (Resilient + controlled concurrency to avoid Groq burst limits)
+        let groqRateLimited = false;
 
-        await Promise.all(
-            newPlaces.map(async (place: any) => {
-                try {
+        const leadResults = await processWithConcurrency(
+            newPlaces,
+            RADAR_PROCESS_CONCURRENCY,
+            async (place: PlaceResult) => {
                     // STEP A: Scrape website for contacts
                     const scraped = await scrapeContactInfo(place.website);
 
@@ -262,36 +332,48 @@ IMPORTANTE:
                     };
 
                     try {
-                        if (!GROQ_API_KEY) throw new Error("Missing GROQ_API_KEY");
+                        if (!hasGroq) throw new Error("Missing GROQ_API_KEY");
+                        if (groqRateLimited) {
+                            throw new Error("Groq rate-limited in this batch; fallback enabled");
+                        }
 
-                        // Using Groq API with Llama 3.3 (14,400 req/day vs Gemini's 20)
-                        const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${GROQ_API_KEY}`
-                            },
-                            body: JSON.stringify({
-                                model: 'llama-3.1-8b-instant',
-                                messages: [
-                                    {
-                                        role: 'system',
-                                        content: 'Eres un experto en Lead Qualification. Responde SOLO con JSON válido, sin markdown ni explicaciones adicionales.'
-                                    },
-                                    {
-                                        role: 'user',
-                                        content: prompt
-                                    }
-                                ],
-                                temperature: 0.7,
-                                max_tokens: 1024
-                            })
-                        });
+                        // Using Groq API with a single retry on 429 to absorb TPM bursts.
+                        let aiResponse: Response | null = null;
+                        for (let attempt = 0; attempt < 2; attempt++) {
+                            aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${GROQ_API_KEY as string}`
+                                },
+                                body: JSON.stringify({
+                                    model: 'llama-3.1-8b-instant',
+                                    messages: [
+                                        {
+                                            role: 'system',
+                                            content: 'Eres un experto en Lead Qualification. Responde SOLO con JSON válido, sin markdown ni explicaciones adicionales.'
+                                        },
+                                        {
+                                            role: 'user',
+                                            content: prompt
+                                        }
+                                    ],
+                                    temperature: 0.7,
+                                    max_tokens: 1024
+                                })
+                            });
 
-                        if (!aiResponse.ok) {
+                            if (aiResponse.ok) break;
+                            if (aiResponse.status === 429 && attempt === 0) {
+                                await new Promise(resolve => setTimeout(resolve, 2200));
+                                continue;
+                            }
+
                             const errorText = await aiResponse.text();
                             throw new Error(`Groq API Error: ${aiResponse.status} - ${errorText}`);
                         }
+
+                        if (!aiResponse || !aiResponse.ok) throw new Error('Groq API unavailable');
 
                         const aiData = await aiResponse.json();
                         const aiText = aiData.choices?.[0]?.message?.content;
@@ -301,11 +383,15 @@ IMPORTANTE:
                             const parsed = JSON.parse(jsonString);
                             analysis = { ...analysis, ...parsed };
                         }
-                    } catch (e: any) {
-                        console.warn(`⚠️ AI Analysis Warning for ${place.title}:`, e.message);
-                        analysis.analysisReport = e.message.includes("GROQ_API_KEY")
+                    } catch (e: unknown) {
+                        const message = e instanceof Error ? e.message : 'unknown error';
+                        if (message.includes('429') || message.toLowerCase().includes('rate limit')) {
+                            groqRateLimited = true;
+                        }
+                        console.warn(`⚠️ AI Analysis Warning for ${place.title}:`, message);
+                        analysis.analysisReport = message.includes("GROQ_API_KEY")
                             ? "Error de Configuración: La API de Inteligencia no está configurada. Contacta al soporte."
-                            : `Error AI: ${e.message}`;
+                            : `Error AI: ${message}`;
                     }
 
                     // Prepare DB Object with all enriched data
@@ -367,17 +453,26 @@ IMPORTANTE:
                         analysis
                     };
 
-                    processedLeads.push(leadForUI);
-
                     if (error) {
                         console.error(`❌ DB INSERT ERROR for ${place.title}:`, error.message);
                     }
 
-                } catch (err) {
-                    console.error(`Error processing ${place.title}`, err);
-                }
-            })
+                    return leadForUI;
+            }
         );
+
+        const processedLeads: LeadForUI[] = [];
+        let failedCount = 0;
+        leadResults.forEach((result, idx) => {
+            if (result.status === 'fulfilled') {
+                processedLeads.push(result.value);
+                return;
+            }
+
+            failedCount += 1;
+            const failedPlace = newPlaces[idx];
+            console.error(`Error processing ${failedPlace?.title || `lead_${idx}`}:`, result.reason);
+        });
 
         // Sort by Score (highest opportunity first)
         processedLeads.sort((a, b) => (b.analysis.score || 0) - (a.analysis.score || 0));
@@ -385,6 +480,7 @@ IMPORTANTE:
         return NextResponse.json({
             success: true,
             leads: processedLeads,
+            failed_count: failedCount,
             debug: {
                 serperFound: places.length,
                 dbExcluded: existingLeads?.length || 0,
@@ -392,8 +488,9 @@ IMPORTANTE:
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Radar Error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -56,9 +57,12 @@ export default function Hero() {
                     transition={{ duration: 1, ease: "easeOut" }}
                     className="relative px-6"
                 >
-                    <img
+                    <Image
                         src="/logo-h0-hybrid-no-text.png"
                         alt="HojaCero Architects"
+                        width={1200}
+                        height={600}
+                        priority
                         className="w-[85vw] md:w-[65vw] max-w-5xl h-auto object-contain drop-shadow-[0_0_60px_rgba(0,183,255,0.2)]"
                     />
                 </motion.div>

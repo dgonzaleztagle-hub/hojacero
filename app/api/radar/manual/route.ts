@@ -45,7 +45,7 @@ export async function POST(req: Request) {
                 const arrayBuffer = await logoFile.arrayBuffer();
                 const buffer = Buffer.from(arrayBuffer);
 
-                const { data: uploadData, error: uploadError } = await supabase.storage
+                const { error: uploadError } = await supabase.storage
                     .from('client-assets')
                     .upload(filePath, buffer, {
                         contentType: logoFile.type,
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
         if (lead_type !== 'construction' && sitio_web) {
             try {
                 // Dynamic import to avoid issues if not needed
-                const { scrapeContactInfo, analyzeLeadWithGroq } = require('@/utils/radar');
+                const { scrapeContactInfo, analyzeLeadWithGroq } = await import('@/utils/radar');
                 const scraped = await scrapeContactInfo(sitio_web);
 
                 // AI Analyze
@@ -154,8 +154,9 @@ export async function POST(req: Request) {
             message: lead_type === 'construction' ? 'Proyecto creado exitosamente' : 'Lead creado y analizado exitosamente'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Manual Lead Error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }

@@ -26,8 +26,9 @@ export async function POST(req: Request) {
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Preview Error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }

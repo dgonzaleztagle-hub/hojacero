@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
     try {
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-function parseWebhookData(body: string | any): {
+function parseWebhookData(body: string | Record<string, unknown>): {
     gateway: string;
     orderId: string | null;
     paymentId: string | null;
@@ -59,15 +58,19 @@ function parseWebhookData(body: string | any): {
 } | null {
     try {
         // Si es string, intentar parsear como JSON
-        const data = typeof body === 'string' ? JSON.parse(body) : body;
+        const data = (typeof body === 'string' ? JSON.parse(body) : body) as Record<string, unknown>;
+        const payload = (data.data || {}) as Record<string, unknown>;
+        const metadata = (payload.metadata || {}) as Record<string, unknown>;
+        const action = typeof data.action === 'string' ? data.action : '';
+        const webhookType = typeof data.type === 'string' ? data.type : '';
 
         // MERCADO PAGO
-        if (data.type === 'payment' || data.action === 'payment.created' || data.action === 'payment.updated') {
+        if (webhookType === 'payment' || action === 'payment.created' || action === 'payment.updated') {
             return {
                 gateway: 'mercadopago',
-                orderId: data.data?.external_reference || data.data?.metadata?.order_id || null,
-                paymentId: data.data?.id?.toString() || null,
-                status: data.data?.status || null
+                orderId: (payload.external_reference as string) || (metadata.order_id as string) || null,
+                paymentId: payload.id ? String(payload.id) : null,
+                status: (payload.status as string) || null
             };
         }
 
@@ -75,8 +78,8 @@ function parseWebhookData(body: string | any): {
         if (data.commerceOrder || data.flowOrder) {
             return {
                 gateway: 'flow',
-                orderId: data.commerceOrder || data.optional || null,
-                paymentId: data.flowOrder?.toString() || null,
+                orderId: (data.commerceOrder as string) || (data.optional as string) || null,
+                paymentId: data.flowOrder ? String(data.flowOrder) : null,
                 status: data.status === 2 ? 'approved' : 'pending'
             };
         }
@@ -85,8 +88,8 @@ function parseWebhookData(body: string | any): {
         if (data.buy_order || data.token_ws) {
             return {
                 gateway: 'transbank',
-                orderId: data.buy_order || null,
-                paymentId: data.authorization_code || data.token_ws || null,
+                orderId: (data.buy_order as string) || null,
+                paymentId: (data.authorization_code as string) || (data.token_ws as string) || null,
                 status: data.response_code === 0 ? 'approved' : 'rejected'
             };
         }
@@ -98,32 +101,3 @@ function parseWebhookData(body: string | any): {
     }
 }
 
-// Validar firma de Mercado Pago (opcional pero recomendado)
-function validateMercadoPagoSignature(
-    body: string,
-    signature: string,
-    secret: string
-): boolean {
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(body);
-    const calculatedSignature = hmac.digest('hex');
-    return calculatedSignature === signature;
-}
-
-// Validar firma de Flow
-function validateFlowSignature(
-    params: Record<string, string>,
-    signature: string,
-    secret: string
-): boolean {
-    const sortedParams = Object.entries(params)
-        .filter(([key]) => key !== 's')
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => `${key}=${value}`)
-        .join('&');
-
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(sortedParams);
-    const calculatedSignature = hmac.digest('hex');
-    return calculatedSignature === signature;
-}

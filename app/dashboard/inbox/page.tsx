@@ -1,8 +1,8 @@
 'use client';
 
 import { createClient } from '@/utils/supabase/client';
-import { Mail, RefreshCw, Send, Trash2, Reply, Search, User, Paperclip } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Mail, RefreshCw, Send, Trash2, Reply, User } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import RichTextEditor from '@/components/inbox/RichTextEditor';
 
@@ -19,31 +19,27 @@ interface Email {
     is_read: boolean;
 }
 
+interface OutboxEntry {
+    id: string;
+    recipient: string;
+    subject: string;
+    status: 'pending' | 'sent' | 'failed' | string;
+    error_message: string | null;
+    created_at: string;
+}
+
 export default function InboxPage() {
-    const supabase = createClient();
+    const supabase = useMemo(() => createClient(), []);
     const [emails, setEmails] = useState<Email[]>([]);
+    const [outbox, setOutbox] = useState<OutboxEntry[]>([]);
     const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingOutbox, setLoadingOutbox] = useState(true);
     const [replying, setReplying] = useState(false);
     const [replyBody, setReplyBody] = useState('');
     const [sending, setSending] = useState(false);
 
-    useEffect(() => {
-        fetchEmails();
-
-        // Realtime Subscription
-        const channel = supabase
-            .channel('inbox_changes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'email_inbox' }, (payload) => {
-                toast.success('¡Nuevo correo recibido!');
-                fetchEmails();
-            })
-            .subscribe();
-
-        return () => { supabase.removeChannel(channel); };
-    }, []);
-
-    const fetchEmails = async () => {
+    const fetchEmails = useCallback(async () => {
         setLoading(true);
         const { data, error } = await supabase
             .from('email_inbox')
@@ -56,7 +52,39 @@ export default function InboxPage() {
             setEmails(data || []);
         }
         setLoading(false);
-    };
+    }, [supabase]);
+
+    const fetchOutbox = useCallback(async () => {
+        setLoadingOutbox(true);
+        const { data, error } = await supabase
+            .from('email_outbox')
+            .select('id, recipient, subject, status, error_message, created_at')
+            .order('created_at', { ascending: false })
+            .limit(8);
+
+        if (error) {
+            toast.error(`Error historial salida: ${error.message}`);
+        } else {
+            setOutbox((data || []) as OutboxEntry[]);
+        }
+        setLoadingOutbox(false);
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchEmails();
+        fetchOutbox();
+
+        // Realtime Subscription
+        const channel = supabase
+            .channel('inbox_changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'email_inbox' }, () => {
+                toast.success('¡Nuevo correo recibido!');
+                fetchEmails();
+            })
+            .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+    }, [fetchEmails, fetchOutbox, supabase]);
 
     // Helper to decode Quoted-Printable with proper UTF-8 support
     const decodeQuotedPrintable = (str: string) => {
@@ -92,62 +120,72 @@ export default function InboxPage() {
     const getCleanBody = (rawText: string) => {
         if (!rawText) return "";
 
-        // Helper to check for encoding and decode if needed
-        const decodeContent = (text: string, headers: string) => {
-            if (/content-transfer-encoding:\s*quoted-printable/i.test(headers)) {
-                return decodeQuotedPrintable(text);
-            }
-            return text;
-        };
+        try {
+            // Helper to check for encoding and decode if needed
+            const decodeContent = (text: string, headers: string) => {
+                if (/content-transfer-encoding:\s*quoted-printable/i.test(headers)) {
+                    return decodeQuotedPrintable(text);
+                }
+                return text;
+            };
 
-        // 1. If it doesn't look like a multipart message (no boundaries), try simple header stripping
-        if (!rawText.includes("Content-Type: multipart")) {
-            if (rawText.includes('Content-Type: text/plain') || rawText.includes('Received:')) {
-                const parts = rawText.split(/\r\n\r\n|\n\n/);
-                if (parts.length > 1) {
-                    // Ensure we assume the body part is the one after headers
-                    return decodeContent(parts.slice(1).join("\n\n").trim(), parts[0]);
+            // 1. If it doesn't look like a multipart message (no boundaries), try simple header stripping
+            if (!rawText.includes("Content-Type: multipart")) {
+                if (rawText.includes('Content-Type: text/plain') || rawText.includes('Received:')) {
+                    const parts = rawText.split(/\r\n\r\n|\n\n/);
+                    if (parts.length > 1) {
+                        // Ensure we assume the body part is the one after headers
+                        return decodeContent(parts.slice(1).join("\n\n").trim(), parts[0]);
+                    }
+                }
+                return rawText;
+            }
+
+            // 2. Identify Boundary
+            // Iterate lines to find the first likely boundary (starting with --)
+            const lines = rawText.split(/\r\n|\n/);
+            let boundary = "";
+            for (const line of lines) {
+                // Boundary must start with --, not be the end boundary (--...--), and be reasonably long
+                if (line.trim().startsWith("--") && !line.trim().endsWith("--") && line.trim().length > 5) {
+                    boundary = line.trim();
+                    break;
                 }
             }
+
+            if (!boundary) return rawText; // Failed to find boundary
+
+            // 3. Split by boundary
+            const parts = rawText.split(boundary);
+
+            // 4. Find text/plain part
+            for (const part of parts) {
+                const cleanPart = part.trim();
+                if (!cleanPart || cleanPart === "--") continue; // Skip empty or end boundary
+
+                // Find separation between headers and body of this part
+                // We look for double newline
+                const match = cleanPart.match(/\r\n\r\n|\n\n/);
+                if (!match || match.index === undefined) continue;
+
+                const headers = cleanPart.substring(0, match.index);
+                const body = cleanPart.substring(match.index + match[0].length).trim();
+
+                if (headers.toLowerCase().includes("content-type: text/plain")) {
+                    return decodeContent(body, headers);
+                }
+            }
+
             return rawText;
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'unknown';
+            console.error("Email parsing FAILED:", {
+                error: message,
+                textLength: rawText.length,
+                preview: rawText.substring(0, 200)
+            });
+            return `[Error de decodificacion: ${message}]\n\n${rawText.substring(0, 500)}...`;
         }
-
-        // 2. Identify Boundary
-        // Iterate lines to find the first likely boundary (starting with --)
-        const lines = rawText.split(/\r\n|\n/);
-        let boundary = "";
-        for (const line of lines) {
-            // Boundary must start with --, not be the end boundary (--...--), and be reasonably long
-            if (line.trim().startsWith("--") && !line.trim().endsWith("--") && line.trim().length > 5) {
-                boundary = line.trim();
-                break;
-            }
-        }
-
-        if (!boundary) return rawText; // Failed to find boundary
-
-        // 3. Split by boundary
-        const parts = rawText.split(boundary);
-
-        // 4. Find text/plain part
-        for (const part of parts) {
-            const cleanPart = part.trim();
-            if (!cleanPart || cleanPart === "--") continue; // Skip empty or end boundary
-
-            // Find separation between headers and body of this part
-            // We look for double newline
-            const match = cleanPart.match(/\r\n\r\n|\n\n/);
-            if (!match || match.index === undefined) continue;
-
-            const headers = cleanPart.substring(0, match.index);
-            const body = cleanPart.substring(match.index + match[0].length).trim();
-
-            if (headers.toLowerCase().includes("content-type: text/plain")) {
-                return decodeContent(body, headers);
-            }
-        }
-
-        return rawText;
     };
 
     const handleSendReply = async () => {
@@ -173,7 +211,8 @@ export default function InboxPage() {
             toast.success('Respuesta enviada correctamente');
             setReplyBody('');
             setReplying(false);
-        } catch (error) {
+            fetchOutbox();
+        } catch {
             toast.error('No se pudo enviar el correo');
         } finally {
             setSending(false);
@@ -213,7 +252,8 @@ export default function InboxPage() {
             setComposeSubject('');
             setComposeBody('');
             setComposing(false);
-        } catch (error) {
+            fetchOutbox();
+        } catch {
             toast.error('No se pudo enviar el correo');
         } finally {
             setSending(false);
@@ -259,6 +299,9 @@ export default function InboxPage() {
                         <button onClick={fetchEmails} className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-zinc-800' : 'hover:bg-gray-100'}`}>
                             <RefreshCw className={`w-4 h-4 ${isDark ? 'text-zinc-400' : 'text-gray-500'} ${loading ? 'animate-spin' : ''}`} />
                         </button>
+                        <button onClick={fetchOutbox} className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-zinc-800' : 'hover:bg-gray-100'}`} title="Refrescar historial de salida">
+                            <RefreshCw className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-emerald-600'} ${loadingOutbox ? 'animate-spin' : ''}`} />
+                        </button>
                     </div>
                 </div>
 
@@ -297,6 +340,47 @@ export default function InboxPage() {
                             </p>
                         </div>
                     ))}
+                </div>
+
+                <div className={`border-t p-3 ${isDark ? 'border-zinc-800 bg-zinc-900/70' : 'border-gray-200 bg-gray-100/80'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                        <p className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
+                            Salida reciente
+                        </p>
+                        <span className={`text-[10px] ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>
+                            {outbox.length} registros
+                        </span>
+                    </div>
+
+                    <div className="max-h-32 overflow-y-auto custom-scrollbar space-y-1.5">
+                        {loadingOutbox && (
+                            <p className={`text-xs ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Cargando...</p>
+                        )}
+
+                        {!loadingOutbox && outbox.length === 0 && (
+                            <p className={`text-xs ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Sin envios registrados.</p>
+                        )}
+
+                        {!loadingOutbox && outbox.map(item => (
+                            <div key={item.id} className={`rounded-md p-2 border ${isDark ? 'border-zinc-800 bg-zinc-900' : 'border-gray-200 bg-white'}`}>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className={`text-[11px] truncate ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>{item.recipient}</span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${item.status === 'sent'
+                                        ? 'bg-emerald-500/20 text-emerald-400'
+                                        : item.status === 'failed'
+                                            ? 'bg-red-500/20 text-red-400'
+                                            : 'bg-amber-500/20 text-amber-400'
+                                        }`}>
+                                        {item.status}
+                                    </span>
+                                </div>
+                                <p className={`text-[10px] truncate ${isDark ? 'text-zinc-400' : 'text-gray-500'}`}>{item.subject}</p>
+                                {item.status === 'failed' && item.error_message && (
+                                    <p className="text-[10px] text-red-400 truncate">{item.error_message}</p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 

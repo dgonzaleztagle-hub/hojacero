@@ -6,6 +6,27 @@
 
 ---
 
+## ✅ Actualización Ejecutada (14 de Febrero de 2026)
+
+### Cambios aplicados sin romper lógica:
+- Modularización territorial en `app/api/territorial/analyze/route.ts` hacia:
+  - `lib/territorial/cache.ts`
+  - `lib/territorial/poi-sources.ts`
+  - `lib/territorial/synthesis.ts`
+  - `lib/territorial/query-builder.ts`
+  - `lib/territorial/prompts/legacy-plan-prompts.ts`
+  - `lib/territorial/types.ts`
+- Eliminación de función huérfana `getCompetitorsAllCategories` (no tenía llamadas).
+- Tipado mínimo seguro y limpieza de `any`/casts en `app/api/territorial/analyze/route.ts`.
+- Remoción de analizador OpenAI huérfano en `utils/radar.ts` para mantener costo cero en scraper/radar.
+
+### Estado validado:
+- Lint OK en archivos tocados (sin errores).
+- Referencias a OpenAI fuera del chatbot: eliminadas del flujo scraper/radar.
+- OpenAI queda únicamente en `utils/ai-client.ts` (usado por `app/api/sales-agent/chat/route.ts`).
+
+---
+
 ## 1. 🐛 BUG CRÍTICO: ScraperEngine.scrapeBatch() - Dead Code Path
 
 **Severidad:** MEDIUM (confusión, no data loss)  
@@ -551,3 +572,85 @@ if (missingVars.length > 0) {
 ---
 
 *Auditoría realizada por Jarvis | 6 Febrero 2026*
+
+---
+
+## ✅ Estado de Corrección (14 Febrero 2026)
+
+### Bugs corregidos
+
+1. **ScraperEngine dead code**: Corregido  
+   - `utils/scraper-engine.ts` (`scrapeBatch` simplificado sin rama muerta)
+
+2. **Radar search Promise.all agresivo**: Corregido  
+   - `app/api/radar/search/route.ts` (migrado a `Promise.allSettled`, agrega `failed_count`)
+
+3. **API key validation loose checking**: Corregido en rutas críticas Radar + Email  
+   - `app/api/radar/search/route.ts`  
+   - `app/api/radar/template/route.ts`  
+   - `app/api/radar/analyze/route.ts`  
+   - `app/api/radar/reanalyze/route.ts`  
+   - `app/api/send-email/route.ts`
+
+4. **LLM fallback chain missing**: Ajustado por política costo-cero (Groq-only fuera del bot)  
+   - `app/api/radar/template/route.ts`  
+   - `app/api/radar/analyze/route.ts`
+
+5. **Demo tracking sin validación de input**: Corregido  
+   - `app/api/tracking/demo/route.ts` (slug validation + verificación de demo publicado)
+
+6. **Email audit trail incompleto**: Corregido  
+   - `app/api/send-email/route.ts` (registro `email_outbox` no bloqueante)  
+   - `supabase/migrations/20260214_email_outbox.sql` (tabla + índices + RLS)
+
+7. **Killswitch sin endpoint de verificación**: Corregido  
+   - `app/api/vault/killswitch/verify/[clientId]/route.ts`  
+   - `app/api/vault/killswitch/verify-all/route.ts` (batch para cron)  
+   - `vercel.json` (cron cada 6 horas: `/api/vault/killswitch/verify-all`)
+
+8. **Email parsing con fallos silenciosos**: Corregido  
+   - `app/dashboard/inbox/page.tsx` (`getCleanBody` ahora registra error y entrega fallback visible)
+
+9. **Missing env vars con diagnóstico pobre**: Corregido en endpoints auditados  
+   - Respuestas con `missing` / `requires` en rutas críticas.
+
+---
+
+## ✅ Cirugía Modal Pipeline (14 Febrero 2026)
+
+### Alcance ejecutado
+1. **Territorial removido del modal de leads**
+   - Eliminado `components/lead-modal/ModalTabTerritorial.tsx`.
+   - Eliminado export en `components/lead-modal/index.ts`.
+   - Quitado del tipo de tabs en `hooks/useRadar.ts`.
+   - Verificado: sin referencias activas de territorial dentro del modal de pipeline.
+
+2. **Forense desacoplado de Diagnóstico/Auditoría**
+   - `components/lead-modal/ModalTabForense.tsx` reescrito para consumir señales forenses reales (`source_data.kimi_forensics` + `source_data.scraped`).
+   - Se elimina mezcla de conclusiones ejecutivas ajenas al contexto forense.
+   - Añadida señal de desactualización forense cuando hay reanálisis.
+
+3. **Diagnóstico limpiado de métrica absurda**
+   - Removida tarjeta de “pérdida mensual” (no aplicaba a todos los modelos de negocio).
+   - Reemplazo por snapshot forense operativo.
+
+4. **Trabajo reorganizado por flujo operativo**
+   - Nuevo orden: `Datos` → `Contacto` → `Seguimiento` → `Activo/Demo` → `Inteligencia` → `Activos`.
+   - Selección inicial automática de subtab según estado y calidad de contacto.
+   - Unificación de `leadId` (`id || db_id`) para operaciones de guardado/sync.
+   - Reset correcto de estado interno al cambiar lead (plantillas, asunto, adjuntos, subtab).
+
+5. **Consistencia de scoring y stale flags**
+   - `utils/radar-helpers.ts` normaliza `scoreBreakdown` entre esquemas legacy y actual.
+   - `hooks/useRadar.ts` marca `forensic_needs_refresh`/`deep_analysis_stale` en reanálisis y los limpia tras deep-audit.
+   - `components/lead-modal/ModalTabAuditoria.tsx` muestra badge de “análisis desactualizado”.
+
+### Smoke checklist (manual, post-cambio)
+- [ ] Abrir lead sin email/teléfono y confirmar que `Trabajo` inicia en `Datos`.
+- [ ] Guardar contacto y validar persistencia inmediata en modal y lista pipeline.
+- [ ] En `Contacto`, generar plantilla WhatsApp y marcar contacto exitoso.
+- [ ] Confirmar transición visual y de estado a `in_contact/contactado`.
+- [ ] Crear acción en `Seguimiento` y validar `next_action_date` + `next_action_note`.
+- [ ] Ejecutar `Reanalizar` y validar badge de desactualización en Auditoría.
+- [ ] Ejecutar `Deep Audit` y validar limpieza de flags stale + refresco forense.
+- [ ] En móvil, confirmar labels legibles de tabs (`Diagnóstico`, `Auditoría`, `Estrategia`, `Trabajo`, `Forense`).

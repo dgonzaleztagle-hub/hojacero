@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-    X, Target, Zap, Search, Shield, ShieldOff, Globe, MapPin, Star, AlertCircle,
-    Save, Copy, CheckCircle2, MessageCircle, Mail, Phone, Instagram, Facebook,
-    Trash2, ExternalLink, Activity, FileText, ChevronRight, Loader2, CreditCard, ShieldAlert,
-    Map as MapIcon
+    X, Target, Zap, Shield, Globe, MapPin, Star,
+    CheckCircle2, MessageCircle, Trash2, Activity, FileText, Loader2, ShieldAlert
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -11,7 +9,6 @@ import confetti from 'canvas-confetti';
 import { createClient } from '@/utils/supabase/client';
 import { useRadar } from '@/hooks/useRadar';
 import { getAnalysis, getLeadData } from '@/utils/radar-helpers';
-import { ScoreIndicator, TargetIcon } from './shared';
 
 // Import Modal Tabs
 import {
@@ -31,10 +28,9 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     const {
         selectedLead, setSelectedLead,
         modalTab, setModalTab,
-        leads, setLeads,
-        pipelineLeads, setPipelineLeads,
-        historyLeads, setHistoryLeads,
-        location,
+        setLeads,
+        setPipelineLeads,
+        setHistoryLeads,
         logActivity,
         copyToClipboard,
         copiedField,
@@ -44,10 +40,9 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         notes, newNote, setNewNote, saveNote, deleteNote, isSavingNote,
         leadActivities,
         chatMessages, newChatMessage, setNewChatMessage, sendChatMessage, chatAuthor, setChatAuthor,
-        fetchLeadActivities, fetchNotes, fetchChatMessages, fetchPipeline, fetchClosed,
+        fetchPipeline,
         performDeepAnalysis, isDeepAnalyzing, performReanalysis, isReanalyzing, setIsReanalyzing,
-        deleteLead,
-        theme
+        deleteLead
     } = radar;
 
     const supabase = createClient();
@@ -65,33 +60,19 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
     // Victory Modal State
     const [isVictoryModalOpen, setIsVictoryModalOpen] = useState(false);
 
-    // Vault Logic State
-    const [inVault, setInVault] = useState(false);
-
-    // Check Vault Status
-    useEffect(() => {
-        const checkVault = async () => {
-            if (!selectedLead) return;
-            const query = selectedLead.website
-                ? `client_name.eq."${selectedLead.title || selectedLead.nombre}", site_url.eq."${selectedLead.website}"`
-                : `client_name.eq."${selectedLead.title || selectedLead.nombre}"`;
-
-            const { data } = await supabase
-                .from('monitored_sites')
-                .select('id')
-                .or(query)
-                .maybeSingle();
-
-            setInVault(!!data);
-        };
-        checkVault();
-    }, [selectedLead?.id, selectedLead?.website]);
-
-    const handleMoveToVault = async () => {
-        setShowVaultSetup(true);
-    };
+    const getErrorMessage = (error: unknown): string =>
+        error instanceof Error ? error.message : 'Error desconocido';
 
     const confirmVaultSetup = async () => {
+        if (!selectedLead) {
+            toast.error('No hay lead seleccionado');
+            return;
+        }
+        const leadId = selectedLead.id || selectedLead.db_id;
+        if (!leadId) {
+            toast.error('Lead sin ID válido');
+            return;
+        }
         setIsSaving(true);
         try {
             const startDate = new Date(vaultConfig.billingStart);
@@ -117,7 +98,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                 cuotas_pagadas: 0,
                 contract_start: vaultConfig.billingStart,
                 contract_end: contractEnd.toISOString(),
-                lead_id: selectedLead.id || selectedLead.db_id
+                lead_id: leadId
             }).select('id').single();
 
             if (error) throw error;
@@ -129,7 +110,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
             await supabase.from('leads').update({
                 pipeline_stage: 'archived',
                 estado: 'won'
-            }).eq('id', selectedLead.id || selectedLead.db_id);
+            }).eq('id', leadId);
 
             toast.success('Cliente configurado y migrado al Vault');
             confetti({
@@ -138,17 +119,16 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                 origin: { y: 0.6 },
                 colors: ['#00f0ff', '#10b981', '#ffffff']
             });
-            setInVault(true);
             setShowVaultSetup(false);
 
-            await logActivity(selectedLead.id || selectedLead.db_id, 'moved_to_vault', 'won', 'vault', `Migrado a Vault. Mantención: ${vaultConfig.hasMaintenance ? 'SI' : 'NO'}`);
-            removeFromLists(selectedLead.id || selectedLead.db_id);
+            await logActivity(leadId, 'moved_to_vault', 'won', 'vault', `Migrado a Vault. Mantención: ${vaultConfig.hasMaintenance ? 'SI' : 'NO'}`);
+            removeFromLists(leadId);
             fetchPipeline();
             router.push('/dashboard/vault');
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error vault:', err);
-            toast.error('Error al mover al Vault: ' + (err.message || 'Error desconocido'));
+            toast.error('Error al mover al Vault: ' + getErrorMessage(err));
         } finally {
             setIsSaving(false);
         }
@@ -156,33 +136,48 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
 
     const isDark = true;
     const currentUser = 'Daniel';
+    const modalTabs: Array<{ id: 'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo' | 'forense'; label: string }> = [
+        { id: 'diagnostico', label: 'Diagnóstico' },
+        { id: 'auditoria', label: 'Auditoría' },
+        { id: 'estrategia', label: 'Estrategia' },
+        { id: 'trabajo', label: 'Trabajo' },
+        { id: 'forense', label: 'Forense' }
+    ];
 
     useEffect(() => {
         if (!modalTab) setModalTab('diagnostico');
     }, [modalTab, setModalTab]);
 
+    // Intentional: refresh when lead identity changes; avoids noisy polling on every local mutation.
+    /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
         if (selectedLead?.id && selectedLead.id !== 'preview') {
             const refreshLead = async () => {
                 const { data } = await supabase.from('leads').select('*').eq('id', selectedLead.id).single();
                 if (data) {
-                    const currentKeys = Object.keys(selectedLead.source_data || {}).length;
-                    const newKeys = Object.keys(data.source_data || {}).length;
-                    if (!selectedLead.source_data?.deep_analysis && data.source_data?.deep_analysis) {
-                        setSelectedLead((prev: any) => ({ ...prev, ...data }));
-                    } else if (newKeys > currentKeys) {
-                        setSelectedLead((prev: any) => ({ ...prev, ...data }));
+                    const currentAudit = selectedLead.source_data?.last_audit_date || null;
+                    const nextAudit = data.source_data?.last_audit_date || null;
+                    const currentUpdatedAt = selectedLead.updated_at || null;
+                    const nextUpdatedAt = data.updated_at || null;
+                    const hasNewDeepAnalysis = !selectedLead.source_data?.deep_analysis && !!data.source_data?.deep_analysis;
+                    const hasFreshAudit = currentAudit !== nextAudit;
+                    const hasRowUpdate = currentUpdatedAt !== nextUpdatedAt;
+
+                    if (hasNewDeepAnalysis || hasFreshAudit || hasRowUpdate) {
+                        setSelectedLead((prev) => ({ ...prev, ...data }));
                     }
                 }
             };
             refreshLead();
         }
     }, [selectedLead?.id]);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     if (!selectedLead) return null;
 
     const analysis = getAnalysis(selectedLead);
     const ld = getLeadData(selectedLead);
+    const selectedLeadId = selectedLead.id || selectedLead.db_id || '';
 
     const removeFromLists = (id: string) => {
         setLeads(prev => prev.filter(l => l.id !== id && l.db_id !== id));
@@ -193,6 +188,11 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
         setIsVictoryModalOpen(false);
         setIsSaving(true);
         const id = selectedLead.id || selectedLead.db_id;
+        if (!id) {
+            toast.error('Lead sin ID válido');
+            setIsSaving(false);
+            return;
+        }
         try {
             await supabase.from('leads').update({
                 estado: 'won',
@@ -201,7 +201,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                 partner_split: data.partnerSplit,
                 services_justification: data.justifications
             }).eq('id', id);
-            await logActivity(id, 'closed_won', selectedLead.estado, 'won', `Cierre Ganado (${data.dealType}) - $${data.amount}`);
+            await logActivity(id, 'closed_won', selectedLead.estado ?? null, 'won', `Cierre Ganado (${data.dealType}) - $${data.amount}`);
             fetchPipeline();
             setSelectedLead(null);
             confetti({
@@ -211,26 +211,26 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                 colors: ['#00f0ff', '#10b981', '#ffffff']
             });
             toast.success('¡Venta registrada exitosamente!');
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            toast.error('Error al cerrar venta: ' + err.message);
+            toast.error('Error al cerrar venta: ' + getErrorMessage(err));
         } finally {
             setIsSaving(false);
         }
     };
 
-    const handleLeadUpdate = (updatedLead: any) => {
+    const handleLeadUpdate = (updatedLead: { id?: string; db_id?: string; [key: string]: unknown }) => {
         // Update selected lead
         setSelectedLead(updatedLead);
 
         // Update Pipeline list
-        setPipelineLeads((prev: any[]) => prev.map((l: any) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
+        setPipelineLeads((prev) => prev.map((l) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
 
         // Update Leads list
-        setLeads((prev: any[]) => prev.map((l: any) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
+        setLeads((prev) => prev.map((l) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
 
         // Update History list (if applicable)
-        setHistoryLeads((prev: any[]) => prev.map((l: any) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
+        setHistoryLeads((prev) => prev.map((l) => (l.id === updatedLead.id || l.db_id === updatedLead.id) ? { ...l, ...updatedLead } : l));
     };
 
     return (
@@ -347,7 +347,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                             }`}>
                             {selectedLead.estado || 'DETECTED'}
                         </div>
-                        <button onClick={() => deleteLead(selectedLead.id || selectedLead.db_id)} className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-red-500/20 text-zinc-500 hover:text-red-500' : 'hover:bg-red-50'}`} title="Eliminar permanentemente">
+                        <button onClick={() => deleteLead(selectedLeadId)} className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-red-500/20 text-zinc-500 hover:text-red-500' : 'hover:bg-red-50'}`} title="Eliminar permanentemente">
                             <Trash2 className="w-5 h-5" />
                         </button>
                         <button onClick={() => setSelectedLead(null)} className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-zinc-500 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-900'}`}>
@@ -378,9 +378,9 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20">
                         <div className="md:hidden flex overflow-x-auto p-2 border-b border-white/10 gap-2 shrink-0">
-                            {['diagnostico', 'auditoria', 'estrategia', 'trabajo', 'forense'].map((t) => (
-                                <button key={t} onClick={() => setModalTab(t as any)} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase whitespace-nowrap ${modalTab === t ? 'bg-cyan-500 text-black' : 'bg-black/40 text-zinc-500'}`}>
-                                    {t}
+                            {modalTabs.map((tab) => (
+                                <button key={tab.id} onClick={() => setModalTab(tab.id)} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase whitespace-nowrap ${modalTab === tab.id ? 'bg-cyan-500 text-black' : 'bg-black/40 text-zinc-500'}`}>
+                                    {tab.label}
                                 </button>
                             ))}
                         </div>
@@ -413,7 +413,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     leadActivities={leadActivities}
                                     onUpdateContact={async () => {
                                         setIsSaving(true);
-                                        const leadId = selectedLead.id || selectedLead.db_id;
+                                        const leadId = selectedLead.id || selectedLead.db_id || '';
                                         if (!leadId) return;
                                         try {
                                             const updatedSourceData = {
@@ -452,9 +452,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                             {modalTab === 'estrategia' && (
                                 <ModalTabEstrategia
                                     selectedLead={selectedLead}
-                                    analysis={analysis}
                                     isDark={isDark}
-                                    copyToClipboard={copyToClipboard}
                                 />
                             )}
                             {modalTab === 'trabajo' && (
@@ -469,7 +467,8 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                     setEditData={setEditData}
                                     onSaveContact={async () => {
                                         setIsSaving(true);
-                                        const leadId = selectedLead.id || selectedLead.db_id;
+                                        const leadId = selectedLead.id || selectedLead.db_id || '';
+                                        if (!leadId) return;
                                         try {
                                             const updatedSourceData = {
                                                 ...(selectedLead.source_data || {}),
@@ -508,7 +507,6 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                 <ModalTabForense
                                     selectedLead={selectedLead}
                                     isDark={isDark}
-                                    onLeadUpdate={handleLeadUpdate}
                                     onDeepAnalyze={performDeepAnalysis}
                                     isDeepAnalyzing={isDeepAnalyzing}
                                     setModalTab={setModalTab}
@@ -520,16 +518,17 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
 
                 {/* MODAL FOOTER */}
                 <div className="p-6 border-t border-white/10 bg-zinc-900/50 sticky bottom-0">
-                    {['ready_to_contact', 'in_contact', 'meeting_scheduled', 'proposal_sent', 'negotiation'].includes(selectedLead.estado) && (
+                    {['ready_to_contact', 'in_contact', 'meeting_scheduled', 'proposal_sent', 'negotiation'].includes(selectedLead.estado ?? '') && (
                         <div className="flex justify-between items-center">
                             <div className="flex flex-col">
                                 <span className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Estado Actual</span>
-                                <span className="text-sm font-bold text-white">{selectedLead.estado.replace(/_/g, ' ').toUpperCase()}</span>
+                                <span className="text-sm font-bold text-white">{(selectedLead.estado ?? 'detected').replace(/_/g, ' ').toUpperCase()}</span>
                             </div>
                             <div className="flex gap-2">
                                 {(selectedLead.pipeline_stage === 'radar' || selectedLead.estado === 'ready_to_contact') && (
                                     <button onClick={async () => {
-                                        const id = selectedLead.id || selectedLead.db_id;
+                                        const id = selectedLead.id || selectedLead.db_id || '';
+                                        if (!id) return;
                                         handleLeadUpdate({ ...selectedLead, pipeline_stage: 'contactado', estado: 'in_contact' });
                                         try {
                                             const { error } = await supabase.from('leads').update({
@@ -540,7 +539,7 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                             }).eq('id', id);
                                             if (error) throw error;
                                             await logActivity(id, 'contacted', 'radar', 'contactado');
-                                        } catch (e) {
+                                        } catch {
                                             toast.error('Error al actualizar');
                                             fetchPipeline(); // Rollback if error
                                         }
@@ -557,11 +556,11 @@ export function RadarLeadModal({ radar }: RadarLeadModalProps) {
                                             whatsapp: selectedLead.telefono || selectedLead.whatsapp || '',
                                             email: selectedLead.email || '',
                                             sitio_web: selectedLead.sitio_web || selectedLead.website || '',
-                                            lead_id: selectedLead.id || selectedLead.db_id
+                                            lead_id: selectedLeadId
                                         };
 
                                         // Redirigir a la agenda con los datos
-                                        const params = new URLSearchParams(leadData as any);
+                                        const params = new URLSearchParams(Object.entries(leadData).map(([k, v]) => [k, String(v ?? '')]));
                                         router.push(`/dashboard/agenda?${params.toString()}`);
                                     }} className="px-5 py-2.5 bg-indigo-500 text-white font-bold rounded-xl text-xs uppercase hover:bg-indigo-400 flex gap-2 shadow-lg transition-all">
                                         <Activity className="w-4 h-4" /> Agendar Reunión

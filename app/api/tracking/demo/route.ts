@@ -25,6 +25,12 @@ interface DemoVisit {
     created_at: string;
 }
 
+function isValidProspectSlug(slug: string): boolean {
+    if (!slug) return false;
+    if (slug.length > 120) return false;
+    return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+}
+
 async function sendVisitNotification(visit: DemoVisit) {
     if (!process.env.RESEND_API_KEY) {
         console.warn('⚠️ Missing RESEND_API_KEY. Skipping email notification.');
@@ -94,9 +100,28 @@ export async function POST(req: NextRequest) {
         const supabase = getAdminClient();
         const body = await req.json();
         const { prospecto, device_fingerprint, referrer } = body;
+        const normalizedProspecto = typeof prospecto === 'string' ? prospecto.trim().toLowerCase() : '';
 
-        if (!prospecto) {
+        if (!normalizedProspecto) {
             return NextResponse.json({ error: 'Prospecto requerido' }, { status: 400 });
+        }
+
+        if (!isValidProspectSlug(normalizedProspecto)) {
+            return NextResponse.json({ error: 'Prospecto inválido' }, { status: 400 });
+        }
+
+        // Validate demo path exists before writing tracking row.
+        // This prevents DB pollution with fake slugs.
+        const baseUrl = req.nextUrl.origin;
+        const demoUrl = `${baseUrl}/prospectos/${normalizedProspecto}`;
+        const demoResponse = await fetch(demoUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            redirect: 'manual'
+        }).catch(() => null);
+
+        if (!demoResponse || demoResponse.status >= 400) {
+            return NextResponse.json({ error: 'Prospecto no válido o no publicado' }, { status: 404 });
         }
 
         // Obtener datos del visitante
@@ -128,12 +153,12 @@ export async function POST(req: NextRequest) {
                 city = geo.city;
                 country = geo.country_name;
             }
-        } catch (e) {
+        } catch {
             // Ignorar errores de geolocalización
         }
 
         const visit: DemoVisit = {
-            prospecto,
+            prospecto: normalizedProspecto,
             visitor_ip,
             user_agent,
             device_fingerprint,
@@ -164,7 +189,7 @@ export async function POST(req: NextRequest) {
             message: isTeamMember ? 'Visita del equipo registrada' : 'Visita registrada y notificada'
         });
 
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error('Error tracking visit:', e);
         return NextResponse.json({ error: 'Error interno' }, { status: 500 });
     }

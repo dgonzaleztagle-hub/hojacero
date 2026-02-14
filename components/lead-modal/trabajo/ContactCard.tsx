@@ -2,13 +2,29 @@ import React, { useState } from 'react';
 import { Mail, MessageCircle, Phone, Instagram, Facebook, Globe, Zap, Copy, ExternalLink, Save, Loader2 } from 'lucide-react';
 
 interface ContactCardProps {
-    selectedLead: any;
-    ld: any;
+    editData: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string };
+    selectedLead: {
+        nombre_contacto?: string;
+        email?: string;
+        whatsapp?: string;
+        telefono?: string;
+        demo_url?: string;
+        source_data?: { whatsapp?: unknown; phone?: unknown; [key: string]: unknown };
+        [key: string]: unknown;
+    };
+    ld: {
+        email?: string;
+        whatsapp?: string;
+        phone?: string;
+        demo_url?: string;
+        instagram?: string;
+        facebook?: string;
+        website?: string;
+    };
     isDark: boolean;
     isEditingContact: boolean;
     setIsEditingContact: (val: boolean) => void;
-    editData: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string };
-    setEditData: (val: any) => void;
+    setEditData: (val: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string }) => void;
     onSaveContact: () => Promise<void> | void;
     isSaving: boolean;
     copyToClipboard: (text: string, field: string) => void;
@@ -27,6 +43,12 @@ export const ContactCard = ({
     copyToClipboard
 }: ContactCardProps) => {
     const [isEditingUrl, setIsEditingUrl] = useState(false);
+    const sourceWhatsapp = typeof selectedLead.source_data?.whatsapp === 'string' ? selectedLead.source_data.whatsapp : '';
+    const sourcePhone = typeof selectedLead.source_data?.phone === 'string' ? selectedLead.source_data.phone : '';
+    const emailValue = selectedLead.email || '';
+    const whatsappValue = selectedLead.whatsapp || sourceWhatsapp;
+    const phoneValue = selectedLead.telefono || sourcePhone;
+    const demoUrlValue = selectedLead.demo_url || '';
 
     return (
         <div className={`rounded-3xl p-6 border relative group/contact transition-colors ${isDark ? 'bg-zinc-900/50 backdrop-blur-xl border-white/5' : 'bg-gray-50 border-gray-200'}`}>
@@ -115,6 +137,7 @@ export const ContactCard = ({
                                 <button
                                     onClick={() => {
                                         setEditData({
+                                            nombre_contacto: editData.nombre_contacto,
                                             email: ld.email || '',
                                             whatsapp: ld.whatsapp || '',
                                             telefono: ld.phone || '',
@@ -161,19 +184,19 @@ export const ContactCard = ({
                                 </p>
                             </div>
                         ) : (
-                            selectedLead.demo_url ? (
+                            demoUrlValue ? (
                                 <div className="flex items-center gap-2">
                                     <div className={`flex-1 p-2 rounded-lg text-xs font-mono truncate border ${isDark ? 'bg-black/30 border-purple-500/30 text-purple-200' : 'bg-white border-purple-200 text-purple-700'}`}>
-                                        {selectedLead.demo_url}
+                                        {demoUrlValue}
                                     </div>
                                     <button
-                                        onClick={() => copyToClipboard(selectedLead.demo_url, 'demo_url')}
+                                        onClick={() => copyToClipboard(demoUrlValue, 'demo_url')}
                                         className={`p-2 rounded-lg transition-colors border ${isDark ? 'bg-purple-500/10 border-purple-500/20 text-purple-400 hover:bg-purple-500/20' : 'bg-white border-purple-200 text-purple-600 hover:bg-purple-50'}`}
                                     >
                                         <Copy className="w-4 h-4" />
                                     </button>
                                     <a
-                                        href={selectedLead.demo_url}
+                                        href={demoUrlValue}
                                         target="_blank"
                                         className="p-2 rounded-lg bg-purple-500 text-white hover:bg-purple-400 transition-colors shadow-lg shadow-purple-500/20 border border-purple-400"
                                     >
@@ -206,12 +229,12 @@ export const ContactCard = ({
                             <div className={`p-2 rounded-lg shrink-0 ${selectedLead.email ? (isDark ? 'bg-cyan-500/10 text-cyan-400' : 'bg-blue-50 text-blue-500') : (isDark ? 'bg-zinc-800 text-zinc-600' : 'bg-gray-100 text-gray-400')}`}>
                                 <Mail className="w-4 h-4" />
                             </div>
-                            <span className={`text-sm truncate select-all ${selectedLead.email ? (isDark ? 'text-zinc-200' : 'text-gray-900') : (isDark ? 'text-zinc-600 italic' : 'text-gray-400 italic')}`}>
-                                {selectedLead.email || 'Sin email'}
+                            <span className={`text-sm truncate select-all ${emailValue ? (isDark ? 'text-zinc-200' : 'text-gray-900') : (isDark ? 'text-zinc-600 italic' : 'text-gray-400 italic')}`}>
+                                {emailValue || 'Sin email'}
                             </span>
                         </div>
-                        {selectedLead.email && (
-                            <button onClick={() => copyToClipboard(selectedLead.email, 'email')} className={`p-2 ml-2 rounded-lg shrink-0 transition-colors ${isDark ? 'hover:bg-white/10 text-zinc-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'}`}>
+                        {emailValue && (
+                            <button onClick={() => copyToClipboard(emailValue, 'email')} className={`p-2 ml-2 rounded-lg shrink-0 transition-colors ${isDark ? 'hover:bg-white/10 text-zinc-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'}`}>
                                 <Copy className="w-4 h-4" />
                             </button>
                         )}
@@ -220,15 +243,15 @@ export const ContactCard = ({
                     {/* WhatsApp */}
                     <div className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200'}`}>
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`p-2 rounded-lg shrink-0 ${selectedLead.whatsapp || selectedLead.source_data?.whatsapp ? 'bg-green-500/10 text-green-500' : (isDark ? 'bg-zinc-800 text-zinc-600' : 'bg-gray-100 text-gray-400')}`}>
+                            <div className={`p-2 rounded-lg shrink-0 ${whatsappValue ? 'bg-green-500/10 text-green-500' : (isDark ? 'bg-zinc-800 text-zinc-600' : 'bg-gray-100 text-gray-400')}`}>
                                 <MessageCircle className="w-4 h-4" />
                             </div>
-                            <span className={`text-sm truncate select-all ${selectedLead.whatsapp || selectedLead.source_data?.whatsapp ? (isDark ? 'text-zinc-200' : 'text-gray-900') : (isDark ? 'text-zinc-600 italic' : 'text-gray-400 italic')}`}>
-                                {selectedLead.whatsapp || selectedLead.source_data?.whatsapp || 'Sin WhatsApp'}
+                            <span className={`text-sm truncate select-all ${whatsappValue ? (isDark ? 'text-zinc-200' : 'text-gray-900') : (isDark ? 'text-zinc-600 italic' : 'text-gray-400 italic')}`}>
+                                {whatsappValue || 'Sin WhatsApp'}
                             </span>
                         </div>
-                        {(selectedLead.whatsapp || selectedLead.source_data?.whatsapp) && (
-                            <button onClick={() => copyToClipboard(selectedLead.whatsapp || selectedLead.source_data?.whatsapp, 'wa')} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-zinc-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'}`}>
+                        {whatsappValue && (
+                            <button onClick={() => copyToClipboard(whatsappValue, 'wa')} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-zinc-500 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-900'}`}>
                                 <Copy className="w-4 h-4" />
                             </button>
                         )}
@@ -237,7 +260,7 @@ export const ContactCard = ({
                     {/* Social & Meta */}
                     <div className="grid grid-cols-4 gap-3 pt-2">
                         {[
-                            { icon: Phone, color: 'zinc', active: !!(selectedLead.telefono || selectedLead.source_data?.phone), link: `tel:${selectedLead.telefono || selectedLead.source_data?.phone}` },
+                            { icon: Phone, color: 'zinc', active: !!phoneValue, link: `tel:${phoneValue}` },
                             { icon: Instagram, color: 'pink', active: !!ld.instagram, link: ld.instagram?.startsWith('http') ? ld.instagram : `https://instagram.com/${ld.instagram}` },
                             { icon: Facebook, color: 'blue', active: !!ld.facebook, link: ld.facebook?.startsWith('http') ? ld.facebook : `https://facebook.com/${ld.facebook}` },
                             { icon: Globe, color: 'cyan', active: !!ld.website, link: ld.website }

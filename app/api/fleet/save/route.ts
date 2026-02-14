@@ -62,8 +62,9 @@ export async function POST(req: Request) {
             message: 'Sincronización con GitHub exitosa'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('[Fleet Save API] Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

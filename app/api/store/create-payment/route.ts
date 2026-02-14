@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createPayment } from '@/lib/store/payment-gateways';
 
+interface CartItem {
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+}
+
 export async function POST(request: NextRequest) {
     try {
         const { cart, total, clientData } = await request.json();
+        const typedCart = cart as CartItem[];
 
-        if (!cart || !total || !clientData) {
+        if (!typedCart || !total || !clientData) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
                 { status: 400 }
@@ -50,7 +58,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Insert order items
-        const orderItems = cart.map((item: any) => ({
+        const orderItems = typedCart.map((item) => ({
             order_id: order.id,
             product_id: item.id,
             product_name: item.name,

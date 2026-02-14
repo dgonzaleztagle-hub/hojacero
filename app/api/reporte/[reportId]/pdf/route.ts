@@ -63,7 +63,9 @@ export async function GET(
             }
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
+        const stack = error instanceof Error ? error.stack : undefined;
         console.error('Error generando PDF:', error);
 
         if (browser) {
@@ -73,8 +75,8 @@ export async function GET(
         return NextResponse.json(
             {
                 error: 'Error generando PDF',
-                details: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+                details: message,
+                stack: process.env.NODE_ENV === 'development' ? stack : undefined
             },
             { status: 500 }
         );

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         try {
             const current = await cms.getFile(filePath);
             currentSha = current.sha;
-        } catch (e) {
+        } catch {
             // Si el archivo no existe, lo crearemos (currentSha será undefined)
             console.log('[CMS API] El archivo no existe, se creará uno nuevo.');
         }
@@ -59,10 +59,11 @@ export async function POST(req: Request) {
             message: 'Cambios guardados. El sitio se reconstruirá en 1-2 minutos.'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('[CMS API Error]:', error);
         return NextResponse.json(
-            { error: 'Error interno al sincronizar con GitHub', details: error.message },
+            { error: 'Error interno al sincronizar con GitHub', details: message },
             { status: 500 }
         );
     }

@@ -5,7 +5,20 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
-async function sendMeetingEmail(event: any) {
+interface AgendaEmailEvent {
+    title: string;
+    start_time: string;
+    source?: string;
+    attendee_name?: string | null;
+    company_name?: string | null;
+    whatsapp?: string | null;
+    attendee_phone?: string | null;
+    website?: string | null;
+    location?: string | null;
+    description?: string | null;
+}
+
+async function sendMeetingEmail(event: AgendaEmailEvent) {
     // if (!event.attendee_email) return; // Permitir notificar sin email del cliente (usa el del admin)
 
     const dateStr = new Date(event.start_time).toLocaleDateString('es-CL', {

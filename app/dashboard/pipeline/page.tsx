@@ -132,9 +132,11 @@ function PipelineContent() {
                         let found = pipelineLeads.find(l => l.id === id);
                         if (found) {
                             setSelectedLead(found);
-                            fetchLeadActivities(found.id || found.db_id);
-                            fetchNotes(found.id || found.db_id);
-                            fetchChatMessages(found.id || found.db_id);
+                            const leadId = found.id || found.db_id;
+                            if (!leadId) return;
+                            fetchLeadActivities(leadId);
+                            fetchNotes(leadId);
+                            fetchChatMessages(leadId);
                         }
                     }}
                 />

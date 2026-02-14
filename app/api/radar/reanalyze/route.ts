@@ -3,6 +3,15 @@ import { createClient } from '@/utils/supabase/server';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
+const isValidApiKey = (key?: string) => {
+    if (!key) return false;
+    const trimmed = key.trim();
+    if (!trimmed) return false;
+    if (trimmed === 're_123' || trimmed === 'sk_test') return false;
+    if (trimmed.toLowerCase().startsWith('placeholder')) return false;
+    return true;
+};
+
 export async function POST(req: Request) {
     try {
         const { leadId } = await req.json();
@@ -11,11 +20,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing leadId' }, { status: 400 });
         }
 
-        if (!GROQ_API_KEY) {
+        if (!isValidApiKey(GROQ_API_KEY)) {
             return NextResponse.json({
                 success: false,
-                error: 'Error de Configuración: La variable GROQ_API_KEY no está definida en el servidor.'
-            }, { status: 500 });
+                error: 'Missing or invalid API keys',
+                missing: ['GROQ_API_KEY'],
+                requires: 'GROQ_API_KEY'
+            }, { status: 503 });
         }
 
         const supabase = await createClient();
@@ -138,11 +149,12 @@ Responde en JSON con esta estructura EXACTA:
             message: 'Lead re-analizado correctamente'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Reanalyze Error:', error);
         return NextResponse.json({
             success: false,
-            error: error.message
+            error: message
         }, { status: 500 });
     }
 }

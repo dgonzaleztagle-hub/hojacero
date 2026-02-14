@@ -4,4 +4,3 @@ export { ModalTabAuditoria } from './ModalTabAuditoria';
 export { ModalTabEstrategia } from './ModalTabEstrategia';
 export { ModalTabTrabajo } from './ModalTabTrabajo';
 export { ModalTabForense } from './ModalTabForense';
-export { ModalTabTerritorial } from './ModalTabTerritorial';

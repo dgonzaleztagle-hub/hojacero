@@ -22,33 +22,134 @@ import { getLeadData } from '@/utils/radar-helpers';
 import { ChatMessage } from '@/hooks/useRadar';
 import { Brain, HardDrive } from 'lucide-react';
 
-// ... interface updates ...
+type LeadRecord = {
+    id?: string;
+    db_id?: string;
+    email?: string;
+    telefono?: string;
+    whatsapp?: string;
+    nombre_contacto?: string;
+    pipeline_stage?: string;
+    estado?: string;
+    next_action_date?: string | null;
+    next_action_note?: string;
+    demo_url?: string;
+    url?: string;
+    nombre?: string;
+    source_data?: {
+        analysis?: unknown;
+        assets?: unknown[];
+        intelligence_log?: unknown[];
+        [key: string]: unknown;
+    };
+    [key: string]: unknown;
+};
+
+type LeadDetails = Record<string, unknown>;
+
+type EmailSignature = {
+    id?: string;
+    label: string;
+    content: string;
+    is_default?: boolean;
+};
+
 interface ModalTabTrabajoProps {
-    selectedLead: any;
-    ld: any;
+    selectedLead: LeadRecord;
+    ld: LeadDetails;
     isDark: boolean;
-    analysis: any;
-    // Contact editing
+    analysis: Record<string, unknown>;
     isEditingContact: boolean;
     editData: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string };
-    setEditData: (data: any) => void;
+    setEditData: (data: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string }) => void;
     setIsEditingContact: (val: boolean) => void;
     onSaveContact: () => Promise<void> | void;
     isSaving: boolean;
-    onLeadUpdate?: (lead: any) => void;
-    // Chat / Bitácora
+    onLeadUpdate?: (lead: LeadRecord) => void;
     chatMessages: ChatMessage[];
     newChatMessage: string;
     setNewChatMessage: (val: string) => void;
     chatAuthor: 'Yo' | 'Gaston';
     setChatAuthor: (val: 'Yo' | 'Gaston') => void;
     onSendChatMessage: (e?: React.FormEvent) => Promise<void> | void;
-    // Activity
-    leadActivities: any[];
-    // Utils
+    leadActivities: Array<Record<string, unknown>>;
     copyToClipboard: (text: string, field: string) => void;
     copiedField: string | null;
 }
+
+type TrabajoSubTab = 'datos' | 'comms' | 'seguimiento' | 'activo' | 'investigacion' | 'assets';
+
+const getDefaultTrabajoSubTab = (lead: LeadRecord): TrabajoSubTab => {
+    const hasContactInfo = Boolean(
+        lead?.email ||
+        lead?.telefono ||
+        lead?.whatsapp ||
+        lead?.nombre_contacto
+    );
+    if (!hasContactInfo) return 'datos';
+
+    const stage = String(lead?.pipeline_stage || '').toLowerCase();
+    const state = String(lead?.estado || '').toLowerCase();
+
+    if (['contactado', 'negociacion', 'archived'].includes(stage) || ['in_contact', 'meeting_scheduled'].includes(state)) {
+        return 'seguimiento';
+    }
+    if (['proposal_sent', 'negotiation'].includes(state)) {
+        return 'activo';
+    }
+    if (stage === 'radar' || state === 'ready_to_contact' || state === 'detected') {
+        return 'comms';
+    }
+    return 'comms';
+};
+
+const getRecommendedTrabajoAction = (lead: LeadRecord): {
+    label: string;
+    detail: string;
+    tab: TrabajoSubTab;
+    channel?: 'whatsapp' | 'email';
+} => {
+    const hasContactInfo = Boolean(
+        lead?.email ||
+        lead?.telefono ||
+        lead?.whatsapp ||
+        lead?.nombre_contacto
+    );
+
+    if (!hasContactInfo) {
+        return {
+            label: 'Completar datos de contacto',
+            detail: 'Sin contacto operativo no se puede iniciar outreach.',
+            tab: 'datos'
+        };
+    }
+
+    const state = String(lead?.estado || '').toLowerCase();
+    const hasFollowUp = Boolean(lead?.next_action_date);
+
+    if (state !== 'in_contact' && state !== 'meeting_scheduled') {
+        return {
+            label: 'Iniciar contacto por WhatsApp',
+            detail: 'Primer toque para mover el lead a conversación activa.',
+            tab: 'comms',
+            channel: 'whatsapp'
+        };
+    }
+
+    if (!hasFollowUp) {
+        return {
+            label: 'Programar siguiente acción',
+            detail: 'Define fecha y nota para no perder continuidad.',
+            tab: 'seguimiento'
+        };
+    }
+
+    return {
+        label: 'Actualizar activo comercial',
+        detail: 'Revisa demo, tracking y recursos de cierre.',
+        tab: 'activo'
+    };
+};
 
 export const ModalTabTrabajo = ({
     selectedLead,
@@ -72,8 +173,9 @@ export const ModalTabTrabajo = ({
     copiedField,
     onLeadUpdate
 }: ModalTabTrabajoProps) => {
+    const leadId = selectedLead.id || selectedLead.db_id || '';
     // Nav State
-    const [activeSubTab, setActiveSubTab] = useState<'comms' | 'activo' | 'seguimiento' | 'assets' | 'investigacion' | 'datos'>('comms');
+    const [activeSubTab, setActiveSubTab] = useState<TrabajoSubTab>(getDefaultTrabajoSubTab(selectedLead));
 
     // Report Logic
     const [isReportBuilderOpen, setIsReportBuilderOpen] = useState(false);
@@ -82,7 +184,7 @@ export const ModalTabTrabajo = ({
     const [aiTemplate, setAiTemplate] = useState<{ content: string; type: 'whatsapp' | 'email' | null }>({ content: '', type: null });
     const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false);
 
-    const generateTemplate = async (lead: any, type: 'whatsapp' | 'email') => {
+    const generateTemplate = async (lead: LeadRecord, type: 'whatsapp' | 'email') => {
         setIsGeneratingTemplate(true);
         setAiTemplate({ content: '', type });
         try {
@@ -98,7 +200,7 @@ export const ModalTabTrabajo = ({
             });
             const data = await res.json();
             if (data.success) setAiTemplate({ content: data.message, type });
-        } catch (err) {
+        } catch {
             toast.error('Error generando plantilla');
         } finally {
             setIsGeneratingTemplate(false);
@@ -107,10 +209,10 @@ export const ModalTabTrabajo = ({
 
     // Communication Hub State
     const [activeChannel, setActiveChannel] = useState<'whatsapp' | 'email'>('whatsapp');
+    const [commsStep, setCommsStep] = useState<1 | 2 | 3>(1);
     const [emailSubject, setEmailSubject] = useState('');
-    const [signatures, setSignatures] = useState<any[]>([]);
-    const [selectedSignature, setSelectedSignature] = useState<any>(null);
-    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [signatures, setSignatures] = useState<EmailSignature[]>([]);
+    const [selectedSignature, setSelectedSignature] = useState<EmailSignature | null>(null);
 
     // Agenda State
     const initialDate = selectedLead.next_action_date ? new Date(selectedLead.next_action_date) : null;
@@ -118,22 +220,47 @@ export const ModalTabTrabajo = ({
     const [timeInput, setTimeInput] = useState(initialDate ? initialDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '09:00');
     const [nextActionNote, setNextActionNote] = useState(selectedLead.next_action_note || '');
     const [isSavingAction, setIsSavingAction] = useState(false);
-    const prevLeadIdRef = useRef(selectedLead.id);
+    const prevLeadIdRef = useRef(leadId);
 
     // Email Sending State
     const [isSendingEmail, setIsSendingEmail] = useState(false);
     const [attachments, setAttachments] = useState<{ filename: string; path: string }[]>([]);
+    const recommendedAction = getRecommendedTrabajoAction(selectedLead);
+    const trackingProspecto =
+        (selectedLead.demo_url?.split('/').pop()) ||
+        (selectedLead.url?.split('/').pop()) ||
+        selectedLead.nombre?.toLowerCase().replace(/ /g, '-') ||
+        'lead';
+    const hasDraftForChannel = Boolean(
+        aiTemplate.content?.trim() &&
+        aiTemplate.type === activeChannel
+    );
 
     // Effects & Handlers (Kept same logic)
     useEffect(() => {
-        if (selectedLead.id !== prevLeadIdRef.current) {
+        if (leadId !== prevLeadIdRef.current) {
             const d = selectedLead.next_action_date ? new Date(selectedLead.next_action_date) : null;
             setDateInput(d ? d.toISOString().split('T')[0] : '');
             setTimeInput(d ? d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '09:00');
             setNextActionNote(selectedLead.next_action_note || '');
-            prevLeadIdRef.current = selectedLead.id;
+            setAiTemplate({ content: '', type: null });
+            setEmailSubject('');
+            setAttachments([]);
+            setActiveSubTab(getDefaultTrabajoSubTab(selectedLead));
+            setCommsStep(1);
+            prevLeadIdRef.current = leadId;
         }
-    }, [selectedLead.id, selectedLead.next_action_date, selectedLead.next_action_note]);
+    }, [leadId, selectedLead, selectedLead.next_action_date, selectedLead.next_action_note]);
+
+    useEffect(() => {
+        setCommsStep(1);
+    }, [activeChannel]);
+
+    useEffect(() => {
+        if (aiTemplate.content?.trim() && aiTemplate.type === activeChannel) {
+            setCommsStep(2);
+        }
+    }, [aiTemplate.content, aiTemplate.type, activeChannel]);
 
     const handleSaveAction = async () => {
         try {
@@ -147,12 +274,12 @@ export const ModalTabTrabajo = ({
             const { error } = await supabase.from('leads').update({
                 next_action_date: finalTimestamp,
                 next_action_note: nextActionNote
-            }).eq('id', selectedLead.id);
+            }).eq('id', leadId);
             if (error) throw error;
             toast.success('Agenda actualizada');
             if (onLeadUpdate) onLeadUpdate({ ...selectedLead, next_action_date: finalTimestamp, next_action_note: nextActionNote });
             setNextActionNote('');
-        } catch (error) {
+        } catch {
             toast.error('Error al guardar agenda');
         } finally {
             setIsSavingAction(false);
@@ -175,8 +302,16 @@ export const ModalTabTrabajo = ({
                 pipeline_stage: 'contactado',
                 estado: 'in_contact',
                 last_activity_at: new Date().toISOString()
-            }).eq('id', selectedLead.id || selectedLead.db_id);
+            }).eq('id', leadId);
             toast.success('Lead movido a Contactado');
+            if (onLeadUpdate) {
+                onLeadUpdate({
+                    ...selectedLead,
+                    pipeline_stage: 'contactado',
+                    estado: 'in_contact',
+                    last_activity_at: new Date().toISOString()
+                });
+            }
         } catch (e) {
             console.error(e);
         }
@@ -186,23 +321,23 @@ export const ModalTabTrabajo = ({
         const initData = async () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
-            setCurrentUser(user);
             if (user?.email) {
                 setChatAuthor(user.email.includes('gaston') || user.email.includes('colocolo') ? 'Gaston' : 'Yo');
             }
             const { data } = await supabase.from('email_signatures').select('*').order('is_default', { ascending: false });
             if (data && data.length > 0) {
-                setSignatures(data);
-                let defaultSig;
+                const signatureRows = data as EmailSignature[];
+                setSignatures(signatureRows);
+                let defaultSig: EmailSignature | undefined;
                 if (user?.email) {
-                    if (user.email.includes('gaston')) defaultSig = data.find((s: any) => s.label.toLowerCase().includes('gastón'));
-                    else if (user.email.includes('gonzalez') || user.email.includes('daniel')) defaultSig = data.find((s: any) => s.label.toLowerCase().includes('daniel'));
+                    if (user.email.includes('gaston')) defaultSig = signatureRows.find((s) => s.label.toLowerCase().includes('gastón'));
+                    else if (user.email.includes('gonzalez') || user.email.includes('daniel')) defaultSig = signatureRows.find((s) => s.label.toLowerCase().includes('daniel'));
                 }
-                setSelectedSignature(defaultSig || data.find((s: any) => s.is_default) || data[0]);
+                setSelectedSignature(defaultSig || signatureRows.find((s) => s.is_default) || signatureRows[0]);
             }
         };
         initData();
-    }, []);
+    }, [setChatAuthor]);
 
     const getFullEmailBody = () => {
         if (!aiTemplate.content) return '';
@@ -211,9 +346,18 @@ export const ModalTabTrabajo = ({
     }
 
     const handleSendEmail = async () => {
-        if (!selectedLead.email) return toast.error('No hay email destinatario');
-        if (!emailSubject) return toast.error('Falta el asunto');
-        if (!aiTemplate.content) return toast.error('El contenido está vacío');
+        if (!selectedLead.email) {
+            toast.error('No hay email destinatario');
+            return;
+        }
+        if (!emailSubject) {
+            toast.error('Falta el asunto');
+            return;
+        }
+        if (!aiTemplate.content) {
+            toast.error('El contenido está vacío');
+            return;
+        }
         setIsSendingEmail(true);
         try {
             const bodyHtml = aiTemplate.content.replace(/\n/g, '<br/>') + (selectedSignature ? `<br/><br/>${selectedSignature.content}` : '');
@@ -232,7 +376,7 @@ export const ModalTabTrabajo = ({
             toast.success('Email enviado correctamente');
             const supabase = createClient();
             await supabase.from('bitacora_clientes').insert({
-                lead_id: selectedLead.id || selectedLead.db_id,
+                lead_id: leadId,
                 author: 'Yo',
                 message: `📧 EMAIL ENVIADO: ${emailSubject}\n\n${aiTemplate.content.substring(0, 100)}...${attachments.length > 0 ? `\n📎 Adjuntos: ${attachments.length}` : ''}`,
                 created_at: new Date().toISOString()
@@ -240,7 +384,7 @@ export const ModalTabTrabajo = ({
             setAttachments([]);
             setAiTemplate({ content: '', type: null });
             handleContactSuccess();
-        } catch (e) {
+        } catch {
             toast.error('Error al enviar el email');
         } finally {
             setIsSendingEmail(false);
@@ -250,19 +394,53 @@ export const ModalTabTrabajo = ({
     // TAB COMPONENTS MAP
     return (
         <div className="flex flex-col h-full min-h-[500px]">
+            <div className={`mb-4 p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${isDark ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-cyan-50 border-cyan-200'}`}>
+                <div>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}>Siguiente Paso</p>
+                    <p className={`text-sm font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{recommendedAction.label}</p>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>{recommendedAction.detail}</p>
+                </div>
+                <button
+                    onClick={() => {
+                        setActiveSubTab(recommendedAction.tab);
+                        if (recommendedAction.tab === 'comms' && recommendedAction.channel) {
+                            setActiveChannel(recommendedAction.channel);
+                        }
+                    }}
+                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider border ${isDark ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20' : 'bg-white border-cyan-300 text-cyan-700 hover:bg-cyan-100'}`}
+                >
+                    Ir ahora
+                </button>
+            </div>
+
             {/* TABS HEADER */}
-            <div className={`flex border-b mb-6 ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
+            <div className="md:hidden mb-3">
+                <select
+                    value={activeSubTab}
+                    onChange={(e) => setActiveSubTab(e.target.value as TrabajoSubTab)}
+                    className={`w-full px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border ${isDark ? 'bg-zinc-900 border-white/10 text-zinc-200' : 'bg-white border-gray-300 text-gray-800'}`}
+                >
+                    <option value="datos">Datos</option>
+                    <option value="comms">Contacto</option>
+                    <option value="seguimiento">Seguimiento</option>
+                    <option value="activo">Activo / Demo</option>
+                    <option value="investigacion">Inteligencia</option>
+                    <option value="assets">Activos</option>
+                </select>
+            </div>
+
+            <div className={`hidden md:flex border-b mb-6 ${isDark ? 'border-white/10' : 'border-zinc-200'}`}>
+                <button
+                    onClick={() => setActiveSubTab('datos')}
+                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'datos' ? 'border-zinc-500 text-zinc-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                >
+                    ℹ Datos
+                </button>
                 <button
                     onClick={() => setActiveSubTab('comms')}
                     className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'comms' ? 'border-cyan-500 text-cyan-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                 >
-                    💬 Comunicación
-                </button>
-                <button
-                    onClick={() => setActiveSubTab('activo')}
-                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'activo' ? 'border-amber-500 text-amber-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
-                >
-                    ⚡ Activo / Demo
+                    💬 Contacto
                 </button>
                 <button
                     onClick={() => setActiveSubTab('seguimiento')}
@@ -271,10 +449,10 @@ export const ModalTabTrabajo = ({
                     📅 Seguimiento
                 </button>
                 <button
-                    onClick={() => setActiveSubTab('assets')}
-                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'assets' ? 'border-amber-500 text-amber-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                    onClick={() => setActiveSubTab('activo')}
+                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'activo' ? 'border-amber-500 text-amber-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                 >
-                    <HardDrive className="w-4 h-4 inline mr-2" /> Activos
+                    ⚡ Activo / Demo
                 </button>
                 <button
                     onClick={() => setActiveSubTab('investigacion')}
@@ -283,19 +461,62 @@ export const ModalTabTrabajo = ({
                     <Brain className="w-4 h-4 inline mr-2" /> Inteligencia
                 </button>
                 <button
-                    onClick={() => setActiveSubTab('datos')}
-                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'datos' ? 'border-zinc-500 text-zinc-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                    onClick={() => setActiveSubTab('assets')}
+                    className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 ${activeSubTab === 'assets' ? 'border-amber-500 text-amber-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                 >
-                    ℹ️ Datos
+                    <HardDrive className="w-4 h-4 inline mr-2" /> Activos
                 </button>
             </div>
 
             {/* TAB CONTENT */}
             <div className="flex-1 overflow-hidden flex flex-col">
 
-                {/* 1. COMMS HUB */}
+                {/* 1. DATOS (Contact Card) */}
+                {activeSubTab === 'datos' && (
+                    <div className="animate-in fade-in duration-300">
+                        <ContactCard
+                            selectedLead={selectedLead}
+                            ld={ld}
+                            isDark={isDark}
+                            isEditingContact={isEditingContact}
+                            setIsEditingContact={setIsEditingContact}
+                            editData={editData}
+                            setEditData={setEditData}
+                            onSaveContact={onSaveContact}
+                            isSaving={isSaving}
+                            copyToClipboard={copyToClipboard}
+                        />
+                    </div>
+                )}
+
+                {/* 2. COMMS HUB */}
                 {activeSubTab === 'comms' && (
                     <div className="space-y-4 animate-in fade-in duration-300">
+                        <div className={`p-3 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                                <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>Wizard Contacto</p>
+                                <span className={`text-[10px] font-bold ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}>Paso {commsStep}/3</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                {[
+                                    { step: 1 as const, label: 'Redactar' },
+                                    { step: 2 as const, label: 'Enviar' },
+                                    { step: 3 as const, label: 'Registrar' }
+                                ].map((item) => (
+                                    <button
+                                        key={item.step}
+                                        onClick={() => setCommsStep(item.step)}
+                                        className={`px-2 py-2 rounded-lg text-[10px] font-bold uppercase border transition-all ${commsStep === item.step
+                                            ? (isDark ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300' : 'bg-cyan-100 border-cyan-300 text-cyan-700')
+                                            : (isDark ? 'bg-black/30 border-white/10 text-zinc-500 hover:text-zinc-300' : 'bg-white border-gray-200 text-gray-500 hover:text-gray-700')
+                                            }`}
+                                    >
+                                        {item.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* Channel Switcher */}
                         <div className={`rounded-xl border flex overflow-hidden ${isDark ? 'border-white/10 bg-zinc-900/50' : 'border-zinc-200 bg-white'}`}>
                             <button
@@ -325,7 +546,6 @@ export const ModalTabTrabajo = ({
                                     isDark={isDark}
                                     copyToClipboard={copyToClipboard}
                                     copiedField={copiedField}
-                                    onContactSuccess={handleContactSuccess}
                                 />
                             ) : (
                                 <EmailComposer
@@ -347,37 +567,50 @@ export const ModalTabTrabajo = ({
                                     isSendingEmail={isSendingEmail}
                                     copyToClipboard={copyToClipboard}
                                     copiedField={copiedField}
-                                    onContactSuccess={handleContactSuccess}
                                     getFullEmailBody={getFullEmailBody}
                                 />
                             )}
                         </div>
-                    </div>
-                )}
 
-                {/* 2. ACTIVO / DEMO */}
-                {activeSubTab === 'activo' && (
-                    <div className="space-y-6 animate-in fade-in duration-300">
-                        <StrategyDisplay
-                            analysis={analysis}
-                            isDark={isDark}
-                            selectedLead={selectedLead}
-                            setIsReportBuilderOpen={setIsReportBuilderOpen}
-                        />
-
-                        {/* Tracking Hub */}
-                        <TrackingPanel
-                            prospecto={(selectedLead.demo_url?.split('/').pop()) || (selectedLead.url?.split('/').pop()) || selectedLead.nombre?.toLowerCase().replace(/ /g, '-')}
-                            isDark={isDark}
-                        />
-
-                        <ReportBuilderModal
-                            isOpen={isReportBuilderOpen}
-                            onClose={() => setIsReportBuilderOpen(false)}
-                            lead={selectedLead}
-                            isDark={isDark}
-                            onSaveSuccess={(url) => { if (onLeadUpdate) onLeadUpdate({ ...selectedLead, pdf_url: url }); }}
-                        />
+                        <div className={`p-3 rounded-xl border flex flex-wrap gap-2 justify-end ${isDark ? 'bg-black/30 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                            {commsStep === 1 && (
+                                <button
+                                    onClick={() => setCommsStep(2)}
+                                    disabled={!hasDraftForChannel}
+                                    className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase border ${isDark ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300' : 'bg-cyan-100 border-cyan-300 text-cyan-700'} disabled:opacity-40`}
+                                >
+                                    Siguiente: Enviar
+                                </button>
+                            )}
+                            {commsStep === 2 && (
+                                <button
+                                    onClick={() => setCommsStep(3)}
+                                    disabled={!hasDraftForChannel}
+                                    className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase border ${isDark ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300' : 'bg-cyan-100 border-cyan-300 text-cyan-700'} disabled:opacity-40`}
+                                >
+                                    Siguiente: Registrar
+                                </button>
+                            )}
+                            {commsStep === 3 && (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            handleContactSuccess();
+                                            setActiveSubTab('seguimiento');
+                                        }}
+                                        className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase border ${isDark ? 'bg-green-500/10 border-green-500/30 text-green-300' : 'bg-green-100 border-green-300 text-green-700'}`}
+                                    >
+                                        Marcar Contactado
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveSubTab('seguimiento')}
+                                        className={`px-3 py-2 rounded-lg text-[10px] font-bold uppercase border ${isDark ? 'bg-white/5 border-white/10 text-zinc-300' : 'bg-white border-gray-300 text-gray-700'}`}
+                                    >
+                                        Ir a Seguimiento
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -416,13 +649,28 @@ export const ModalTabTrabajo = ({
                     </div>
                 )}
 
-                {/* 4. ASSETS VAULT */}
-                {activeSubTab === 'assets' && (
-                    <div className="animate-in fade-in duration-300 overflow-y-auto">
-                        <AssetVault
-                            leadId={selectedLead.id || selectedLead.db_id}
+                {/* 4. ACTIVO / DEMO */}
+                {activeSubTab === 'activo' && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <StrategyDisplay
+                            analysis={analysis}
                             isDark={isDark}
-                            initialAssets={selectedLead.source_data?.assets || []}
+                            selectedLead={selectedLead}
+                            setIsReportBuilderOpen={setIsReportBuilderOpen}
+                        />
+
+                        {/* Tracking Hub */}
+                        <TrackingPanel
+                            prospecto={trackingProspecto}
+                            isDark={isDark}
+                        />
+
+                        <ReportBuilderModal
+                            isOpen={isReportBuilderOpen}
+                            onClose={() => setIsReportBuilderOpen(false)}
+                            lead={selectedLead}
+                            isDark={isDark}
+                            onSaveSuccess={(url) => { if (onLeadUpdate) onLeadUpdate({ ...selectedLead, pdf_url: url }); }}
                         />
                     </div>
                 )}
@@ -431,27 +679,20 @@ export const ModalTabTrabajo = ({
                 {activeSubTab === 'investigacion' && (
                     <div className="animate-in fade-in duration-300 overflow-y-auto">
                         <IntelligenceLog
-                            leadId={selectedLead.id || selectedLead.db_id}
+                            leadId={leadId}
                             isDark={isDark}
                             initialNotes={selectedLead.source_data?.intelligence_log || []}
                         />
                     </div>
                 )}
 
-                {/* 6. DATOS (Contact Card) */}
-                {activeSubTab === 'datos' && (
-                    <div className="animate-in fade-in duration-300">
-                        <ContactCard
-                            selectedLead={selectedLead}
-                            ld={ld}
+                {/* 6. ASSETS VAULT */}
+                {activeSubTab === 'assets' && (
+                    <div className="animate-in fade-in duration-300 overflow-y-auto">
+                        <AssetVault
+                            leadId={leadId}
                             isDark={isDark}
-                            isEditingContact={isEditingContact}
-                            setIsEditingContact={setIsEditingContact}
-                            editData={editData}
-                            setEditData={setEditData}
-                            onSaveContact={onSaveContact}
-                            isSaving={isSaving}
-                            copyToClipboard={copyToClipboard}
+                            initialAssets={selectedLead.source_data?.assets || []}
                         />
                     </div>
                 )}

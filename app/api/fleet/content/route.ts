@@ -45,12 +45,12 @@ export async function POST(req: Request) {
         });
 
         // 3. Cargar archivos solicitados en paralelo
-        const results: any = {};
+        const results: Record<string, unknown> = {};
         await Promise.all(paths.map(async (path: string) => {
             try {
                 const fileData = await cms.getFile(path);
                 results[path] = fileData;
-            } catch (e) {
+            } catch {
                 console.warn(`[Fleet API] File not found: ${path}`);
                 results[path] = null;
             }
@@ -58,8 +58,9 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ results });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('[Fleet Content API] Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

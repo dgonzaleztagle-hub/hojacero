@@ -2,18 +2,31 @@ import { NextResponse } from 'next/server';
 
 // ===========================================
 // GENERADOR DE TEMPLATES - HOJACERO
-// Modelo: gpt-4o-mini (OpenAI)
+// Modelo: Groq (llama-3.1-8b-instant)
 // ===========================================
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
+const isValidApiKey = (key?: string) => {
+    if (!key) return false;
+    const trimmed = key.trim();
+    if (!trimmed) return false;
+    if (trimmed === 're_123' || trimmed === 'sk_test') return false;
+    if (trimmed.toLowerCase().startsWith('placeholder')) return false;
+    return true;
+};
 
 export async function POST(req: Request) {
     try {
         const { leadData, type, author } = await req.json();
 
-        if (!OPENAI_API_KEY && !GROQ_API_KEY) {
-            return NextResponse.json({ error: 'Falta configurar API de IA' }, { status: 500 });
+        const hasGroq = isValidApiKey(GROQ_API_KEY);
+        if (!hasGroq) {
+            return NextResponse.json({
+                success: false,
+                error: 'Missing API keys',
+                missing: ['GROQ_API_KEY']
+            }, { status: 503 });
         }
 
         // Configurar Firma Dinámica
@@ -101,50 +114,51 @@ REGLAS:
 Responde SOLO el cuerpo del email (incluye el asunto en la primera línea como "Asunto: ...").`;
         }
 
-        // API Call
-        // PRIORIDAD: GROQ (Para ahorrar costos, templates simples no requieren GPT-4)
-        const useGroq = !!GROQ_API_KEY;
+        let content = '';
+        try {
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${GROQ_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'llama-3.1-8b-instant',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: type === 'whatsapp'
+                                ? 'Eres un estratega de ventas B2B experto en WhatsApp. Escribes mensajes cortos e imposibles de ignorar. Tono semiformal y seguro.'
+                                : 'Eres el mejor copywriter de cold emails. Escribes correos que parecen personales, no marketing corporativo. Tono semiformal y profesional.'
+                        },
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: type === 'whatsapp' ? 150 : 300
+                })
+            });
 
-        const apiUrl = useGroq
-            ? 'https://api.groq.com/openai/v1/chat/completions'
-            : 'https://api.openai.com/v1/chat/completions';
+            if (!response.ok) {
+                const raw = await response.text();
+                throw new Error(`groq ${response.status}: ${raw.slice(0, 200)}`);
+            }
 
-        const apiKey = useGroq ? GROQ_API_KEY : OPENAI_API_KEY;
-        const model = useGroq ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model,
-                messages: [
-                    {
-                        role: 'system',
-                        content: type === 'whatsapp'
-                            ? 'Eres un estratega de ventas B2B experto en WhatsApp. Escribes mensajes cortos e imposibles de ignorar. Tono semiformal y seguro.'
-                            : 'Eres el mejor copywriter de cold emails. Escribes correos que parecen personales, no marketing corporativo. Tono semiformal y profesional.'
-                    },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.7,
-                max_tokens: type === 'whatsapp' ? 150 : 300
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Error en la API de IA');
+            const data = await response.json();
+            content = data.choices?.[0]?.message?.content?.trim() || '';
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'unknown error';
+            throw new Error(`Groq failed: ${message}`);
         }
 
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
+        if (!content) {
+            throw new Error('Groq returned empty content');
+        }
 
         return NextResponse.json({ success: true, message: content });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Template API Error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }

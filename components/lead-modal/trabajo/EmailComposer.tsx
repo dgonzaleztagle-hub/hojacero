@@ -1,27 +1,33 @@
 import React from 'react';
-import { Mail, User, Zap, Loader2, Copy, CheckCircle2, Send, AlertTriangle, Paperclip, X, ExternalLink, Link as LinkIcon } from 'lucide-react';
+import { User, Zap, Loader2, Copy, CheckCircle2, Send, AlertTriangle, Paperclip, X, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EmailComposerProps {
-    selectedLead: any;
+    selectedLead: {
+        email?: string;
+        title?: string;
+        pdf_url?: string;
+        demo_url?: string;
+        source_data?: { title?: unknown; pdf_url?: unknown; demo_url?: unknown; [key: string]: unknown };
+        [key: string]: unknown;
+    };
     isDark: boolean;
-    analysis: any;
+    analysis: { sales_angles?: string[]; [key: string]: unknown };
     emailSubject: string;
     setEmailSubject: (val: string) => void;
-    signatures: any[];
-    selectedSignature: any;
-    setSelectedSignature: (val: any) => void;
+    signatures: Array<{ id?: string; label: string; content: string; is_default?: boolean }>;
+    selectedSignature: { id?: string; label: string; content: string; is_default?: boolean } | null;
+    setSelectedSignature: (val: { id?: string; label: string; content: string; is_default?: boolean } | null) => void;
     aiTemplate: { content: string; type: 'whatsapp' | 'email' | null };
-    setAiTemplate: (val: any) => void;
+    setAiTemplate: (val: { content: string; type: 'whatsapp' | 'email' | null }) => void;
     isGeneratingTemplate: boolean;
-    onGenerateTemplate: (lead: any, type: 'whatsapp' | 'email') => void;
+    onGenerateTemplate: (lead: { email?: string; [key: string]: unknown }, type: 'whatsapp' | 'email') => void;
     attachments: { filename: string; path: string }[];
-    setAttachments: (val: any[]) => void;
-    handleSendEmail: () => Promise<any> | void;
+    setAttachments: (val: { filename: string; path: string }[]) => void;
+    handleSendEmail: () => Promise<void> | void;
     isSendingEmail: boolean;
     copyToClipboard: (text: string, field: string) => void;
     copiedField: string | null;
-    onContactSuccess: () => Promise<void> | void;
     getFullEmailBody: () => string;
 }
 
@@ -44,9 +50,14 @@ export const EmailComposer = ({
     isSendingEmail,
     copyToClipboard,
     copiedField,
-    onContactSuccess,
     getFullEmailBody
 }: EmailComposerProps) => {
+    const sourceTitle = typeof selectedLead.source_data?.title === 'string' ? selectedLead.source_data.title : '';
+    const sourcePdfUrl = typeof selectedLead.source_data?.pdf_url === 'string' ? selectedLead.source_data.pdf_url : '';
+    const sourceDemoUrl = typeof selectedLead.source_data?.demo_url === 'string' ? selectedLead.source_data.demo_url : '';
+    const titleValue = selectedLead.title || sourceTitle;
+    const pdfUrlValue = selectedLead.pdf_url || sourcePdfUrl;
+    const demoUrlValue = selectedLead.demo_url || sourceDemoUrl;
 
     return (
         <div className="space-y-5 animate-in fade-in slide-in-from-right-2 duration-300">
@@ -59,7 +70,7 @@ export const EmailComposer = ({
                         <span className={`text-xs font-medium ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>Enviado por:</span>
                     </div>
                     <div className="flex gap-2">
-                        {signatures.map((sig: any) => (
+                        {signatures.map((sig) => (
                             <button
                                 key={sig.id}
                                 onClick={() => setSelectedSignature(sig)}
@@ -92,7 +103,7 @@ export const EmailComposer = ({
                             </button>
                         ))}
                         <button
-                            onClick={() => setEmailSubject("Propuesta de Diseño Web - " + (selectedLead.title || selectedLead.source_data?.title))}
+                            onClick={() => setEmailSubject("Propuesta de Diseño Web - " + titleValue)}
                             className={`text-xs px-3 py-2 rounded-lg border text-left transition-all ${isDark ? 'bg-zinc-800/50 border-white/5 text-zinc-500' : 'bg-gray-50 border-gray-200 text-gray-400'}`}
                         >
                             Genérico
@@ -156,11 +167,11 @@ export const EmailComposer = ({
                                         )}
 
                                         <div className="flex gap-2">
-                                            {(selectedLead.pdf_url || selectedLead.source_data?.pdf_url) && (
+                                            {!!pdfUrlValue && (
                                                 <>
                                                     <button
                                                         onClick={() => {
-                                                            const url = selectedLead.pdf_url || selectedLead.source_data?.pdf_url;
+                                                            const url = pdfUrlValue;
                                                             // Check if already attached
                                                             if (attachments.find(a => a.path === url)) return toast.error('Ya está adjunto');
                                                             setAttachments([...attachments, { filename: 'Reporte_Estrategico.pdf', path: url }]);
@@ -170,17 +181,17 @@ export const EmailComposer = ({
                                                         <Paperclip className="w-3 h-3" /> Adjuntar PDF
                                                     </button>
                                                     <button
-                                                        onClick={() => setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n📄 Ver Reporte Estratégico: ${selectedLead.pdf_url || selectedLead.source_data?.pdf_url}` })}
+                                                        onClick={() => setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n📄 Ver Reporte Estratégico: ${pdfUrlValue}` })}
                                                         className={`text-[10px] px-2 py-1 rounded border flex items-center gap-1 hover:opacity-80 transition-opacity ${isDark ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}
                                                     >
                                                         <ExternalLink className="w-3 h-3" /> Insertar Link PDF
                                                     </button>
                                                 </>
                                             )}
-                                            {(selectedLead.demo_url || selectedLead.source_data?.demo_url) && (
+                                            {!!demoUrlValue && (
                                                 <button
                                                     onClick={() => {
-                                                        const rawUrl = selectedLead.demo_url || selectedLead.source_data?.demo_url || '';
+                                                        const rawUrl = demoUrlValue;
                                                         const url = rawUrl.startsWith('http') ? rawUrl : `https://hojacero.cl${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
                                                         setAiTemplate({ ...aiTemplate, content: aiTemplate.content + `\n\n🔗 Ver Demo Propuesto: ${url}` });
                                                     }}

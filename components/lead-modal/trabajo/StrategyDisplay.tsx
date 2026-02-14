@@ -3,13 +3,32 @@ import { Lightbulb, Zap, Copy, Download, ExternalLink, Link as LinkIcon } from '
 import { toast } from 'sonner';
 
 interface StrategyDisplayProps {
-    analysis: any;
+    analysis: {
+        salesStrategy?: {
+            hook?: string;
+            painPoints?: string[];
+            proposedSolution?: string;
+            estimatedValue?: string;
+        };
+        sales_angles?: string[];
+        content_ideas?: { email_subjects?: string[] };
+    };
     isDark: boolean;
-    selectedLead: any;
+    selectedLead: {
+        title?: string;
+        pdf_url?: string;
+        demo_url?: string;
+        source_data?: { pdf_url?: unknown; demo_url?: unknown; [key: string]: unknown };
+        [key: string]: unknown;
+    };
     setIsReportBuilderOpen: (val: boolean) => void;
 }
 
 export const StrategyDisplay = ({ analysis, isDark, selectedLead, setIsReportBuilderOpen }: StrategyDisplayProps) => {
+    const sourcePdfUrl = typeof selectedLead.source_data?.pdf_url === 'string' ? selectedLead.source_data.pdf_url : '';
+    const sourceDemoUrl = typeof selectedLead.source_data?.demo_url === 'string' ? selectedLead.source_data.demo_url : '';
+    const pdfUrlValue = selectedLead.pdf_url || sourcePdfUrl;
+    const demoUrlValue = selectedLead.demo_url || sourceDemoUrl;
 
     if (!analysis.salesStrategy) return null;
 
@@ -38,9 +57,9 @@ export const StrategyDisplay = ({ analysis, isDark, selectedLead, setIsReportBui
                 </button>
 
                 {/* VIEW PDF LINK */}
-                {(selectedLead.pdf_url || selectedLead.source_data?.pdf_url) && (
+                {!!pdfUrlValue && (
                     <a
-                        href={selectedLead.pdf_url || selectedLead.source_data?.pdf_url}
+                        href={pdfUrlValue}
                         target="_blank"
                         rel="noreferrer"
                         title="Ver el PDF generado y guardado en la nube."
@@ -56,11 +75,10 @@ export const StrategyDisplay = ({ analysis, isDark, selectedLead, setIsReportBui
                 )}
 
                 {/* DEMO LINK BUTTON */}
-                {(selectedLead.demo_url || selectedLead.source_data?.demo_url) && (
+                {!!demoUrlValue && (
                     <button
                         onClick={() => {
-                            const url = selectedLead.demo_url || selectedLead.source_data?.demo_url;
-                            navigator.clipboard.writeText(url);
+                            navigator.clipboard.writeText(demoUrlValue);
                             toast.success('Link del Demo copiado');
                         }}
                         title="Copiar el enlace de la landing page demo (Factory)."
@@ -123,7 +141,7 @@ ${(analysis.sales_angles || []).map((a: string) => `- ${a}`).join('\n')}
             <div className={`relative group p-5 rounded-2xl border ${isDark ? 'bg-black/20 border-white/5' : 'bg-white border-gray-200'}`}>
                 <span className={`text-[10px] font-bold uppercase tracking-wider block mb-2 ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Gancho de Apertura</span>
                 <p className={`text-sm italic leading-relaxed font-light pr-6 ${isDark ? 'text-zinc-200' : 'text-gray-700'}`}>
-                    "{analysis.salesStrategy?.hook || "Pendiente de análisis"}"
+                    &quot;{analysis.salesStrategy?.hook || 'Pendiente de análisis'}&quot;
                 </p>
             </div>
 

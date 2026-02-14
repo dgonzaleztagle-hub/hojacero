@@ -24,13 +24,14 @@ export default function Home() {
 
   // Check localStorage on mount
   useEffect(() => {
+    const isMobile = window.innerWidth < 768;
     const hasSeenIntro = localStorage.getItem(INTRO_SEEN_KEY);
-    if (hasSeenIntro) {
-      // Ya vio el intro, saltar directo
+    if (hasSeenIntro || isMobile) {
+      // Ya vio el intro O es móvil → saltar directo
       setLoading(false);
       setShowIntro(false);
     } else {
-      // Primera visita, mostrar intro
+      // Primera visita en desktop, mostrar intro
       setShowIntro(true);
     }
   }, []);

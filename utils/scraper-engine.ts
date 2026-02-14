@@ -65,36 +65,13 @@ export class ScraperEngine {
      */
     static async scrapeBatch(urls: string[], concurrency: number = 3): Promise<{ url: string, html: string | null }[]> {
         const results: { url: string, html: string | null }[] = [];
-        const executing: Promise<void>[] = [];
-
-        for (const url of urls) {
-            const p = this.fetchHtml(url, 3000).then(res => {
-                results.push({ url, html: res.html });
-            });
-
-            executing.push(p);
-
-            if (executing.length >= concurrency) {
-                await Promise.race(executing); // Wait for at least one to finish
-                // Clean up finished promises (not strictly necessary for simple batch but good practice)
-                // In a real pool we'd remove the finished one. 
-                // Since this is a simple "await race", it just unblocks. 
-                // Ideally we should remove the solved promise from 'executing'.
-            }
-        }
-
-        // For simplicity in this lightweight implementation, let's just use Promise.all for chunks if strict pool is overkill,
-        // OR better: use a proper pool logic.
-        // Let's stick to a simpler "Chunking" strategy which is safer and easier to debug for this scale.
-
-        const finalResults: { url: string, html: string | null }[] = [];
         for (let i = 0; i < urls.length; i += concurrency) {
             const chunk = urls.slice(i, i + concurrency);
             const promises = chunk.map(url => this.fetchHtml(url, 3000).then(res => ({ url, html: res.html })));
             const chunkResults = await Promise.all(promises);
-            finalResults.push(...chunkResults);
+            results.push(...chunkResults);
         }
 
-        return finalResults;
+        return results;
     }
 }

@@ -4,9 +4,44 @@ import React from 'react';
 import { Target, Zap, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface ModalTabDiagnosticoProps {
-    selectedLead: any;
-    analysis: any;
-    ld: any;
+    selectedLead: {
+        source_data?: {
+            lead_type?: string;
+            concept?: string;
+            references?: string;
+            deep_analysis?: Record<string, unknown>;
+            kimi_forensics?: {
+                secuestro?: { esSecuestrable?: boolean };
+                copyright?: { añoDetectado?: string | number };
+                saludSocial?: unknown[];
+            };
+            [key: string]: unknown;
+        };
+        branding?: {
+            logo_url?: string;
+            palette?: Record<string, string>;
+            palette_approved?: boolean;
+            generate_logo?: boolean;
+        };
+        website?: string;
+        razon_ia?: string;
+        [key: string]: unknown;
+    };
+    analysis: {
+        vibe?: string;
+        analysisReport?: string;
+        reason?: string;
+        competitiveAnalysis?: string;
+        scoreBreakdown?: Record<string, number>;
+        salesStrategy?: {
+            painPoints?: string[];
+            proposedSolution?: string;
+            estimatedValue?: string;
+        };
+        recommendedChannel?: string;
+        [key: string]: unknown;
+    };
+    ld: { hasSSL?: boolean; techStack?: string[] };
     isDark: boolean;
     isDeepAnalyzing: boolean;
     isReanalyzing: boolean;
@@ -16,8 +51,8 @@ interface ModalTabDiagnosticoProps {
     copyToClipboard: (text: string, field: string) => void;
     isEditingContact: boolean;
     setIsEditingContact: (v: boolean) => void;
-    editData: any;
-    setEditData: (d: any) => void;
+    editData: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string };
+    setEditData: (d: { nombre_contacto: string; email: string; whatsapp: string; telefono: string; demo_url: string }) => void;
     isSaving: boolean;
     setIsSaving: (v: boolean) => void; // Added based on usage
     onUpdateContact: () => void;
@@ -25,10 +60,10 @@ interface ModalTabDiagnosticoProps {
     newNote: string;
     setNewNote: (s: string) => void;
     saveNote: () => void;
-    notes: any[];
+    notes: Array<Record<string, unknown>>;
     deleteNote: (id: string) => void;
     isSavingNote: boolean;
-    leadActivities: any[];
+    leadActivities: Array<Record<string, unknown>>;
 }
 
 export const ModalTabDiagnostico = ({
@@ -40,22 +75,9 @@ export const ModalTabDiagnostico = ({
     isReanalyzing,
     onDeepAnalyze,
     onReanalyze,
-    copyToClipboard,
-    isEditingContact,
-    setIsEditingContact,
-    editData,
-    setEditData,
-    isSaving,
-    onUpdateContact,
-    copiedField,
-    newNote,
-    setNewNote,
-    saveNote,
-    notes,
-    deleteNote,
-    isSavingNote,
-    leadActivities
 }: ModalTabDiagnosticoProps) => {
+    const painPoints = analysis.salesStrategy?.painPoints ?? [];
+
     return (
         <div className="grid grid-cols-1 gap-6">
             {/* CONSTRUCTION HEADER (If applicable) */}
@@ -100,6 +122,7 @@ export const ModalTabDiagnostico = ({
                                         <div className="space-y-2">
                                             <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider block">Logo</span>
                                             <div className={`p-4 rounded-xl border flex items-center justify-center ${isDark ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-200'}`}>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
                                                     src={selectedLead.branding.logo_url}
                                                     alt="Logo"
@@ -149,34 +172,28 @@ export const ModalTabDiagnostico = ({
                 </div>
             )}
 
-            {/* FORENSIC PULSE (Kimi Engine) - Hide for projects */}
-            {selectedLead.source_data?.lead_type !== 'construction' && (analysis.forensic || selectedLead.source_data?.scraped?.forensic) && (
-                <div className={`rounded-3xl p-6 border flex flex-col items-center justify-center relative overflow-hidden transition-all ${isDark ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
-                    <div className="absolute top-0 right-0 p-3">
-                        <span className="flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                        </span>
-                    </div>
-
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500/60 mb-2">Fuga de Capital Digital</span>
-
-                    <div className="flex items-baseline gap-1">
-                        <span className={`text-4xl font-black tracking-tighter ${isDark ? 'text-white' : 'text-zinc-900'}`}>
-                            ${(analysis.forensic?.loss?.monthlyLoss || selectedLead.source_data?.scraped?.forensic?.loss?.monthlyLoss || 0).toLocaleString('es-CL')}
-                        </span>
-                        <span className="text-xs font-bold text-zinc-500">CLP / mes</span>
-                    </div>
-
-                    <div className="mt-4 flex items-center gap-4">
-                        <div className="flex flex-col items-center">
-                            <span className="text-[8px] font-bold text-zinc-500 uppercase">Arquetipo</span>
-                            <span className="text-xs font-black text-red-400">{analysis.forensic?.archetype || selectedLead.source_data?.scraped?.forensic?.archetype || 'TIEMPO'}</span>
+            {/* FORENSIC SNAPSHOT (sin pérdida mensual estimada) */}
+            {selectedLead.source_data?.lead_type !== 'construction' && selectedLead.source_data?.kimi_forensics && (
+                <div className={`rounded-3xl p-6 border transition-all ${isDark ? 'bg-red-500/5 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500/60 mb-3 block">Snapshot Forense</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className={`p-3 rounded-xl border ${isDark ? 'bg-black/30 border-white/5' : 'bg-white border-gray-200'}`}>
+                            <div className="text-[9px] font-bold uppercase text-zinc-500">Secuestro Técnico</div>
+                            <div className="text-xs font-black mt-1 text-red-400">
+                                {selectedLead.source_data.kimi_forensics.secuestro?.esSecuestrable ? 'Detectado' : 'No detectado'}
+                            </div>
                         </div>
-                        <div className="w-[1px] h-6 bg-white/5"></div>
-                        <div className="flex flex-col items-center">
-                            <span className="text-[8px] font-bold text-zinc-500 uppercase">Severidad</span>
-                            <span className="text-xs font-black text-red-400 uppercase">{analysis.forensic?.loss?.severity || selectedLead.source_data?.scraped?.forensic?.loss?.severity || 'ALTA'}</span>
+                        <div className={`p-3 rounded-xl border ${isDark ? 'bg-black/30 border-white/5' : 'bg-white border-gray-200'}`}>
+                            <div className="text-[9px] font-bold uppercase text-zinc-500">Copyright</div>
+                            <div className="text-xs font-black mt-1 text-amber-400">
+                                {selectedLead.source_data.kimi_forensics.copyright?.añoDetectado || 'Sin señal'}
+                            </div>
+                        </div>
+                        <div className={`p-3 rounded-xl border ${isDark ? 'bg-black/30 border-white/5' : 'bg-white border-gray-200'}`}>
+                            <div className="text-[9px] font-bold uppercase text-zinc-500">Redes activas</div>
+                            <div className="text-xs font-black mt-1 text-blue-400">
+                                {selectedLead.source_data.kimi_forensics.saludSocial?.length || 0}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -256,7 +273,7 @@ export const ModalTabDiagnostico = ({
                     {analysis.competitiveAnalysis && (
                         <div className={`rounded-2xl p-5 border ${isDark ? 'bg-black/40 border-white/5' : 'bg-white border-gray-200'}`}>
                             <span className={`text-[10px] font-bold uppercase block mb-2 tracking-wider ${isDark ? 'text-zinc-500' : 'text-gray-500'}`}>Contexto Competitivo</span>
-                            <p className={`text-sm leading-relaxed italic ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>"{analysis.competitiveAnalysis}"</p>
+                            <p className={`text-sm leading-relaxed italic ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>&quot;{analysis.competitiveAnalysis}&quot;</p>
                         </div>
                     )}
                 </div>
@@ -271,7 +288,7 @@ export const ModalTabDiagnostico = ({
                             { key: 'techScore', icon: '⚙️', label: 'TECH' },
                             { key: 'socialScore', icon: '📱', label: 'SOCIAL' }
                         ].map(({ key, icon, label }) => {
-                            const score = (analysis.scoreBreakdown as any)[key] || 0;
+                            const score = analysis.scoreBreakdown?.[key] || 0;
                             const isGood = score === 0;
                             return (
                                 <div key={key} className={`text-center p-2.5 rounded-2xl border transition-all ${isGood ? 'bg-green-500/10 border-green-500/20 opacity-60' : 'bg-red-500/10 border-red-500/20'}`}>
@@ -291,8 +308,8 @@ export const ModalTabDiagnostico = ({
                     <div className={`col-span-2 p-4 rounded-xl border transition-all group ${isDark ? 'bg-black/20 border-white/5 hover:border-cyan-500/20' : 'bg-white border-gray-200 hover:border-blue-300'}`}>
                         <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-2">Pain Points</span>
                         <p className="text-xs text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
-                            {analysis.salesStrategy?.painPoints?.length > 0
-                                ? analysis.salesStrategy.painPoints.join(', ')
+                            {painPoints.length > 0
+                                ? painPoints.join(', ')
                                 : (selectedLead.source_data?.lead_type === 'construction' ? 'Falta de presencia digital, pérdida de autoridad.' : 'Sin pain points detectados')}
                         </p>
                     </div>

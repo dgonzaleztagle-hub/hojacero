@@ -3,14 +3,13 @@ import { Loader2, Zap, Copy, CheckCircle2, Send, AlertTriangle } from 'lucide-re
 
 interface WhatsappPanelProps {
     aiTemplate: { content: string; type: 'whatsapp' | 'email' | null };
-    setAiTemplate: (val: any) => void;
-    onGenerateTemplate: (lead: any, type: 'whatsapp') => void;
+    setAiTemplate: (val: { content: string; type: 'whatsapp' | 'email' | null }) => void;
+    onGenerateTemplate: (lead: { whatsapp?: string; source_data?: { whatsapp?: unknown; [key: string]: unknown }; [key: string]: unknown }, type: 'whatsapp') => void;
     isGeneratingTemplate: boolean;
-    selectedLead: any;
+    selectedLead: { whatsapp?: string; source_data?: { whatsapp?: unknown; [key: string]: unknown }; [key: string]: unknown };
     isDark: boolean;
     copyToClipboard: (text: string, field: string) => void;
     copiedField: string | null;
-    onContactSuccess: () => Promise<void> | void;
 }
 
 export const WhatsappPanel = ({
@@ -21,14 +20,16 @@ export const WhatsappPanel = ({
     selectedLead,
     isDark,
     copyToClipboard,
-    copiedField,
-    onContactSuccess
+    copiedField
 }: WhatsappPanelProps) => {
+    const sourceWhatsapp = typeof selectedLead.source_data?.whatsapp === 'string' ? selectedLead.source_data.whatsapp : '';
+    const whatsappValue = selectedLead.whatsapp || sourceWhatsapp;
+
     return (
         <div className="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
             <div className="flex items-center justify-between">
                 <p className={`text-xs ${isDark ? 'text-zinc-400' : 'text-gray-600'}`}>
-                    Genera un mensaje corto ("The Nudge") para iniciar conversación.
+                    Genera un mensaje corto (&quot;The Nudge&quot;) para iniciar conversación.
                 </p>
                 {!aiTemplate.content && (
                     <button
@@ -64,9 +65,9 @@ export const WhatsappPanel = ({
                                 >
                                     {copiedField === 'wa-msg' ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                                 </button>
-                                {!!(selectedLead.whatsapp || selectedLead.source_data?.whatsapp) ? (
+                                {!!whatsappValue ? (
                                     <a
-                                        href={`https://wa.me/${(selectedLead.whatsapp || selectedLead.source_data?.whatsapp || '').replace(/\D/g, '')}?text=${encodeURIComponent(aiTemplate.content)}`}
+                                        href={`https://wa.me/${whatsappValue.replace(/\D/g, '')}?text=${encodeURIComponent(aiTemplate.content)}`}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="px-4 py-2 bg-green-500 hover:bg-green-600 text-black font-bold rounded-lg text-xs flex items-center gap-2 transition-all shadow-lg shadow-green-500/20"

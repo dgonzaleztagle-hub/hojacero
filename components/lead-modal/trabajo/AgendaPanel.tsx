@@ -2,7 +2,11 @@ import React from 'react';
 import { Calendar, Loader2, Save } from 'lucide-react';
 
 interface AgendaPanelProps {
-    selectedLead: any;
+    selectedLead: {
+        next_action_date?: string | null;
+        next_action_note?: string;
+        [key: string]: unknown;
+    };
     isDark: boolean;
     dateInput: string;
     setDateInput: (val: string) => void;

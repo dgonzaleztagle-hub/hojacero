@@ -1,19 +1,37 @@
 export const getAnalysis = (lead: any) => {
     const raw = lead.analysis || lead.source_data?.analysis || {};
-    if (raw.painPoints && !raw.salesStrategy) {
-        return {
-            salesStrategy: {
-                painPoints: Array.isArray(raw.painPoints) ? raw.painPoints : [raw.painPoints || 'Sin dolor detectado'],
-                hook: raw.vibe ? `Abordaje ${raw.vibe}` : 'Consultoría Digital',
-                proposedSolution: raw.suggestedSolution || 'Pendiente',
-                estimatedValue: raw.estimatedValue || 'Por Definir'
-            },
-            scoreBreakdown: raw.scoreBreakdown || {},
-            recommendedChannel: 'Email',
-            competitiveAnalysis: raw.vibe || 'Análisis pendiente'
-        };
-    }
-    return raw;
+    const fallbackStrategy = {
+        painPoints: [] as string[],
+        hook: raw.vibe ? `Abordaje ${raw.vibe}` : 'Consultoría Digital',
+        proposedSolution: raw.suggestedSolution || 'Pendiente',
+        estimatedValue: raw.estimatedValue || 'Por Definir'
+    };
+
+    const salesStrategy = raw.salesStrategy || (raw.painPoints ? {
+        painPoints: Array.isArray(raw.painPoints) ? raw.painPoints : [raw.painPoints || 'Sin dolor detectado'],
+        hook: fallbackStrategy.hook,
+        proposedSolution: fallbackStrategy.proposedSolution,
+        estimatedValue: fallbackStrategy.estimatedValue
+    } : fallbackStrategy);
+
+    return {
+        ...raw,
+        salesStrategy,
+        scoreBreakdown: normalizeScoreBreakdown(raw.scoreBreakdown || {}),
+        recommendedChannel: raw.recommendedChannel || 'Email',
+        competitiveAnalysis: raw.competitiveAnalysis || raw.vibe || 'Análisis pendiente'
+    };
+};
+
+export const normalizeScoreBreakdown = (breakdown: Record<string, unknown>) => {
+    const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+    return {
+        webScore: n(breakdown.webScore ?? breakdown.sinWeb),
+        reviewsScore: n(breakdown.reviewsScore ?? breakdown.ratingBajo),
+        contactScore: n(breakdown.contactScore ?? breakdown.sinContactoDigital),
+        techScore: n(breakdown.techScore ?? breakdown.techObsoleta),
+        socialScore: n(breakdown.socialScore ?? breakdown.sinRedesSociales)
+    };
 };
 
 export const getLeadData = (lead: any, location = 'Santiago, Chile') => {

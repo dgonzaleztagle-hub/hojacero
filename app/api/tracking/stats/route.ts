@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Admin client to bypass RLS and ensure accurate counts
@@ -11,7 +11,7 @@ function getAdminClient() {
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const supabase = getAdminClient();
 
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
         // Aggregate in memory
         const counts: Record<string, number> = {};
-        data.forEach((row: any) => {
+        data.forEach((row: { prospecto?: string | null }) => {
             const p = row.prospecto;
             if (p) {
                 counts[p] = (counts[p] || 0) + 1;
@@ -48,8 +48,9 @@ export async function GET(req: NextRequest) {
             counts
         });
 
-    } catch (e: any) {
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Internal Error';
         console.error('Error fetching tracking stats:', e);
-        return NextResponse.json({ error: e.message || 'Internal Error' }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

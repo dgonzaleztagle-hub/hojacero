@@ -1,17 +1,38 @@
 
 import React, { useState } from 'react';
-import { Brain, Save, Loader2, Sparkles, MessageSquare, History, User } from 'lucide-react';
+import { Brain, Save, Loader2, Sparkles } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
+
+type IntelligenceNote = {
+    id: string;
+    content: string;
+    author: 'Antigravity' | 'User';
+    created_at: string;
+};
 
 interface IntelligenceLogProps {
     leadId: string;
     isDark: boolean;
-    initialNotes?: any[];
+    initialNotes?: unknown[];
 }
 
 export function IntelligenceLog({ leadId, isDark, initialNotes = [] }: IntelligenceLogProps) {
-    const [notes, setNotes] = useState<any[]>(initialNotes);
+    const normalizedInitialNotes: IntelligenceNote[] = initialNotes
+        .map((note, idx) => {
+            if (!note || typeof note !== 'object') return null;
+            const record = note as Record<string, unknown>;
+            const content = typeof record.content === 'string' ? record.content : '';
+            if (!content) return null;
+            return {
+                id: typeof record.id === 'string' ? record.id : `${Date.now()}-${idx}`,
+                content,
+                author: record.author === 'User' ? 'User' : 'Antigravity',
+                created_at: typeof record.created_at === 'string' ? record.created_at : new Date().toISOString()
+            };
+        })
+        .filter((note): note is IntelligenceNote => note !== null);
+    const [notes, setNotes] = useState<IntelligenceNote[]>(normalizedInitialNotes);
     const [newNote, setNewNote] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [author, setAuthor] = useState<'Antigravity' | 'User'>('Antigravity');

@@ -2,6 +2,64 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useDashboard } from '@/app/dashboard/DashboardContext';
 import { useSearchParams } from 'next/navigation';
+import { normalizeScoreBreakdown } from '@/utils/radar-helpers';
+
+type LeadSourceData = {
+    address?: string;
+    telefono?: string;
+    emails?: string[];
+    email?: string;
+    whatsapp?: string;
+    instagram?: string;
+    facebook?: string;
+    sitio_web?: string;
+    rating?: number | string;
+    techStack?: unknown[];
+    hasSSL?: boolean;
+    demo_url?: string;
+    nombre_contacto?: string;
+    analysis?: Record<string, unknown>;
+    scraped?: Record<string, unknown>;
+    deep_analysis?: Record<string, unknown>;
+    [key: string]: unknown;
+};
+
+type LeadRecord = {
+    id?: string;
+    db_id?: string;
+    title?: string;
+    nombre?: string;
+    address?: string;
+    direccion?: string;
+    telefono?: string;
+    phoneNumber?: string;
+    emails?: string[];
+    email?: string;
+    whatsapp?: string;
+    instagram?: string;
+    facebook?: string;
+    website?: string;
+    sitio_web?: string;
+    rating?: number | string;
+    techStack?: unknown[];
+    hasSSL?: boolean;
+    analysis?: Record<string, unknown>;
+    zona_busqueda?: string;
+    nota_revision?: string;
+    revisado_por?: string | null;
+    demo_url?: string;
+    nombre_contacto?: string;
+    pipeline_stage?: string;
+    estado?: string;
+    source_data?: LeadSourceData;
+    updated_at?: string;
+    puntaje_oportunidad?: number;
+    razon_ia?: string;
+    domain?: string;
+    url?: string;
+    categoria?: string;
+    [key: string]: unknown;
+};
 
 export interface ChatMessage {
     id: string;
@@ -17,13 +75,13 @@ export function useRadar() {
 
     // Tabs & Navigation
     const [activeTab, setActiveTab] = useState<'scanner' | 'pipeline' | 'closed' | 'history'>('scanner');
-    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo' | 'forense' | 'territorial'>('diagnostico');
+    const [modalTab, setModalTab] = useState<'diagnostico' | 'auditoria' | 'estrategia' | 'trabajo' | 'forense'>('diagnostico');
 
     // Data Lists
-    const [historyLeads, setHistoryLeads] = useState<any[]>([]);
-    const [pipelineLeads, setPipelineLeads] = useState<any[]>([]);
-    const [closedLeads, setClosedLeads] = useState<any[]>([]); // New list
-    const [leads, setLeads] = useState<any[]>([]);
+    const [historyLeads, setHistoryLeads] = useState<LeadRecord[]>([]);
+    const [pipelineLeads, setPipelineLeads] = useState<LeadRecord[]>([]);
+    const [closedLeads, setClosedLeads] = useState<LeadRecord[]>([]); // New list
+    const [leads, setLeads] = useState<LeadRecord[]>([]);
 
     // ...
 
@@ -41,9 +99,9 @@ export function useRadar() {
     // ...
 
 
-    const [selectedLead, setSelectedLead] = useState<any | null>(null);
-    const [leadActivities, setLeadActivities] = useState<any[]>([]);
-    const [notes, setNotes] = useState<any[]>([]);
+    const [selectedLead, setSelectedLead] = useState<LeadRecord | null>(null);
+    const [leadActivities, setLeadActivities] = useState<Array<Record<string, unknown>>>([]);
+    const [notes, setNotes] = useState<Array<Record<string, unknown>>>([]);
 
     // Actions State
     const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -69,25 +127,24 @@ export function useRadar() {
 
     // --- Helpers ---
 
-    const getAnalysis = (lead: any) => {
-        const raw = lead.analysis || lead.source_data?.analysis || {};
-        if (raw.painPoints && !raw.salesStrategy) {
-            return {
-                salesStrategy: {
-                    painPoints: Array.isArray(raw.painPoints) ? raw.painPoints : [raw.painPoints || 'Sin dolor detectado'],
-                    hook: raw.vibe ? `Abordaje ${raw.vibe}` : 'Consultoría Digital',
-                    proposedSolution: raw.suggestedSolution || 'Pendiente',
-                    estimatedValue: raw.estimatedValue || 'Por Definir'
-                },
-                scoreBreakdown: raw.scoreBreakdown || {},
-                recommendedChannel: 'Email',
-                competitiveAnalysis: raw.vibe || 'Análisis pendiente'
-            };
-        }
-        return raw;
+    const getAnalysis = (lead: LeadRecord) => {
+        const raw = (lead.analysis || lead.source_data?.analysis || {}) as Record<string, unknown>;
+        const salesStrategy = raw.salesStrategy || {
+            painPoints: Array.isArray(raw.painPoints) ? raw.painPoints : (raw.painPoints ? [raw.painPoints] : []),
+            hook: raw.vibe ? `Abordaje ${String(raw.vibe)}` : 'Consultoría Digital',
+            proposedSolution: raw.suggestedSolution || 'Pendiente',
+            estimatedValue: raw.estimatedValue || 'Por Definir'
+        };
+        return {
+            ...raw,
+            salesStrategy,
+            scoreBreakdown: normalizeScoreBreakdown((raw.scoreBreakdown || {}) as Record<string, unknown>),
+            recommendedChannel: raw.recommendedChannel || 'Email',
+            competitiveAnalysis: raw.competitiveAnalysis || raw.vibe || 'Análisis pendiente'
+        };
     };
 
-    const getLeadData = (lead: any) => {
+    const getLeadData = (lead: LeadRecord) => {
         const sourceData = lead.source_data || {};
         return {
             title: lead.title || lead.nombre || 'Sin nombre',
@@ -188,7 +245,7 @@ export function useRadar() {
             } else {
                 setError(data.error || 'Error al escanear.');
             }
-        } catch (err) {
+        } catch {
             setError('Error de conexión.');
         } finally {
             setIsScanning(false);
@@ -209,8 +266,9 @@ export function useRadar() {
             if (error) throw error;
             setNewChatMessage('');
             fetchChatMessages(leadId);
-        } catch (err: any) {
-            alert('Error al enviar mensaje: ' + err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Error desconocido';
+            alert('Error al enviar mensaje: ' + message);
         }
     };
 
@@ -277,7 +335,10 @@ export function useRadar() {
                 // Merge data into selectedLead
                 const updatedSourceData = {
                     ...(selectedLead.source_data || {}),
-                    analysis: data.analysis
+                    analysis: data.analysis,
+                    analysis_updated_at: new Date().toISOString(),
+                    forensic_needs_refresh: true,
+                    deep_analysis_stale: Boolean(selectedLead.source_data?.deep_analysis)
                 };
 
                 const updatedLead = {
@@ -321,9 +382,10 @@ export function useRadar() {
 
             // Close modal
             setSelectedLead(null);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error deleting lead:', err);
-            alert('Error al eliminar lead: ' + err.message);
+            const message = err instanceof Error ? err.message : 'Error desconocido';
+            alert('Error al eliminar lead: ' + message);
         } finally {
             setIsSaving(false);
         }
@@ -373,7 +435,9 @@ export function useRadar() {
                     scraped: data.scraped,
                     deep_analysis: { ...data.analysis, techSpecs: data.analysis.techSpecs }, // ensure structure matches
                     kimi_forensics: data.kimiForensics, // <-- NUEVO: Datos de Kimi Forensics
-                    last_audit_date: new Date().toISOString()
+                    last_audit_date: new Date().toISOString(),
+                    forensic_needs_refresh: false,
+                    deep_analysis_stale: false
                 };
 
                 const updatedLead = {
@@ -403,6 +467,7 @@ export function useRadar() {
 
     // --- Effects ---
 
+    /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
         if (activeTab === 'history') fetchHistory();
         if (activeTab === 'pipeline') fetchPipeline();
@@ -415,26 +480,30 @@ export function useRadar() {
         fetchClosed();
         fetchPipeline();
     }, []);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     // ... (Deep Linking effect remains) ...
 
 
 
     // Deep Linking
+    /* eslint-disable react-hooks/exhaustive-deps */
     useEffect(() => {
         const targetId = searchParams.get('leadId');
         if (targetId && !selectedLead) {
             const checkAndOpen = async () => {
-                let target = leads.find(l => l.id === targetId) || pipelineLeads.find(l => l.id === targetId);
+                let target: LeadRecord | null = leads.find(l => l.id === targetId) || pipelineLeads.find(l => l.id === targetId) || null;
                 if (!target) {
                     const { data } = await supabase.from('leads').select('*').eq('id', targetId).single();
-                    if (data) target = data;
+                    if (data) target = data as LeadRecord;
                 }
                 if (target) {
                     setSelectedLead(target);
-                    fetchLeadActivities(target.id || target.db_id);
-                    fetchNotes(target.id || target.db_id);
-                    fetchChatMessages(target.id || target.db_id);
+                    const targetLeadId = target.id || target.db_id;
+                    if (!targetLeadId) return;
+                    fetchLeadActivities(targetLeadId);
+                    fetchNotes(targetLeadId);
+                    fetchChatMessages(targetLeadId);
                     window.history.replaceState(null, '', window.location.pathname);
                 }
             };
@@ -448,7 +517,7 @@ export function useRadar() {
             const updated = pipelineLeads.find(l => (l.id === selectedLead.id || l.db_id === selectedLead.id));
             // Only update if there is a difference to avoid loop, specifically check pipeline_stage or estado
             if (updated && (updated.pipeline_stage !== selectedLead.pipeline_stage || updated.estado !== selectedLead.estado)) {
-                setSelectedLead((prev: any) => ({ ...prev, ...updated }));
+                setSelectedLead((prev) => ({ ...prev, ...updated }));
             }
         }
     }, [pipelineLeads]);
@@ -468,6 +537,7 @@ export function useRadar() {
             .subscribe();
         return () => { supabase.removeChannel(channel); };
     }, [selectedLead]);
+    /* eslint-enable react-hooks/exhaustive-deps */
 
     return {
         // State

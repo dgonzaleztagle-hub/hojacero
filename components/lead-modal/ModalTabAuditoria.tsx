@@ -1,14 +1,47 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2, Server, Globe, Clock, Lock } from 'lucide-react';
+import { TrendingUp, Users, Link2, ShieldAlert, AlertTriangle, Zap, Loader2, Server, Globe, Clock } from 'lucide-react';
 
 interface ModalTabAuditoriaProps {
-    selectedLead: any;
+    selectedLead: {
+        source_data?: {
+            deep_analysis?: {
+                techSpecs?: {
+                    security?: { https?: boolean; hsts?: boolean };
+                    infrastructure?: { mxRecords?: boolean; host?: string; cloudflare?: boolean };
+                    dns?: { hasSpf?: boolean };
+                    performance?: { ttfb?: number };
+                    pageSpeed?: {
+                        mobileScore?: number | null;
+                        desktopScore?: number | null;
+                        isMobileFriendly?: boolean;
+                        coreWebVitals?: { lcp?: string; cls?: string };
+                    };
+                };
+                designAnalysis?: { estimatedAge?: string; worstProblems?: string[] };
+                executiveSummary?: string;
+                salesStrategy?: { painPoints?: string[]; hook?: string };
+                painPoints?: string[];
+                seoScore?: number;
+                contentStrategy?: string;
+                backlinkOpportunities?: string[];
+                competitors?: string[];
+                topCompetitors?: string[];
+                technicalIssues?: Array<string | { issue?: string; impact?: string }>;
+                [key: string]: unknown;
+            };
+            scraped?: {
+                hasSSL?: boolean;
+                forensic?: { archetype?: string };
+            };
+            deep_analysis_stale?: boolean;
+        };
+    };
     isDark: boolean;
     isDeepAnalyzing?: boolean; // make optional if not passed
     onDeepAnalyze?: () => void; // make optional
-    ld?: any; // make optional
+    ld?: Record<string, unknown>; // make optional
     isReanalyzing?: boolean; // Add this
     setIsReanalyzing?: (v: boolean) => void; // Add this
 }
@@ -17,13 +50,11 @@ export const ModalTabAuditoria = ({
     selectedLead,
     isDark,
     isDeepAnalyzing,
-    onDeepAnalyze,
-    ld,
-    isReanalyzing,
-    setIsReanalyzing
+    onDeepAnalyze
 }: ModalTabAuditoriaProps) => {
     const deepAnalysis = selectedLead.source_data?.deep_analysis;
     const scraped = selectedLead.source_data?.scraped;
+    const staleAudit = Boolean(selectedLead.source_data?.deep_analysis_stale);
 
     // Use scraped.hasSSL as the source of truth for SSL (more accurate)
     const hasSSL = scraped?.hasSSL ?? deepAnalysis?.techSpecs?.security?.https ?? false;
@@ -52,6 +83,31 @@ export const ModalTabAuditoria = ({
         );
     }
 
+    const techSpecs = deepAnalysis.techSpecs ?? {
+        security: { https: false, hsts: false },
+        infrastructure: { mxRecords: false, host: null, cloudflare: false },
+        dns: { hasSpf: false },
+        performance: { ttfb: null },
+        pageSpeed: {
+            mobileScore: null,
+            desktopScore: null,
+            isMobileFriendly: null,
+            coreWebVitals: null
+        }
+    };
+    const infra = techSpecs.infrastructure ?? { mxRecords: false, host: null, cloudflare: false };
+    const dns = techSpecs.dns ?? { hasSpf: false };
+    const perf = techSpecs.performance ?? { ttfb: null };
+    const pageSpeed = techSpecs.pageSpeed ?? {
+        mobileScore: null,
+        desktopScore: null,
+        isMobileFriendly: null,
+        coreWebVitals: null
+    };
+    const mobileScore = typeof pageSpeed.mobileScore === 'number' ? pageSpeed.mobileScore : 0;
+    const desktopScore = typeof pageSpeed.desktopScore === 'number' ? pageSpeed.desktopScore : 0;
+    const seoScore = typeof deepAnalysis.seoScore === 'number' ? deepAnalysis.seoScore : 0;
+
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
             <div className="flex items-center justify-between">
@@ -59,6 +115,11 @@ export const ModalTabAuditoria = ({
                     <TrendingUp className="w-4 h-4" /> Reporte de Inteligencia (SEO & Competencia)
                 </h4>
                 <div className="flex items-center gap-2">
+                    {staleAudit && (
+                        <span className="px-2 py-1 bg-amber-500/10 border border-amber-500/30 rounded text-[10px] font-black text-amber-400 uppercase">
+                            Datos potencialmente desactualizados
+                        </span>
+                    )}
                     {selectedLead.source_data?.scraped?.forensic?.archetype && (
                         <span className="px-2 py-1 bg-red-500/10 border border-red-500/20 rounded text-[10px] font-black text-red-400 uppercase">
                             Arquetipo: {selectedLead.source_data?.scraped?.forensic?.archetype}
@@ -76,7 +137,7 @@ export const ModalTabAuditoria = ({
             </div>
 
             {/* TECHNICAL HEALTH (Web-Check Style) */}
-            {deepAnalysis.techSpecs && (
+            {techSpecs && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-3">
                     {/* Security / SSL */}
                     {/* Security - REMOVED PER USER REQUEST */}
@@ -90,22 +151,22 @@ export const ModalTabAuditoria = ({
                             {hasSSL ? 'SSL Activo' : 'Sin HTTPS'}
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
-                            {deepAnalysis.techSpecs?.security?.hsts ? '+HSTS' : 'Sin HSTS'}
+                            {techSpecs?.security?.hsts ? '+HSTS' : 'Sin HSTS'}
                         </div>
                     </div>
                     */}
 
                     {/* Email / DNS */}
-                    <div className={`p-5 rounded-2xl border ${deepAnalysis.techSpecs.infrastructure.mxRecords ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
+                    <div className={`p-5 rounded-2xl border ${infra.mxRecords ? 'bg-indigo-500/10 border-indigo-500/20' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
                         <div className="flex items-center gap-2 mb-2">
-                            <Server className={`w-4 h-4 ${deepAnalysis.techSpecs.infrastructure.mxRecords ? 'text-indigo-400' : 'text-yellow-400'}`} />
-                            <span className={`text-xs font-bold uppercase ${deepAnalysis.techSpecs.infrastructure.mxRecords ? 'text-indigo-400' : 'text-yellow-400'}`}>Email</span>
+                            <Server className={`w-4 h-4 ${infra.mxRecords ? 'text-indigo-400' : 'text-yellow-400'}`} />
+                            <span className={`text-xs font-bold uppercase ${infra.mxRecords ? 'text-indigo-400' : 'text-yellow-400'}`}>Email</span>
                         </div>
                         <div className={`text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
-                            {deepAnalysis.techSpecs.infrastructure.mxRecords ? 'MX Configurado' : 'Sin Email Prof.'}
+                            {infra.mxRecords ? 'MX Configurado' : 'Sin Email Prof.'}
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
-                            {deepAnalysis.techSpecs.dns.hasSpf ? 'SPF OK' : 'Posible Spam'}
+                            {dns.hasSpf ? 'SPF OK' : 'Posible Spam'}
                         </div>
                     </div>
 
@@ -116,7 +177,7 @@ export const ModalTabAuditoria = ({
                             <span className="text-xs font-bold uppercase text-blue-400">Velocidad</span>
                         </div>
                         <div className={`text-sm font-medium ${isDark ? 'text-zinc-200' : 'text-gray-800'}`}>
-                            {deepAnalysis.techSpecs.performance.ttfb ? `${deepAnalysis.techSpecs.performance.ttfb}ms TTFB` : 'N/A'}
+                            {perf.ttfb ? `${perf.ttfb}ms TTFB` : 'N/A'}
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
                             Respuesta Server
@@ -129,18 +190,18 @@ export const ModalTabAuditoria = ({
                             <Globe className="w-4 h-4 text-purple-400" />
                             <span className="text-xs font-bold uppercase text-purple-400">Infra</span>
                         </div>
-                        <div className={`text-sm font-medium truncate ${isDark ? 'text-zinc-200' : 'text-gray-800'}`} title={deepAnalysis.techSpecs.infrastructure.host || 'Desconocido'}>
-                            {deepAnalysis.techSpecs.infrastructure.host || 'Desconocido'}
+                        <div className={`text-sm font-medium truncate ${isDark ? 'text-zinc-200' : 'text-gray-800'}`} title={infra.host || 'Desconocido'}>
+                            {infra.host || 'Desconocido'}
                         </div>
                         <div className="text-xs text-zinc-500 mt-1">
-                            {deepAnalysis.techSpecs.infrastructure.cloudflare ? 'Usando Cloudflare' : 'Direct IP'}
+                            {infra.cloudflare ? 'Usando Cloudflare' : 'Direct IP'}
                         </div>
                     </div>
                 </div>
             )}
 
             {/* PAGE SPEED & CORE WEB VITALS */}
-            {deepAnalysis.techSpecs?.pageSpeed && (deepAnalysis.techSpecs.pageSpeed.mobileScore !== null) && (
+            {techSpecs?.pageSpeed && (pageSpeed.mobileScore !== null) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-3">
                     {/* Scores Section */}
                     <div className={`p-5 rounded-2xl border ${isDark ? 'bg-zinc-800/50 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
@@ -151,21 +212,21 @@ export const ModalTabAuditoria = ({
                         <div className="flex items-center gap-8 justify-center">
                             {/* Mobile Score */}
                             <div className="flex flex-col items-center gap-2">
-                                <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${deepAnalysis.techSpecs.pageSpeed.mobileScore >= 90 ? 'border-green-500 text-green-400' :
-                                    deepAnalysis.techSpecs.pageSpeed.mobileScore >= 50 ? 'border-yellow-500 text-yellow-400' :
+                                <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${mobileScore >= 90 ? 'border-green-500 text-green-400' :
+                                    mobileScore >= 50 ? 'border-yellow-500 text-yellow-400' :
                                         'border-red-500 text-red-400'
                                     }`}>
-                                    <span className="text-xl font-bold">{deepAnalysis.techSpecs.pageSpeed.mobileScore}</span>
+                                    <span className="text-xl font-bold">{mobileScore}</span>
                                 </div>
                                 <span className="text-xs uppercase font-bold text-zinc-500">Móvil</span>
                             </div>
                             {/* Desktop Score */}
                             <div className="flex flex-col items-center gap-2">
-                                <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${deepAnalysis.techSpecs.pageSpeed.desktopScore >= 90 ? 'border-green-500 text-green-400' :
-                                    deepAnalysis.techSpecs.pageSpeed.desktopScore >= 50 ? 'border-yellow-500 text-yellow-400' :
+                                <div className={`relative w-16 h-16 rounded-full border-4 flex items-center justify-center ${desktopScore >= 90 ? 'border-green-500 text-green-400' :
+                                    desktopScore >= 50 ? 'border-yellow-500 text-yellow-400' :
                                         'border-red-500 text-red-400'
                                     }`}>
-                                    <span className="text-xl font-bold">{deepAnalysis.techSpecs.pageSpeed.desktopScore}</span>
+                                    <span className="text-xl font-bold">{desktopScore}</span>
                                 </div>
                                 <span className="text-xs uppercase font-bold text-zinc-500">Escritorio</span>
                             </div>
@@ -182,22 +243,22 @@ export const ModalTabAuditoria = ({
                             <div className="bg-black/20 rounded-xl p-3 border border-white/5">
                                 <div className="text-xs text-zinc-500 mb-1">LCP (Carga)</div>
                                 <div className="text-lg font-mono font-medium text-zinc-200">
-                                    {deepAnalysis.techSpecs.pageSpeed.coreWebVitals?.lcp || 'N/A'}
+                                    {pageSpeed.coreWebVitals?.lcp || 'N/A'}
                                 </div>
                             </div>
                             <div className="bg-black/20 rounded-xl p-3 border border-white/5">
                                 <div className="text-xs text-zinc-500 mb-1">CLS (Estabilidad)</div>
                                 <div className="text-lg font-mono font-medium text-zinc-200">
-                                    {deepAnalysis.techSpecs.pageSpeed.coreWebVitals?.cls || 'N/A'}
+                                    {pageSpeed.coreWebVitals?.cls || 'N/A'}
                                 </div>
                             </div>
                             <div className="col-span-2 bg-black/20 rounded-xl p-3 border border-white/5 flex items-center justify-between">
                                 <div className="text-xs text-zinc-500">Mobile Friendly</div>
-                                <div className={`text-xs font-bold px-2 py-1 rounded ${deepAnalysis.techSpecs.pageSpeed.isMobileFriendly
+                                <div className={`text-xs font-bold px-2 py-1 rounded ${pageSpeed.isMobileFriendly
                                     ? 'bg-green-500/20 text-green-400'
                                     : 'bg-red-500/20 text-red-400'
                                     }`}>
-                                    {deepAnalysis.techSpecs.pageSpeed.isMobileFriendly ? 'COMPATIBLE' : 'PROBLEMAS'}
+                                    {pageSpeed.isMobileFriendly ? 'COMPATIBLE' : 'PROBLEMAS'}
                                 </div>
                             </div>
                         </div>
@@ -246,23 +307,23 @@ export const ModalTabAuditoria = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-black/30 rounded-2xl p-5 border border-white/5">
                     <div className="text-xs text-zinc-500 uppercase font-bold mb-2">SEO Health Score</div>
-                    <div className={`text-4xl font-light mb-2 ${deepAnalysis.seoScore > 70 ? 'text-green-400' : deepAnalysis.seoScore > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        {deepAnalysis.seoScore}/100
+                    <div className={`text-4xl font-light mb-2 ${seoScore > 70 ? 'text-green-400' : seoScore > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        {seoScore}/100
                     </div>
                     <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
                         <div
-                            className={`h-full rounded-full ${deepAnalysis.seoScore > 70 ? 'bg-green-500' : deepAnalysis.seoScore > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${deepAnalysis.seoScore}%` }}
+                            className={`h-full rounded-full ${seoScore > 70 ? 'bg-green-500' : seoScore > 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                            style={{ width: `${seoScore}%` }}
                         ></div>
                     </div>
                 </div>
                 <div className="bg-black/30 rounded-2xl p-5 border border-white/5 flex flex-col justify-center">
                     <div className="text-xs text-zinc-500 uppercase font-bold mb-2">Gancho de Venta (Sales Hook)</div>
                     <div className="text-sm text-zinc-300 leading-relaxed font-light italic">
-                        "{deepAnalysis.salesStrategy?.hook || deepAnalysis.contentStrategy || 'No disponible'}"
+                                &quot;{deepAnalysis.salesStrategy?.hook || deepAnalysis.contentStrategy || 'No disponible'}&quot;
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
             {/* Backlinks & Competitors - UPDATED: Handle new structure */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -307,7 +368,7 @@ export const ModalTabAuditoria = ({
             {(() => {
                 const rawIssues = deepAnalysis.technicalIssues || [];
                 // Filter out SSL false positives only if SSL is confirmed OK
-                const filteredIssues = rawIssues.filter((issue: any) => {
+                const filteredIssues = rawIssues.filter((issue) => {
                     const issueText = typeof issue === 'string' ? issue : issue.issue;
                     if (hasSSL && issueText && /ssl|https|certificado/i.test(issueText)) {
                         return false;
@@ -321,7 +382,7 @@ export const ModalTabAuditoria = ({
                             <AlertTriangle className="w-4 h-4" /> Problemas Técnicos Críticos
                         </h5>
                         <ul className="space-y-2">
-                            {filteredIssues.map((issue: any, i: number) => {
+                            {filteredIssues.map((issue, i: number) => {
                                 const isString = typeof issue === 'string';
                                 const text = isString ? issue : issue.issue;
                                 const impact = !isString ? issue.impact : null;
@@ -343,3 +404,5 @@ export const ModalTabAuditoria = ({
         </div>
     );
 };
+
+

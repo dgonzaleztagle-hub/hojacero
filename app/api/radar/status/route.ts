@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 
 export async function POST(req: Request) {
     try {
@@ -17,7 +18,6 @@ export async function POST(req: Request) {
         let supabase;
 
         if (serviceRoleKey) {
-            const { createClient: createAdminClient } = require('@supabase/supabase-js');
             supabase = createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey, {
                 auth: { persistSession: false }
             });
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
         }
 
         // Prepare Update Data
-        const updateData: any = {
+        const updateData: Record<string, unknown> = {
             estado,
             revisado_por: revisado_por || 'Sistema',
             revisado_at: new Date().toISOString()
@@ -64,8 +64,9 @@ export async function POST(req: Request) {
         console.log('✅ Update Successful (API):', data[0].id);
         return NextResponse.json({ success: true, lead: data[0] });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('🔥 CRITICAL API ERROR:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }

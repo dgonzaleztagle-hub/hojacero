@@ -137,14 +137,14 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
         hasBackend: false,
         forensic: {
             archetype: 'DESCONOCIDO' as ForensicArchetype,
-            loss: { monthlyLoss: 0, currency: 'CLP', severity: 'low' as any, reason: '' }
+            loss: { monthlyLoss: 0, currency: 'CLP', severity: 'low', reason: '' } as LossScoreResult
         }
     };
 
     if (!websiteUrl) return result;
 
     // Normalize URL for variations
-    let baseUrl = websiteUrl.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
+    const baseUrl = websiteUrl.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 
     // Step 1: Discover Reachable URL using Engine
     const discovery = await ScraperEngine.findReachableUrl(baseUrl);
@@ -202,7 +202,12 @@ export async function scrapeContactInfo(websiteUrl: string, fastMode: boolean = 
 // ========================
 // AI ANALYZER: Basic Radar Analysis (Vibe, Pain Points, Score)
 // ========================
-export async function analyzeLeadWithGroq(place: any, scraped: any) {
+type ScrapedContactInfo = Awaited<ReturnType<typeof scrapeContactInfo>>;
+
+export async function analyzeLeadWithGroq(
+    place: { title?: string; website?: string },
+    scraped: ScrapedContactInfo
+) {
     if (!GROQ_API_KEY) {
         return {
             score: 10,
@@ -315,126 +320,3 @@ export async function analyzeLeadWithGroq(place: any, scraped: any) {
     }
 }
 
-// ========================
-// AI ANALYZER: OpenAI Version (gpt-4o-mini)
-// Nuevo analizador optimizado para HojaCero
-// ========================
-export async function analyzeLeadWithOpenAI(place: any, scraped: any) {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-    if (!OPENAI_API_KEY) {
-        console.error('❌ OPENAI_API_KEY no configurada');
-        return {
-            error: "OPENAI_NOT_CONFIGURED",
-            score: null,
-            vibe: "Error de Configuración",
-            analysisReport: "La API de OpenAI no está configurada. Contacta al administrador."
-        };
-    }
-
-    const techStackStr = scraped.techStack?.length > 0 ? scraped.techStack.join(', ') : 'No detectada';
-    const contactsStr = [
-        scraped.emails?.length ? `Emails: ${scraped.emails.join(', ')}` : null,
-        scraped.whatsapp ? `WhatsApp: +${scraped.whatsapp}` : null,
-        scraped.instagram ? `Instagram: @${scraped.instagram}` : null
-    ].filter(Boolean).join(', ') || 'No encontrados';
-
-    const prompt = `Analiza este lead para la agencia HojaCero (diseño web Premium).
-    
-    DATOS:
-    - Negocio: ${place.title}
-    - Web: ${place.website || 'NO TIENE'}
-    - Contactos: ${contactsStr}
-    - Tech: ${techStackStr}
-    - FORENSIC DNA (Kimi):
-        * Arquetipo de Dolor: ${scraped.forensic?.archetype || 'Desconocido'}
-        * Fuga de Capital: $${scraped.forensic?.loss?.monthlyLoss || 0} ${scraped.forensic?.loss?.currency || 'CLP'}/mes
-        * Razonamiento: ${scraped.forensic?.loss?.reason || 'N/A'}
-    
-    REGLAS DE ANÁLISIS (ENFOQUE VISUAL/MARCA):
-    - NO menciones velocidad, SSL, o código como argumento principal. Eso aburre al cliente.
-    - TU ENFOQUE: Estética, Percepción de Marca, Confianza.
-    - CRÍTICA CONSTRUCTIVA: "Se ve anticuado", "No refleja la calidad del producto", "Poca jerarquía visual". NUNCA digas "barata" o seas ofensivo.
-    - DETECTA: Potencial desperdiciado. (Ej: "Tienen fotos increíbles pero la web es de 2010").
-    
-    ESTRATEGIA DE VENTA (GOLD STANDARD):
-    El usuario (Agencia) usará este análisis para contactar al cliente con un DEMO YA HECHO.
-    Tu misión es darle los argumentos para el correo:
-    
-    BASE DEL SPEECH (Parafrasear esto con variaciones en 'hook' y 'conversation'):
-    "Estamos en campaña de mejora de imagen local y buscamos marcas con potencial. Tienes un EXCELENTE producto, pero tu web actual no le hace justicia (se ve antigua/desordenada). Te hice un demo sin compromiso para que veas cómo podría verse tu marca con un diseño 10x mejor."
-    
-    RESPONDE SOLO JSON:
-    {
-      "score": 0-100,
-      "verdict": "CONTACTAR" | "REVISAR" | "DESCARTAR",
-      "vibe": "Premium|Moderno|Profesional|Local|Desactualizado|Inexistente",
-      "buyerPersona": "Cliente ideal del negocio en 1 oración",
-      "analysisReport": "Análisis de 2 oraciones enfocado en IMAGEN y MARCA (no técnico).",
-      "salesStrategy": {
-        "hook": "Frase de enganche basada en el speech GOLD STANDARD (adaptado al rubro)",
-        "painPoints": ["Estética desactualizada", "No transmite confianza", "Diseño no responsive"],
-        "proposedSolution": "Rediseño Premium (Demo incluida)",
-        "estimatedValue": "Bajo|Medio|Alto"
-      },
-      "conversation": {
-        "opener": "Variación amigable del speech Gold Standard",
-        "observation": "Comentario sobre cómo la web actual no refleja la calidad real del negocio",
-        "softOffer": "Mencionar el demo creado específicamente para ellos"
-      },
-      "recommendedChannel": "Email",
-      "opportunity": "Modernización de Marca"
-    }`;
-
-    try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o-mini',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'Eres un consultor de ventas B2B experto. Respondes SOLO en JSON válido, sin markdown.'
-                    },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.6,
-                max_tokens: 500,
-                response_format: { type: "json_object" }
-            })
-        });
-
-        if (!response.ok) {
-            console.error('OpenAI API error:', response.status);
-            return {
-                error: "OPENAI_API_ERROR",
-                score: null,
-                vibe: "Servicio Ocupado",
-                analysisReport: `La API de OpenAI retornó error ${response.status}. Intenta de nuevo en unos minutos.`
-            };
-        }
-
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-        const parsed = JSON.parse(content || '{}');
-
-        // Agregar campos de compatibilidad
-        return {
-            ...parsed,
-            scoreBreakdown: parsed.scoreBreakdown || {},
-            competitiveAnalysis: parsed.competitiveAnalysis || 'N/A'
-        };
-    } catch (e) {
-        console.error("OpenAI Analysis failed (Critical). No Fallback allowed.");
-        // Return a structured error so the bot knows analysis failed
-        return {
-            error: "ANALYSIS_FAILED_SERVICE_BUSY",
-            score: null,
-            vibe: "Analyzer Busy"
-        };
-    }
-}

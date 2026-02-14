@@ -15,6 +15,14 @@ interface TaskAlert {
     client_name: string;
 }
 
+interface GrowthTaskRow {
+    id: string;
+    title: string;
+    category: string;
+    due_datetime: string;
+    growth_clients?: { client_name?: string } | null;
+}
+
 export async function GET(request: Request) {
     // Initialize clients inside the handler to avoid build-time errors with env vars
     const resend = new Resend(process.env.RESEND_API_KEY!);
@@ -66,7 +74,7 @@ export async function GET(request: Request) {
         }
 
         // Format tasks for email
-        const tasksForEmail: TaskAlert[] = upcomingTasks.map((t: any) => ({
+        const tasksForEmail: TaskAlert[] = (upcomingTasks as GrowthTaskRow[]).map((t) => ({
             id: t.id,
             title: t.title,
             category: t.category,

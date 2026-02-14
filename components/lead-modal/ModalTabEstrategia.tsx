@@ -1,17 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Lightbulb, CheckCircle2, Circle, ListTodo, Sparkles, Mail, Instagram, ArrowRight, BookOpen, Copy, Download, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, Circle, ListTodo } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface ModalTabEstrategiaProps {
-    selectedLead: any;
+    selectedLead: {
+        source_data?: {
+            deep_analysis?: {
+                actionable_tasks?: Array<{ title: string; difficulty?: 'Easy' | 'Medium' | 'Hard'; category?: string }>;
+            };
+        };
+    };
     isDark: boolean;
-    analysis?: any; // Add this
-    copyToClipboard?: (text: string, field: string) => void; // Add this
 }
 
-export const ModalTabEstrategia = ({ selectedLead, isDark, analysis, copyToClipboard }: ModalTabEstrategiaProps) => {
+export const ModalTabEstrategia = ({ selectedLead, isDark }: ModalTabEstrategiaProps) => {
     const deepAnalysis = selectedLead.source_data?.deep_analysis;
     const tasks = deepAnalysis?.actionable_tasks || [];
 
@@ -91,7 +95,7 @@ export const ModalTabEstrategia = ({ selectedLead, isDark, analysis, copyToClipb
                 </h3>
 
                 <div className="grid grid-cols-1 gap-3">
-                    {tasks.map((task: any, idx: number) => {
+                    {tasks.map((task, idx: number) => {
                         const isChecked = checkedTasks.has(idx);
                         return (
                             <motion.div

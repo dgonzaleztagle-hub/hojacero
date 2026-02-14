@@ -38,7 +38,7 @@ export async function POST(request: Request) {
                 }
             }
 
-            const payload: any = { pipeline_order };
+            const payload: Record<string, unknown> = { pipeline_order };
             if (pipeline_stage) payload.pipeline_stage = pipeline_stage;
             if (newEstado) payload.estado = newEstado;
 
@@ -51,8 +51,9 @@ export async function POST(request: Request) {
         await Promise.all(promises);
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Batch pipeline update error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

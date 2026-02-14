@@ -4,6 +4,18 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
+interface ReminderEvent {
+    id: string;
+    title: string;
+    start_time: string;
+    assigned_to?: keyof typeof TEAM_EMAILS | null;
+    company_name?: string | null;
+    attendee_name?: string | null;
+    whatsapp?: string | null;
+    website?: string | null;
+    notes?: string | null;
+}
+
 // Mapeo de emails por responsable
 const TEAM_EMAILS: Record<string, string[]> = {
     daniel: ['dgonzaleztagle@gmail.com'],
@@ -19,7 +31,7 @@ function getAdminClient() {
     );
 }
 
-async function sendReminderEmail(event: any, recipients: string[]) {
+async function sendReminderEmail(event: ReminderEvent, recipients: string[]) {
     const startTime = new Date(event.start_time);
     const dateStr = startTime.toLocaleDateString('es-CL', {
         weekday: 'long',
@@ -122,9 +134,15 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    const results = [];
+    const results: Array<{
+        event_id: string;
+        title: string;
+        start_time: string;
+        assigned_to: string;
+        reminder_sent: boolean;
+    }> = [];
 
-    for (const event of events) {
+    for (const event of events as ReminderEvent[]) {
         const assignedTo = event.assigned_to || 'both';
         const recipients = TEAM_EMAILS[assignedTo] || TEAM_EMAILS.both;
 

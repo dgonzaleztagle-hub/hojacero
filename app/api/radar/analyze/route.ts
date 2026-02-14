@@ -1,22 +1,208 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { analyzeTechSpecs } from '@/utils/tech-analysis';
+import { analyzeTechSpecs, type TechAnalysisResult } from '@/utils/tech-analysis';
 import { analizarForense, KimiForensicResult } from '@/utils/kimi-forensics';
 
 // ===========================================
 // AUDITORÍA PROFUNDA - HOJACERO RADAR
-// Modelo: gpt-4o-mini (OpenAI)
+// Modelo: Groq (llama-3.1-8b-instant)
 // ===========================================
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
+
+type LooseRecord = Record<string, unknown>;
+
+interface SearchResultItem {
+    title?: string;
+    snippet?: string;
+    link: string;
+}
+
+interface DiscoveryData {
+    facebook: string | null;
+    instagram: string | null;
+    linkedin: string | null;
+    whatsapp: string | null;
+    snippets?: string;
+}
+
+interface SocialCandidate {
+    link: string;
+    title: string;
+    snippet: string;
+}
+
+const isValidApiKey = (key?: string) => {
+    if (!key) return false;
+    const trimmed = key.trim();
+    if (!trimmed) return false;
+    if (trimmed === 're_123' || trimmed === 'sk_test') return false;
+    if (trimmed.toLowerCase().startsWith('placeholder')) return false;
+    return true;
+};
+
+const DISCOVERY_STOPWORDS = new Set([
+    'de', 'del', 'la', 'las', 'el', 'los', 'y', 'en', 'con',
+    'chile', 'oficial', 'club', 'restaurante', 'bar', 'spa',
+    'ltda', 'limitada', 'sa', 'empresa', 'group'
+]);
+
+const normalizeText = (value: string): string =>
+    value
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+const compactText = (value: string): string => normalizeText(value).replace(/\s+/g, '');
+
+const tokenizeBusinessName = (businessName: string): string[] =>
+    normalizeText(businessName)
+        .split(' ')
+        .filter(token => token.length >= 3 && !DISCOVERY_STOPWORDS.has(token));
+
+const getHost = (input: string): string => {
+    try {
+        return new URL(input).hostname.toLowerCase().replace(/^www\./, '');
+    } catch {
+        return '';
+    }
+};
+
+const getBrandKeyFromUrl = (input?: string): string => {
+    if (!input) return '';
+    const host = getHost(input);
+    if (!host) return '';
+    const parts = host.split('.');
+    if (parts.length < 2) return compactText(host);
+    return compactText(parts[parts.length - 2]);
+};
+
+const scoreSearchCandidate = (
+    candidate: SocialCandidate,
+    businessName: string,
+    businessTokens: string[],
+    brandKey: string,
+    nameKey: string
+): number => {
+    const targetName = normalizeText(businessName);
+    const normalizedLink = normalizeText(candidate.link);
+    const normalizedTitle = normalizeText(candidate.title || '');
+    const normalizedSnippet = normalizeText(candidate.snippet || '');
+    const joined = `${normalizedTitle} ${normalizedSnippet} ${normalizedLink}`;
+    let score = 0;
+
+    if (brandKey && normalizedLink.includes(brandKey)) score += 4;
+    if (nameKey && normalizedLink.includes(nameKey)) score += 4;
+    if (targetName && (normalizedTitle.includes(targetName) || normalizedSnippet.includes(targetName))) score += 3;
+
+    let tokenMatches = 0;
+    for (const token of businessTokens) {
+        if (joined.includes(token)) tokenMatches += 1;
+    }
+    score += Math.min(tokenMatches, 3);
+
+    if (/jobs|empleo|trabajo|indeed|glassdoor/.test(joined)) score -= 3;
+    if (/montan|trek|sender|hiking|climbing/.test(joined)) score -= 2;
+
+    return score;
+};
+
+const pickBestSocialLink = (
+    platform: 'facebook' | 'instagram' | 'linkedin',
+    organic: SearchResultItem[],
+    knowledgeGraphLink: string | null | undefined,
+    businessName: string,
+    targetUrl?: string
+): string | null => {
+    const businessTokens = tokenizeBusinessName(businessName);
+    const brandKey = getBrandKeyFromUrl(targetUrl);
+    const nameKey = compactText(businessName);
+    const domain = `${platform}.com`;
+
+    const candidates: SocialCandidate[] = [];
+    for (const row of organic) {
+        if (!row?.link || !row.link.includes(domain)) continue;
+        candidates.push({
+            link: row.link,
+            title: row.title || '',
+            snippet: row.snippet || ''
+        });
+    }
+    if (knowledgeGraphLink && knowledgeGraphLink.includes(domain)) {
+        candidates.push({ link: knowledgeGraphLink, title: '', snippet: '' });
+    }
+
+    const deduped = Array.from(new Map(candidates.map(c => [c.link, c])).values());
+    if (deduped.length === 0) return null;
+
+    const ranked = deduped
+        .map(candidate => ({
+            candidate,
+            score: scoreSearchCandidate(candidate, businessName, businessTokens, brandKey, nameKey)
+        }))
+        .sort((a, b) => b.score - a.score);
+
+    const best = ranked[0];
+    return best && best.score >= 4 ? best.candidate.link : null;
+};
+
+const pickBestWebsite = (
+    organic: SearchResultItem[],
+    businessName: string,
+    currentUrl?: string
+): string | null => {
+    const businessTokens = tokenizeBusinessName(businessName);
+    const brandKey = getBrandKeyFromUrl(currentUrl);
+    const nameKey = compactText(businessName);
+
+    const candidates = organic.filter((row) => {
+        const link = row?.link || '';
+        return !!link &&
+            !link.includes('facebook.com') &&
+            !link.includes('instagram.com') &&
+            !link.includes('linkedin.com') &&
+            !link.includes('youtube.com') &&
+            !link.includes('twitter.com') &&
+            !link.includes('x.com') &&
+            !link.includes('tiktok.com');
+    });
+
+    const ranked = candidates
+        .map((row) => {
+            const candidate: SocialCandidate = {
+                link: row.link,
+                title: row.title || '',
+                snippet: row.snippet || ''
+            };
+            return {
+                link: row.link,
+                score: scoreSearchCandidate(candidate, businessName, businessTokens, brandKey, nameKey)
+            };
+        })
+        .sort((a, b) => b.score - a.score);
+
+    const best = ranked[0];
+    return best && best.score >= 3 ? best.link : null;
+};
+
+const toBool = (value: unknown, fallback = false): boolean =>
+    typeof value === 'boolean' ? value : fallback;
+
+const toStringOrNull = (value: unknown): string | null =>
+    typeof value === 'string' && value.trim() ? value : null;
+
+const toStringArray = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0) : [];
 
 // Helper: Basic SEO Scraping
 async function performSeoAudit(url: string) {
     if (!url) return null;
 
-    let baseUrl = url.trim().replace(/^https?:\/\//, '').replace(/^www\./, '');
+    const baseUrl = url.trim().replace(/^https?:\/\//, '').replace(/^www\./, '');
 
     const urlsToTry = [
         `https://${baseUrl}`,
@@ -80,7 +266,7 @@ async function performSeoAudit(url: string) {
                 instagram: instagramMatch?.[1] || null,
                 whatsapp: whatsappMatch?.[1] || null
             };
-        } catch (e) {
+        } catch {
             continue;
         }
     }
@@ -101,8 +287,9 @@ async function performDeepResearch(query: string) {
             body: JSON.stringify({ q: query, gl: 'cl', hl: 'es' })
         });
         const data = await res.json();
-        return data.organic?.slice(0, 2).map((r: any) => `${r.title}: ${r.snippet}`).join('\n') || "";
-    } catch (e) {
+        const organic = Array.isArray(data.organic) ? data.organic as SearchResultItem[] : [];
+        return organic.slice(0, 2).map((r) => `${r.title}: ${r.snippet}`).join('\n') || "";
+    } catch {
         return "";
     }
 }
@@ -111,6 +298,12 @@ export async function POST(req: Request) {
     try {
         const { leadId, url, businessName, businessType } = await req.json();
         const supabase = await createClient();
+        const hasGroq = isValidApiKey(GROQ_API_KEY);
+        const hasSerper = isValidApiKey(SERPER_API_KEY);
+        const configWarnings: string[] = [];
+
+        if (!hasGroq) configWarnings.push('GROQ_API_KEY missing or invalid');
+        if (!hasSerper) configWarnings.push('SERPER_API_KEY missing or invalid');
 
         // Validate leadId
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -122,63 +315,78 @@ export async function POST(req: Request) {
         }
 
         let targetUrl = url;
-        let discoveryData: any = null;
+        let discoveryData: DiscoveryData | null = null;
 
         // --- FASE DE DESCUBRIMIENTO KIMI ---
         // Siempre intentamos descubrir redes sociales si tenemos el nombre del negocio, 
         // incluso si ya tenemos una URL, para evitar puntos ciegos (como LinkedIn).
         if (businessName) {
             console.log(`🔍 KIMI STARTING DISCOVERY for: ${businessName}`);
-            const discoveryQuery = `${businessName} Chile sitio web oficial linkedin facebook instagram`;
+            const discoveryQuery = `"${businessName}" Chile sitio web oficial linkedin facebook instagram`;
             try {
                 const searchRes = await fetch('https://google.serper.dev/search', {
                     method: 'POST',
-                    headers: { 'X-API-KEY': SERPER_API_KEY || '', 'Content-Type': 'application/json' },
+                    headers: { 'X-API-KEY': (SERPER_API_KEY as string) || '', 'Content-Type': 'application/json' },
                     body: JSON.stringify({ q: discoveryQuery, gl: 'cl', hl: 'es' })
                 });
                 const searchData = await searchRes.json();
 
-                const possibleWeb = searchData.organic?.find((r: any) =>
-                    !r.link.includes('facebook.com') &&
-                    !r.link.includes('instagram.com') &&
-                    !r.link.includes('linkedin.com') &&
-                    !r.link.includes('cl.linkedin.com') &&
-                    !r.link.includes('youtube.com') &&
-                    !r.link.includes('twitter.com') &&
-                    !r.link.includes('x.com') &&
-                    !r.link.includes('tiktok.com')
-                );
+                const organic = Array.isArray(searchData.organic) ? searchData.organic as SearchResultItem[] : [];
+                const possibleWeb = pickBestWebsite(organic, businessName, targetUrl);
 
                 if (possibleWeb) {
-                    targetUrl = possibleWeb.link;
+                    targetUrl = possibleWeb;
                     console.log(`✅ KIMI DISCOVERED URL: ${targetUrl}`);
                 }
 
                 // --- BÚSQUEDA DEDICADA DE LINKEDIN ---
-                let liLink = searchData.organic?.find((r: any) => r.link.includes('linkedin.com'))?.link ||
-                    searchData.knowledgeGraph?.attributes?.LinkedIn || null;
+                let liLink = pickBestSocialLink(
+                    'linkedin',
+                    organic,
+                    searchData.knowledgeGraph?.attributes?.LinkedIn || null,
+                    businessName,
+                    targetUrl
+                );
 
                 if (!liLink) {
                     console.log(`🔍 KIMI TARGETED LINKEDIN SEARCH for: ${businessName}`);
                     const liSearchRes = await fetch('https://google.serper.dev/search', {
                         method: 'POST',
-                        headers: { 'X-API-KEY': SERPER_API_KEY || '', 'Content-Type': 'application/json' },
+                        headers: { 'X-API-KEY': (SERPER_API_KEY as string) || '', 'Content-Type': 'application/json' },
                         body: JSON.stringify({ q: `${businessName} Chile LinkedIn company`, gl: 'cl', hl: 'es', num: 3 })
                     });
                     const liSearchData = await liSearchRes.json();
-                    liLink = liSearchData.organic?.find((r: any) => r.link.includes('linkedin.com'))?.link || null;
-                    console.log(`🔍 LINKEDIN SEARCH RESULTS:`, liSearchData.organic?.slice(0, 3).map((r: any) => r.link));
+                    const liOrganic = Array.isArray(liSearchData.organic) ? liSearchData.organic as SearchResultItem[] : [];
+                    liLink = pickBestSocialLink(
+                        'linkedin',
+                        liOrganic,
+                        liSearchData.knowledgeGraph?.attributes?.LinkedIn || null,
+                        businessName,
+                        targetUrl
+                    );
+                    console.log(`🔍 LINKEDIN SEARCH RESULTS:`, liOrganic.slice(0, 3).map((r) => r.link));
                 }
 
                 console.log(`✅ KIMI DISCOVERY COMPLETE - LinkedIn: ${liLink || 'NOT FOUND'}`);
 
                 discoveryData = {
-                    facebook: searchData.organic?.find((r: any) => r.link.includes('facebook.com'))?.link ||
+                    facebook: pickBestSocialLink(
+                        'facebook',
+                        organic,
                         searchData.knowledgeGraph?.attributes?.Facebook || null,
-                    instagram: searchData.organic?.find((r: any) => r.link.includes('instagram.com'))?.link ||
+                        businessName,
+                        targetUrl
+                    ),
+                    instagram: pickBestSocialLink(
+                        'instagram',
+                        organic,
                         searchData.knowledgeGraph?.attributes?.Instagram || null,
+                        businessName,
+                        targetUrl
+                    ),
                     linkedin: liLink,
-                    snippets: searchData.organic?.slice(0, 5).map((r: any) => r.snippet).join(' | ')
+                    whatsapp: null,
+                    snippets: organic.slice(0, 5).map((r) => r.snippet).join(' | ')
                 };
 
                 console.log(`📊 DISCOVERY DATA:`, JSON.stringify(discoveryData, null, 2));
@@ -190,8 +398,8 @@ export async function POST(req: Request) {
         console.log(`🕵️ DEEP ANALYZE: Processing ${businessName} (Target: ${targetUrl})...`);
 
         // 1. Technical Audit (Solo si hay URL meta o descubierta)
-        let audit: any = null;
-        let techSpecs: any = null;
+        let audit: LooseRecord | null = null;
+        let techSpecs: TechAnalysisResult | null = null;
 
         if (targetUrl) {
             [audit, techSpecs] = await Promise.all([
@@ -203,8 +411,8 @@ export async function POST(req: Request) {
         // 2. Google Search Context (Usar el nombre para buscar contexto global)
         const searchContext = discoveryData?.snippets || await performDeepResearch(`${businessName} Chile`);
 
-        // 3. AI Analysis con OpenAI
-        let deepAnalysis: any = {
+        // 3. AI Analysis con Groq (costo cero)
+        let deepAnalysis: LooseRecord = {
             seoScore: 0,
             verdict: 'REVISAR',
             executiveSummary: 'Análisis pendiente',
@@ -227,9 +435,13 @@ export async function POST(req: Request) {
             missingKeywords: []
         };
 
-        if (!OPENAI_API_KEY && !GROQ_API_KEY) {
-            deepAnalysis.executiveSummary = 'Error: No hay API de IA configurada (OPENAI_API_KEY o GROQ_API_KEY)';
+        if (!hasGroq) {
+            deepAnalysis.executiveSummary = 'Error: No hay API de IA configurada (GROQ_API_KEY)';
         } else {
+            const forensicData = audit && 'forensic' in audit ? audit.forensic : {};
+            const contentPreview = typeof audit?.htmlPreview === 'string'
+                ? audit.htmlPreview.slice(0, 4000)
+                : '';
             const prompt = `Analiza este negocio para HojaCero (agencia de diseño web premium). Tu objetivo es encontrar ANGULOS DE VENTA para ofrecer una Landing Page de Alta Conversión ($150.000 CLP).
 Sé CRÍTICO y directo. Busca lo que está MAL, viejo o feo.
 
@@ -244,14 +456,14 @@ ${JSON.stringify({
                 hasTitle: audit?.hasTitle,
                 hasMetaDesc: audit?.hasMetaDesc,
                 hasViewport: audit?.hasViewport,
-                contentPreview: audit?.htmlPreview?.slice(0, 4000)
+                contentPreview
             }, null, 2)}
 
 TECH SPECS:
 ${JSON.stringify(techSpecs, null, 2)}
 
 FORENSIC DNA (Kimi):
-${JSON.stringify(audit && 'forensic' in audit ? (audit as any).forensic : {}, null, 2)}
+${JSON.stringify(forensicData, null, 2)}
 
 CONTEXTO GOOGLE:
 ${searchContext}
@@ -288,24 +500,14 @@ REGLAS DE ORO:
 4. Asume que el objetivo es vender la Landing Page Factory.`;
 
             try {
-                // PRIORIDAD: USAR GROQ (Llama 3) PARA AHORRAR COSTOS
-                // Fallback a OpenAI si Groq falla o no hay key
-                const useGroq = !!GROQ_API_KEY; // Forzar Groq si existe la key
-
-                const apiUrl = useGroq
-                    ? 'https://api.groq.com/openai/v1/chat/completions'
-                    : 'https://api.openai.com/v1/chat/completions';
-
-                const apiKey = useGroq ? GROQ_API_KEY : OPENAI_API_KEY;
-                const model = useGroq ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
-
+                const model = 'llama-3.1-8b-instant';
                 console.log(`🤖 RADAR AI: Usando modelo ${model} (Ahorro activado)`);
 
-                const aiResponse = await fetch(apiUrl, {
+                const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
+                        'Authorization': `Bearer ${GROQ_API_KEY as string}`
                     },
                     body: JSON.stringify({
                         model,
@@ -326,7 +528,10 @@ REGLAS DE ORO:
                     const aiData = await aiResponse.json();
                     const content = aiData.choices?.[0]?.message?.content;
                     if (content) {
-                        deepAnalysis = JSON.parse(content);
+                        const parsed = JSON.parse(content);
+                        if (parsed && typeof parsed === 'object') {
+                            deepAnalysis = { ...deepAnalysis, ...(parsed as LooseRecord) };
+                        }
                     }
                 }
             } catch (e) {
@@ -349,8 +554,8 @@ REGLAS DE ORO:
                             headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HojaCeroBot/1.0)' }
                         });
                         htmlCompleto = await res.text();
-                    } catch (e) {
-                        htmlCompleto = audit?.htmlPreview || '';
+                    } catch {
+                        htmlCompleto = typeof audit?.htmlPreview === 'string' ? audit.htmlPreview : '';
                     }
                 }
 
@@ -358,12 +563,12 @@ REGLAS DE ORO:
                     htmlCompleto,
                     leadId,
                     {
-                        facebook: audit?.facebook || discoveryData?.facebook,
-                        instagram: audit?.instagram || discoveryData?.instagram,
+                        facebook: typeof audit?.facebook === 'string' ? audit.facebook : (discoveryData?.facebook || null),
+                        instagram: typeof audit?.instagram === 'string' ? audit.instagram : (discoveryData?.instagram || null),
                         linkedin: discoveryData?.linkedin
                     },
-                    audit?.hasSSL || false,
-                    audit?.hasViewport || false,
+                    typeof audit?.hasSSL === 'boolean' ? audit.hasSSL : false,
+                    typeof audit?.hasViewport === 'boolean' ? audit.hasViewport : false,
                     businessType
                 );
                 console.log(`🔬 KIMI FORENSICS:`, JSON.stringify(kimiForensics, null, 2));
@@ -385,24 +590,24 @@ REGLAS DE ORO:
         });
 
         const scrapedData = {
-            hasSSL: audit?.hasSSL || false,
-            hasTitle: audit?.hasTitle || false,
-            hasMetaDesc: audit?.hasMetaDesc || false,
-            hasH1: audit?.hasH1 || false,
-            hasOGTags: audit?.hasOGTags || false,
-            hasViewport: audit?.hasViewport || false,
-            cms: audit?.cms || null,
-            emails: audit?.emails || [],
-            phones: audit?.phones || [],
-            facebook: audit?.facebook || discoveryData?.facebook || null,
-            instagram: audit?.instagram || discoveryData?.instagram || null,
-            whatsapp: audit?.whatsapp || discoveryData?.whatsapp || null,
+            hasSSL: toBool(audit?.hasSSL, false),
+            hasTitle: toBool(audit?.hasTitle, false),
+            hasMetaDesc: toBool(audit?.hasMetaDesc, false),
+            hasH1: toBool(audit?.hasH1, false),
+            hasOGTags: toBool(audit?.hasOGTags, false),
+            hasViewport: toBool(audit?.hasViewport, false),
+            cms: toStringOrNull(audit?.cms),
+            emails: toStringArray(audit?.emails),
+            phones: toStringArray(audit?.phones),
+            facebook: toStringOrNull(audit?.facebook) || discoveryData?.facebook || null,
+            instagram: toStringOrNull(audit?.instagram) || discoveryData?.instagram || null,
+            whatsapp: toStringOrNull(audit?.whatsapp) || discoveryData?.whatsapp || null,
             linkedin: discoveryData?.linkedin || null,
-            techStack: [audit?.cms].filter(Boolean)
+            techStack: [toStringOrNull(audit?.cms)].filter((value): value is string => Boolean(value))
         };
 
         if (techSpecs?.security) {
-            techSpecs.security.https = audit?.hasSSL || false;
+            techSpecs.security.https = toBool(audit?.hasSSL, false);
         }
 
         const updatedSourceData = {
@@ -413,7 +618,7 @@ REGLAS DE ORO:
             last_audit_date: new Date().toISOString()
         };
 
-        const updateFields: any = { source_data: updatedSourceData };
+        const updateFields: LooseRecord = { source_data: updatedSourceData };
         if (!url && targetUrl) {
             updateFields.website = targetUrl;
             updateFields.sitio_web = targetUrl;
@@ -426,10 +631,18 @@ REGLAS DE ORO:
 
         if (updateError) throw updateError;
 
-        return NextResponse.json({ success: true, analysis: deepAnalysis, scraped: scrapedData, discoveryData, kimiForensics });
+        return NextResponse.json({
+            success: true,
+            analysis: deepAnalysis,
+            scraped: scrapedData,
+            discoveryData,
+            kimiForensics,
+            configWarnings
+        });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Deep Analyze Error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }

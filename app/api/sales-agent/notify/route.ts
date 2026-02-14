@@ -17,7 +17,7 @@ interface NotificationPayload {
     leadId?: string;
     sessionId?: string;
     message: string;
-    context?: any;
+    context?: Record<string, unknown>;
 }
 
 
@@ -85,9 +85,10 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, routedTo: recipientName });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal error';
         console.error('Notification error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }
 
