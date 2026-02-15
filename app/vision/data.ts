@@ -8,6 +8,13 @@ export interface CaseStudy {
     imageAfter: string;
     accentColor: string;
     viewUrl: string;
+    imageBefore?: string;
+    imageBeforeHero?: string;
+    imageAfterHero?: string;
+    stats?: {
+        improvement: string;
+        metric: string;
+    };
 }
 
 export const CASES: CaseStudy[] = [

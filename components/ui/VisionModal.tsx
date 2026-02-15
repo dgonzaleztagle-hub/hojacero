@@ -47,7 +47,7 @@ export const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose, proje
                                 {/* Section 1: The Hook (Slider) */}
                                 <div className="h-[60vh] md:h-[500px] w-full sticky top-0 z-10">
                                     <BeforeAfterSlider
-                                        imageBefore={project.imageBeforeHero || project.imageBefore}
+                                        imageBefore={project.imageBeforeHero || project.imageBefore || project.imageAfter}
                                         imageAfter={project.imageAfterHero || project.imageAfter}
                                         labelBefore="REALITY"
                                         labelAfter="VISION"
@@ -83,13 +83,15 @@ export const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose, proje
                                 </p>
 
                                 <div className="space-y-6 flex-1">
-                                    <div>
-                                        <h4 className="text-[10px] uppercase text-zinc-600 tracking-widest mb-2">Metrics</h4>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-2xl font-bold text-white">{project.stats.improvement}</span>
-                                            <span className="text-xs text-zinc-500">{project.stats.metric}</span>
+                                    {project.stats && (
+                                        <div>
+                                            <h4 className="text-[10px] uppercase text-zinc-600 tracking-widest mb-2">Metrics</h4>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-2xl font-bold text-white">{project.stats.improvement}</span>
+                                                <span className="text-xs text-zinc-500">{project.stats.metric}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     <div>
                                         <h4 className="text-[10px] uppercase text-zinc-600 tracking-widest mb-2">Stack</h4>
