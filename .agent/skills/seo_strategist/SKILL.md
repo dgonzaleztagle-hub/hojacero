@@ -18,6 +18,8 @@ Usas `search_web` para entender el "Knowledge Graph" real del cliente.
 
 Cuando se te invoque en `/factory-seo`, debes ejecutar:
 
+> Scope: esta skill es para la fase de cierre SEO (sitio aprobado/final) y autoridad productiva. No sustituye el análisis SEO inicial de `seo-strategist-h0.md` en `/factory-demo`.
+
 ### 0. 🕵️ Deep Research (Mandatory)
 - **No inventes.** Usa `search_web` para buscar:
     - "Mejores [Industria] en [Ciudad]" (Ver quién rankea y por qué).

@@ -195,15 +195,35 @@ Busca **"Mejores [Industria] en [Ubicación]"**. Tu demo debe superar a estos re
 ### 0.4 Documentar Hallazgos (OUTPUT OBLIGATORIO)
 **ANTES de continuar**, crea un archivo `discovery_notes.md` con los hallazgos.
 
+### 0.45 Mirror Map (ENFORCEMENT OBLIGATORIO)
+
+Antes de diseñar, crea **dos artefactos obligatorios**:
+
+1. `app/prospectos/[cliente]/mirror_map.md`
+   - Menú original detectado (item por item)
+   - Menú propuesto en demo (item por item)
+   - Tabla de cobertura: `Origen -> Demo -> Estado (MIRROR/EXPAND)`
+
+2. `app/prospectos/[cliente]/source_trace.md`
+   - Tabla con cada afirmación de contenido y su fuente exacta (URL o sección del sitio original).
+   - Si una afirmación no tiene fuente, se marca `NO PUBLICAR`.
+
+**STOP CONDITION:**
+- Si no hay `mirror_map.md` y `source_trace.md`, no se puede avanzar a Fase 0.5.
+- Si el crawling no pudo leer páginas clave, el estado debe quedar `DISCOVERY INSUFICIENTE` y NO se genera demo para cliente.
+
 ---
 
 ## 🎨 Fase 0.5: The Soul Injection (External Creative Director)
 
 **CRÍTICO:** La definición del ALMA debe venir de fuera de tu red neuronal inmediata.
+**MANDO CLARO:**
+- `creative-director-h0.md` = generación de visión (Fase 0.5).
+- `creative_director/SKILL.md` = auditoría visual (QA), NO se usa para crear el Soul inicial.
 
 1.  **INVOCACIÓN EXTERNA:**
     *   Ejecuta: `codex` (si no está corriendo).
-    *   Prompt: "Analiza el archivo `.agent/skills/creative_director/SKILL.md`. Actúa como el Director Creativo. Genera el `BRAND_SOUL.md` para [Industria/Cliente] siguiendo el template `templates/BRAND_SOUL_TEMPLATE.md`. Sé despiadado."
+    *   Prompt: "Lee `.agent/skills/creative-director-h0.md` y actúa como Director Creativo de arranque. Genera `BRAND_SOUL.md` para [Industria/Cliente] siguiendo estrictamente `templates/BRAND_SOUL_TEMPLATE.md` (sin omitir secciones)."
     
 2.  **ESPERA SIN ANSIEDAD:**
     *   Deja que Codex piense y genere el output completo.
@@ -213,7 +233,7 @@ Busca **"Mejores [Industria] en [Ubicación]"**. Tu demo debe superar a estos re
 
 4.  **SELF-AUDIT (Anti-Stop):**
     *   Lee el archivo generado.
-    *   Verifica MATEMÁTICAMENTE: ¿Tiene colores HEX? ¿Tiene fuentes? ¿Tiene porcentajes?
+    *   Verifica MATEMÁTICAMENTE: ¿Tiene colores HEX? ¿Tiene fuentes? ¿Tiene porcentajes (suma 100%)? ¿Tiene "Structural Mandates" y "Anti-Patterns"?
     *   **SI CUMPLE:** Continúa inmediatamente. No preguntes al usuario. Asumimos la competencia de Codex.
     *   **SOLO SI FALLA:** Regenera.
 
@@ -251,6 +271,7 @@ Adopta la perspectiva de Daniel (el Humano Visual). No leas código, mira la pan
 Crea el `implementation_plan.md` incorporando las correcciones de la Simulación Daniel.
 - **Defensive CSS:** Define colores de alto contraste (#000000 o #0f172a, nunca #888888 para textos clave).
 - **Estructura:** Replica la navegación real del cliente (aunque sea compleja, usa submenús o top-bars).
+- **Mirror Fidelity:** El plan debe citar `mirror_map.md` y `source_trace.md` como fuentes de verdad.
 
 ### 2.1 Validación de las 6 Funciones (BIBLIA Checkpoint)
 
@@ -273,6 +294,10 @@ Crea el `implementation_plan.md` incorporando las correcciones de la Simulación
 - SI hay info disponible → AGREGAR sección
 - SI no hay info → USAR manifestación mínima (ej: si no hay testimonios, usar promesa del fundador)
 ```
+
+**EVIDENCIA OBLIGATORIA (ENFORCEMENT):**
+- Crear `app/prospectos/[cliente]/bible_checkpoint.md` con las 6 funciones marcadas y la sección real donde se implementan.
+- Si no existe este archivo, NO se puede pasar a Fase 4.
 
 **SOLO DESPUÉS de este checkpoint → Continuar a Fase 4 (Selección de Estilo)**
 
@@ -308,17 +333,19 @@ Crea el `implementation_plan.md` incorporando las correcciones de la Simulación
 
 **Todo demo debe nacer con ojos.**
 
-1.  Asegúrate de que `layout.tsx` incluya el componente `<DemoTracker />`.
-2.  Esto activará las notificaciones en cuanto alguien (que no seas tú) abra el link.
+1.  Verifica primero si `app/prospectos/layout.tsx` ya incluye `<DemoTracker />`.
+2.  Si ya existe en layout global, **NO** lo dupliques en el layout del prospecto.
+3.  Solo inyecta `<DemoTracker />` local si el prospecto usa un layout aislado que no hereda el layout global.
+4.  Esto activará las notificaciones en cuanto alguien (que no seas tú) abra el link.
 
 ---
 
 ## Fase 4.6: Mobile-First Hard Constraints (FAIL FAST)
 
-**ANTES** de generar assets, define la estructura pensando en 393px (iPhone 15).
+**ANTES** de generar assets, define la estructura para un rango móvil real: **320px a 430px**.
 
 ### Reglas de Hierro (Hard Caps):
-- [ ] **Hero Headline:** Mínimo `text-4xl` (36px). Si es menor, el usuario no lee.
+- [ ] **Hero Headline:** Escala fluida con `clamp(...)` y mínimo visual equivalente a `text-4xl` en el rango móvil.
 - [ ] **Márgenes:** `px-6` (24px) mínimo en contenedores. Nada pegado al borde.
 - [ ] **Touch Targets:** Botones mínimo `h-12` (48px) de altura.
 - [ ] **Stacking:** Todo lo que sea `flex-row` en desktop DEBE ser `flex-col` en mobile.
@@ -405,6 +432,18 @@ SOLO si la respuesta es "SÍ, definitivamente" → CONTINÚA
 - Preguntar "¿Screenshotearía esto?"
 - Contextualizar al rubro específico
 - Pensar "¿Qué haría una agencia de $50k por proyecto?"
+
+### 🚫 ANTI-TEMPLATE GATE (HARD BLOCKERS)
+
+Si ocurre cualquiera de estos puntos, el demo se considera **RECHAZADO** y NO puede avanzar:
+
+- [ ] Secciones repetidas con el mismo patrón visual (misma card/grid) en 3 o más bloques.
+- [ ] Hero sin gesto distintivo (sin escena, sin narrativa visual o sin interacción memorable).
+- [ ] Layout simétrico dominante (grillas 2/2 o 3/3 sin tensión en toda la página).
+- [ ] Motion decorativo mínimo o inexistente (si al hacer scroll \"no pasa nada\", FAIL).
+- [ ] Paleta genérica sin relación explícita con el Soul/industria.
+
+**Regla:** \"Limpio y ordenado\" NO equivale a premium. Si parece template corporativo, se rehace.
 
 ---
 
@@ -585,11 +624,11 @@ return isMobile ? <MobileHero /> : <DesktopHero />;
 />
 ```
 
-#### Dispositivo de Referencia: iPhone 17 Pro Max (430px)
+#### Rango de Referencia Mobile: 320px a 430px
 
 ```
 REGLA DE ORO MOBILE:
-- El Hero DEBE verse espectacular en 430px de ancho
+- El Hero DEBE verse espectacular en TODO el rango móvil (320px a 430px)
 - No dependas de efectos que solo funcionan con mouse (hover)
 - Las animaciones deben ser más sutiles en mobile
 - Touch targets mínimo 44x44px
@@ -602,6 +641,7 @@ REGLA DE ORO MOBILE:
 - [ ] Scroll vertical limpio (NO horizontal accidental)
 - [ ] Tipografía body mínimo 16px (evita zoom en iOS)
 - [ ] Espaciado touch-friendly entre elementos
+- [ ] Validado explícitamente en 320px, 375px y 430px
 
 **ADAPTACIONES POR COMPONENTE:**
 ```
@@ -616,7 +656,7 @@ TextGenerate → Velocidad más rápida en mobile
 
 **BREAKPOINTS TAILWIND:**
 ```css
-/* Mobile first - iPhone 14/15 Pro = 393px */
+/* Mobile-first adaptativo: validar 320px -> 430px */
 default: 0px+      (mobile)
 sm: 640px+         (mobile landscape)
 md: 768px+         (tablet)
@@ -1082,6 +1122,11 @@ Crea `d:\proyectos\hojacero\app\prospectos\[nombre-prospecto]\page.tsx` siguiend
    - ❌ No grids uniformes.
    - ✅ Layout asimétrico.
    - ✅ Tipografía mezclada (Display + Serif/Sans).
+5. **WOW mínimo obligatorio:**
+   - [ ] 1 Hero con identidad fuerte (no hero \"headline + 2 botones\" genérico).
+   - [ ] 1 sección con composición no trivial (asimetría real o storytelling visual).
+   - [ ] 1 sistema de motion con intención narrativa (no solo fades).
+   - [ ] 1 recurso de firma (componente premium o recurso custom no repetido en serie).
 
 ## Fase 8: Verificar en Browser
 
@@ -1096,6 +1141,8 @@ Verificar:
 - [ ] Estilo matchea con contexto del negocio
 - [ ] Links de CTA funcionan
 - [ ] Responsive (si aplica)
+- [ ] Se siente diferencial al primer scroll (si no, volver a Fase 6.5)
+- [ ] Puede competir visualmente contra 3 referentes del nicho (si no, rehacer)
 
 ---
 
@@ -1180,6 +1227,22 @@ npm run dev
 # Navegar a http://localhost:3000/prospectos/[cliente]
 # Verificar que TODO funciona
 ```
+
+---
+
+## 🕵️ Fase 10.5: Auditoría Externa Obligatoria (Codex Inspector)
+
+**NO se puede entregar sin este gate.**
+
+1. Ejecuta `/factory-qa` para el cliente actual.
+2. Genera `qa_report.md` en `app/prospectos/[cliente]/` con veredicto final.
+3. Criterio de paso:
+   - `APROBADO`
+   - Score promedio >= 8.0
+   - Cero blockers
+4. Si falla cualquiera de los 3 puntos:
+   - Volver a correcciones (Fase 7-10)
+   - Repetir Fase 10.5
 
 ---
 

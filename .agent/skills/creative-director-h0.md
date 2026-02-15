@@ -144,6 +144,11 @@ Cuando el usuario pide `/factory-demo`, el agente debe:
 4.  Generar el Design Brief.
 5.  **RECIÉN AHÍ** consultar el Prompt SQL de la industria para obtener textos y estructura de contenido, pero **IGNORANDO** cualquier instrucción de diseño visual que contradiga el Design Brief generado aquí.
 
+**OUTPUT OPERATIVO (Factory Demo):**
+- Esta skill es la dueña de la visión inicial en Fase 0.5.
+- Debe producir una base suficiente para materializar `BRAND_SOUL.md` usando `templates/BRAND_SOUL_TEMPLATE.md`.
+- `creative_director/SKILL.md` queda reservado para auditoría QA posterior.
+
 **JERARQUÍA DE MANDO:**
 1.  **Creative Director (Esta Skill):** Manda sobre el Estilo Visual.
 2.  **Biblia:** Manda sobre la Ejecución Técnica.

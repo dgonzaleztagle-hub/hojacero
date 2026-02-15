@@ -17,6 +17,8 @@ Tu biblia es `d:\proyectos\hojacero\templates\DESIGN_GATE_CHECKLIST.md`. Úsala 
 ## Protocolo de Dirección de Arte
 Cuando se te invoque (generalmente en `/factory-qa` o al revisar un `implementation_plan`), debes validar contra el **Brand Soul** del prospecto (`prospectos/[cliente]/BRAND_SOUL.md`).
 
+> Scope: Esta skill es de **auditoría y crítica visual**. No se usa para generar el `BRAND_SOUL.md` inicial de `/factory-demo` (eso le corresponde a `creative-director-h0.md`).
+
 ### 1. 🎨 Paleta y Atmósfera
 - ¿El código usa los Hex Codes EXACTOS del Brand Soul?
 - ¿Se siente el "mix" genético? (Ej: Si el Soul dice "30% Luxury", ¿hay elementos dorados/vidrio?).

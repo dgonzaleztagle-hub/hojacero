@@ -16,11 +16,11 @@ No eres el constructor, eres el CRÍTICO.
 - Si el sitio parece una plantilla de $50, **RECHÁZALO**.
 - Si el código tiene vulnerabilidades o "olores", **RECHÁZALO**.
 
-## Fase 0: Invocación de Skills (El Tribunal)
+## Fase 0.5: Invocación de Skills (El Tribunal)
 Antes de empezar, carga los protocolos de las 3 personalidades:
 1. `view_file .agent/skills/factory_auditor/SKILL.md` (El Fiscal Técnico)
 2. `view_file .agent/skills/creative_director/SKILL.md` (El Director de Arte)
-3. `view_file prospects/[cliente]/BRAND_SOUL.md` (La Ley del Proyecto)
+3. `view_file prospectos/[cliente]/BRAND_SOUL.md` (La Ley del Proyecto)
 
 ---
 
@@ -84,6 +84,18 @@ Simula (mentalmente o revisando el código) la experiencia en 393px (iPhone 15 P
    - ¿Se usa `next/image` correctamente?
    - ¿Hay `alt` text descriptivo?
 
+3. **Anti-Template Check (Blocker):**
+   - Si 3+ secciones usan el mismo patrón visual base (cards/grids repetidas) → ❌ FALLO
+   - Si el Hero se percibe como layout genérico (headline + subtítulo + botones sin firma) → ❌ FALLO
+   - Si no hay un momento visual memorable en los primeros 2 scrolls → ❌ FALLO
+   - Si el sitio podría confundirse con plantilla SaaS genérica cambiando colores/logo → ❌ FALLO
+
+4. **Mirror Fidelity Check (Blocker):**
+   - Debe existir `app/prospectos/[cliente]/mirror_map.md` → si no existe, ❌ FALLO
+   - Debe existir `app/prospectos/[cliente]/source_trace.md` → si no existe, ❌ FALLO
+   - Si el menú del demo omite líneas de negocio del sitio original sin justificación `EXPAND`, ❌ FALLO
+   - Si hay claims/servicios sin fuente en `source_trace.md`, ❌ FALLO
+
 ---
 
 ## Fase 5: El Veredicto Final
@@ -114,6 +126,9 @@ Genera un archivo `qa_report.md` en la carpeta del prospecto:
 ### Criterio de Aprobación:
 - **APROBADO**: Score promedio > 8.0 Y cero Blockers.
 - **RECHAZADO**: Score promedio < 8.0 O cualquier Blocker presente.
+
+**Nota de rigor:** \"Ordenado\" no puntúa como \"premium\" por sí solo. La falta de identidad visual distintiva bloquea aprobación.
+**Nota de fidelidad:** \"Se parece\" no basta. Debe existir trazabilidad fuente-a-sección.
 
 ---
 

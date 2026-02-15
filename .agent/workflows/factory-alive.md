@@ -11,7 +11,7 @@ Este workflow es el "Cerebro Creativo" que decide si un sitio necesita movimient
 ## Fase 1: Análisis de Contexto (El Cuestionamiento)
 
 Antes de tocar una línea de código, Jarvis debe realizar un diagnóstico crítico basado en:
-1. `view_file prospects/[cliente]/BRAND_SOUL.md`: ¿Cuál es la psicología de la marca?
+1. `view_file prospectos/[cliente]/BRAND_SOUL.md`: ¿Cuál es la psicología de la marca?
 2. `view_file app/prospectos/[cliente]/page.tsx`: ¿Qué hay actualmente en el hero?
 3. **El Dilema Estético**: ¿El Hero se siente "muerto"? ¿La imagen de fondo (1080p) necesita una capa de profundidad?
 

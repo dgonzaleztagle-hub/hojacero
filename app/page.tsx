@@ -14,6 +14,7 @@ const Portfolio = dynamic(() => import('@/components/sections/Portfolio'), { ssr
 const Cta = dynamic(() => import('@/components/sections/Cta'), { ssr: false });
 const FluidBackground = dynamic(() => import('@/components/canvas/FluidBackground'), { ssr: false });
 const ChatWidget = dynamic(() => import('@/components/sales-agent/ChatWidget').then(mod => mod.ChatWidget), { ssr: false });
+const Footer = dynamic(() => import('@/components/layout/Footer'), { ssr: false });
 
 const INTRO_SEEN_KEY = 'hojacero_intro_seen';
 
@@ -78,6 +79,8 @@ export default function Home() {
         <div id="cta">
           <Cta />
         </div>
+
+        <Footer />
 
       </main>
 

@@ -58,6 +58,7 @@ New-Item -ItemType Directory -Force -Path "d:\clientes\[nombre-slug]\backups"
 ## Fase 1: The Oracle (Authority Strategy)
 
 **No adivines las keywords. Investígalas.**
+**MANDO SEO:** En este workflow usar `seo_strategist/SKILL.md` (cierre productivo), no `seo-strategist-h0.md` (arranque en demo).
 
 1.  **INVOCA AL ORÁCULO:** `view_file .agent/skills/seo_strategist/SKILL.md`
 2.  **EJECUTA DEEP RESEARCH:**

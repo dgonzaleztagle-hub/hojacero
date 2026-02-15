@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import Link from 'next/link';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -11,8 +10,8 @@ gsap.registerPlugin(ScrollTrigger);
 // CTA (V5 FINAL) - "PRODUCCIÓN"
 // 
 // Links Reales:
-// - Opción 1 (Agenda): WhatsApp +56972739105
-// - Opción 2 (Cotiza): Email hojacero.cl@gmail.com
+// - Opción 1 (Agenda): WhatsApp +56958946617
+// - Opción 2 (Cotiza): Email contacto@hojacero.cl
 // ============================================================================
 
 export default function Cta() {
@@ -69,7 +68,7 @@ export default function Cta() {
 
                     {/* Opción Cotización - EMAIL */}
                     <a
-                        href="mailto:hojacero.cl@gmail.com?subject=Solicitud%20de%20Cotizaci%C3%B3n&body=Hola%20HojaCero%2C%0A%0AQuisiera%20cotizar%20un%20proyecto%20de..."
+                        href="mailto:contacto@hojacero.cl?subject=Solicitud%20de%20Cotizaci%C3%B3n&body=Hola%20HojaCero%2C%0A%0AQuisiera%20cotizar%20un%20proyecto%20de..."
                         className="group relative p-8 border border-gray-200 hover:border-black hover:bg-black hover:text-white transition-all duration-300 text-left rounded-xl overflow-hidden"
                     >
                         <div className="relative z-10">
@@ -83,16 +82,7 @@ export default function Cta() {
                     </a>
                 </div>
 
-                <div className="absolute bottom-12 w-full left-0 px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] font-mono uppercase tracking-widest text-gray-400">
-                    <div className="flex flex-col items-center md:items-start">
-                        <span>© 2026 HOJACERO</span>
-                        <span className="mt-1 normal-case opacity-60 max-w-[400px] text-center md:text-left leading-relaxed">
-                            Estudio digital en Santiago de Chile. Desarrollo web, aplicaciones y soluciones digitales a medida para negocios y proyectos técnicos.
-                        </span>
-                    </div>
-                    <Link href="/pricing" className="hover:text-black transition-colors">Pricing</Link>
-                    <span>SANTIAGO / WORLDWIDE</span>
-                </div>
+
             </div>
         </section>
     );

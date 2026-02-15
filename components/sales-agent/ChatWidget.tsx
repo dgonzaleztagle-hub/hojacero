@@ -1,23 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-const ROBOT_GIF_PATH = "/waiting-clicky.gif";
 import { ChatInterface } from './ChatInterface';
 
-import { Bot } from 'lucide-react';
+// ============================================================================
+// CHAT WIDGET — MINIMAL TRIGGER
+// Estilo: Círculo "HELP" con pulso sutil cyan — se funde con la estética H0
+// ============================================================================
 
 export function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
-    const [hasNewMessage, setHasNewMessage] = useState(false);
-
-    // Auto-open or show notification after some time (optional)
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (!isOpen) setHasNewMessage(true);
-        }, 5000);
-        return () => clearTimeout(timer);
-    }, [isOpen]);
 
     return (
         <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4">
@@ -35,47 +28,50 @@ export function ChatWidget() {
                 )}
             </AnimatePresence>
 
-            {/* Bubble Button */}
-            <div className="relative">
-                <AnimatePresence>
-                    {hasNewMessage && !isOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="absolute bottom-full right-0 mb-4 bg-zinc-900 border border-white/10 px-4 py-2 rounded-2xl whitespace-nowrap shadow-2xl"
-                        >
-                            <span className="text-xs font-medium text-white">¿En qué puedo ayudarte hoy? 👋</span>
-                            <div className="absolute top-full right-6 w-3 h-3 bg-zinc-900 border-r border-b border-white/10 transform rotate-45 -translate-y-1.5" />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
+            {/* Minimal Trigger — Circle "HELP" */}
+            {!isOpen && (
                 <motion.button
-                    onClick={() => {
-                        setIsOpen(!isOpen);
-                        setHasNewMessage(false);
+                    onClick={() => setIsOpen(true)}
+                    animate={{
+                        borderColor: [
+                            'rgba(255,255,255,0.1)',
+                            'rgba(0,240,255,0.35)',
+                            'rgba(255,255,255,0.1)',
+                        ],
                     }}
-                    whileHover={{ scale: 1.05 }}
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                    }}
+                    whileHover={{
+                        scale: 1.08,
+                        borderColor: 'rgba(0,240,255,0.4)',
+                    }}
                     whileTap={{ scale: 0.95 }}
-                    className={`w-16 h-16 rounded-full flex items-center justify-center relative shadow-2xl transition-all overflow-hidden ${isOpen
-                        ? 'bg-zinc-900 border border-white/20'
-                        : 'bg-transparent'
-                        }`}
+                    className="w-14 h-14 rounded-full border bg-black/60 backdrop-blur-sm flex items-center justify-center group"
+                    style={{ borderWidth: '1px' }}
+                    aria-label="Abrir chat de ayuda"
                 >
-                    <div className="w-16 h-16 flex items-center justify-center">
-                        <img
-                            src={ROBOT_GIF_PATH}
-                            alt="H0 Robot"
-                            className="w-full h-full object-contain scale-125 mix-blend-screen"
-                        />
-                    </div>
-
-                    {!isOpen && hasNewMessage && (
-                        <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-white rounded-full" />
-                    )}
+                    <motion.span
+                        animate={{
+                            color: [
+                                'rgba(113,113,122,1)',
+                                'rgba(0,240,255,0.9)',
+                                'rgba(113,113,122,1)',
+                            ],
+                        }}
+                        transition={{
+                            duration: 4,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                        }}
+                        className="text-[9px] font-bold uppercase tracking-[0.2em]"
+                    >
+                        Help
+                    </motion.span>
                 </motion.button>
-            </div>
+            )}
         </div>
     );
 }

@@ -7,6 +7,8 @@ description: Agente experto en SEO Semántico, GEO (Generative Engine Optimizati
 
 Esta skill analiza un negocio y genera la **Estrategia de Contenido y Datos Estructurados** necesaria para dominar tanto buscadores clásicos (Google) como Motores de Respuesta (ChatGPT, Perplexity, Claude).
 
+> Scope: esta skill se usa en fases tempranas de `/factory-demo` (arranque de FAQ/AEO y enfoque semántico base). No reemplaza la auditoría SEO final de `/factory-seo`.
+
 ## 🎯 Objetivo
 Transformar un "Sitio Web" en una "Entidad de Autoridad" comprensible por IAs.
 

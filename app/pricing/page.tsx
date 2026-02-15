@@ -7,6 +7,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Link from 'next/link';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import CustomCursor from '@/components/ui/CustomCursor';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { AnimatedCounter } from '@/components/premium/AnimatedCounter';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -312,28 +314,8 @@ export default function PricingPage() {
                 <GradientOrbs />
                 <NoiseOverlay />
 
-                {/* Navbar - Consistente con Landing */}
-                <nav className="fixed top-0 w-full z-50 p-6 flex justify-between items-center mix-blend-difference">
-                    <Link href="/" className="flex items-center gap-4 cursor-none hover-trigger">
-                        <div className="w-8 h-8 rounded-full border border-current animate-spin-slow" aria-hidden="true"></div>
-                        <span className="font-display font-bold tracking-widest text-sm text-white">HOJA CERO</span>
-                    </Link>
-                    <div className="hidden md:flex gap-12 text-xs font-bold tracking-[0.2em] uppercase text-white">
-                        <a href="/#portfolio" className="hover-trigger relative group cursor-none">
-                            Work
-                            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full"></span>
-                        </a>
-                        <a href="/#services" className="hover-trigger relative group cursor-none">
-                            Studio
-                            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full"></span>
-                        </a>
-                        <span className="text-accent">Pricing</span>
-                        <a href="/#cta" className="hover-trigger relative group cursor-none">
-                            Contact
-                            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full"></span>
-                        </a>
-                    </div>
-                </nav>
+                {/* Navbar Global */}
+                <Navbar />
 
                 {/* Hero Section */}
                 <section
@@ -659,17 +641,8 @@ export default function PricingPage() {
                     </div>
                 </section>
 
-                {/* Footer */}
-                <footer className="relative z-10 py-8 px-6 border-t border-white/5">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-xs text-zinc-600 font-mono">
-                            © 2026 HOJACERO
-                        </p>
-                        <p className="text-xs text-zinc-600">
-                            Architects of Digital Experiences
-                        </p>
-                    </div>
-                </footer>
+                {/* Footer Global */}
+                <Footer />
             </main>
         </>
     );

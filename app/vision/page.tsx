@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import CustomCursor from '@/components/ui/CustomCursor';
+import Navbar from '@/components/layout/Navbar';
 import { VisionModal } from '@/components/ui/VisionModal';
+import Footer from '@/components/layout/Footer';
 import { CASES, CaseStudy } from './data';
 
 const NoiseOverlay = () => (
@@ -34,13 +35,8 @@ export default function VisionPage() {
                 project={selectedProject}
             />
 
-            {/* Nav */}
-            <nav className="fixed top-0 w-full z-50 p-6 flex justify-between items-center mix-blend-difference">
-                <div className="flex items-center gap-4">
-                    <span className="font-display font-bold tracking-widest text-xs">HOJACERO / VISION</span>
-                </div>
-                <Link href="/" className="text-xs font-mono opacity-50 hover:opacity-100 transition-opacity">[ RETURN TO BASE ]</Link>
-            </nav>
+            {/* Nav Global */}
+            <Navbar />
 
             <header className="relative pt-32 pb-16 px-6 container mx-auto">
                 <h1 className="text-[clamp(3rem,6vw,6rem)] font-display font-bold leading-[0.9] text-center mb-4">
@@ -103,6 +99,8 @@ export default function VisionPage() {
                     ))}
                 </div>
             </section>
+
+            <Footer />
         </main>
     );
 }
