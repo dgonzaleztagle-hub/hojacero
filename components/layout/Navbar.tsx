@@ -16,7 +16,6 @@ import Link from 'next/link';
 const menuItems = [
     { label: 'Work', section: 'portfolio' },
     { label: 'Vision', href: '/vision' },
-    { label: 'Studio', section: 'services' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Contact', href: '/contact' },
 ];

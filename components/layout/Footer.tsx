@@ -15,7 +15,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 const navigation = [
     { label: 'Work', href: '/#portfolio' },
-    { label: 'Studio', href: '/#services' },
     { label: 'Vision', href: '/vision' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Contact', href: '/contact' },
