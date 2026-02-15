@@ -27,13 +27,13 @@ export default function VisionPage() {
     const cardsContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const ctx = gsap.context(() => {
+        const mm = gsap.matchMedia();
 
+        mm.add("(min-width: 768px)", () => {
             // =============================================
-            // HERO — 3D PARALLAX MOUSE
+            // DESKTOP: FULL 3D EXPERIENCE
             // =============================================
             const layers = document.querySelectorAll('.parallax-layer');
-
             const handleMouseMove = (e: MouseEvent) => {
                 const { clientX, clientY } = e;
                 const xPos = (clientX / window.innerWidth - 0.5) * 2;
@@ -49,105 +49,82 @@ export default function VisionPage() {
                     });
                 });
             };
-
             window.addEventListener('mousemove', handleMouseMove);
 
-            // =============================================
-            // HERO — SCROLL-DRIVEN 3D DEPTH (The Dive & Reveal)
-            // =============================================
             const heroTi = gsap.timeline({
                 scrollTrigger: {
                     trigger: heroRef.current,
                     start: "top top",
-                    end: "+=250%", // Estiramos para el momento de "paz"
+                    end: "+=250%",
                     pin: true,
                     scrub: 1,
                     anticipatePin: 1
                 }
             });
 
-            // FASE 1: Limpieza del frente y texto
-            heroTi.to('.layer-fg', {
-                scale: 3.5,
-                z: 800,
-                opacity: 0,
-                filter: 'blur(50px)',
-                duration: 1.2,
-                ease: 'power2.in'
-            }, 0);
+            heroTi.to('.layer-fg', { scale: 3.5, z: 800, opacity: 0, filter: 'blur(50px)', duration: 1.2, ease: 'power2.in' }, 0);
+            heroTi.to('.layer-text', { scale: 2.2, z: 400, opacity: 0, filter: 'blur(20px)', duration: 1.2, ease: 'power2.in' }, 0.2);
+            heroTi.to('.layer-mid', { opacity: 0, duration: 1, ease: 'power2.in' }, 0.3);
+            heroTi.to('.layer-bg', { opacity: 1, scale: 1, filter: 'grayscale(0) blur(0px)', duration: 1.2, ease: 'power2.out' }, 0.5);
+            heroTi.to({}, { duration: 0.8 });
 
-            heroTi.to('.layer-text', {
-                scale: 2.2,
-                z: 400,
-                opacity: 0,
-                filter: 'blur(20px)',
-                duration: 1.2,
-                ease: 'power2.in'
-            }, 0.2);
+            return () => window.removeEventListener('mousemove', handleMouseMove);
+        });
 
-            heroTi.to('.layer-mid', {
-                opacity: 0,
-                duration: 1,
-                ease: 'power2.in'
-            }, 0.3);
-
-            // FASE 2: La Revelación (El fondo se vuelve nítido y real)
-            heroTi.to('.layer-bg', {
-                opacity: 1,
-                scale: 1, // Vuelve a escala natural
-                filter: 'grayscale(0) blur(0px)',
-                duration: 1.2,
-                ease: 'power2.out'
-            }, 0.5);
-
-            // FASE 3: El "Hold" (Espacio muerto para contemplar la imagen)
-            // Agregamos un delay al final del timeline para que ScrollTrigger mantenga la imagen
-            heroTi.to({}, { duration: 0.8 }); // 0.8 de duración extra donde nada cambia
-
+        mm.add("(max-width: 767px)", () => {
             // =============================================
-            // CARD STACKING (CLEAN STACK SYSTEM)
+            // MOBILE: FLUID & PERFORMANCE OPTIMIZED
             // =============================================
-            const cards = gsap.utils.toArray('.project-card') as HTMLElement[];
-
-            cards.forEach((card, i) => {
-                // Cada tarjeta sobre la anterior jerárquicamente
-                gsap.set(card, { zIndex: i + 10 });
-
-                // 1. PIN de la tarjeta: Se queda quieta hasta que termine toda la sección
-                ScrollTrigger.create({
-                    trigger: card,
-                    start: 'top 5%',
-                    endTrigger: cardsContainerRef.current,
-                    end: 'bottom bottom',
+            const heroTi = gsap.timeline({
+                scrollTrigger: {
+                    trigger: heroRef.current,
+                    start: "top top",
+                    end: "+=120%", // Más corto en móvil para evitar fatiga
                     pin: true,
-                    pinSpacing: false,
-                    scrub: true,
-                });
-
-                // 2. REVELACIÓN Y PROFUNDIDAD: La tarjeta i solo reacciona por lo que hace la i+1
-                if (i < cards.length - 1) {
-                    const nextCard = cards[i + 1];
-
-                    gsap.to(card, {
-                        scrollTrigger: {
-                            trigger: nextCard,
-                            start: 'top 85%', // Empieza el fade solo cuando la siguiente aparece
-                            end: 'top 5%',    // Termina cuando la siguiente ya está pined
-                            scrub: true,
-                        },
-                        scale: 0.94,
-                        opacity: 0.2, // Oscurecemos un poco más para foco en la nueva
-                        filter: 'blur(10px)',
-                        y: -40,
-                        ease: 'none'
-                    });
+                    scrub: 1,
                 }
             });
 
-            return () => window.removeEventListener('mousemove', handleMouseMove);
-        }, containerRef);
+            // Usamos Y-Parallax en lugar de Z-Zoom (Mejor para GPU móvil)
+            heroTi.to('.layer-fg', { y: -200, opacity: 0, duration: 1 }, 0);
+            heroTi.to('.layer-text', { y: -100, scale: 1.5, opacity: 0, duration: 1 }, 0.1);
+            heroTi.to('.layer-mid', { opacity: 0, duration: 1 }, 0.2);
+            heroTi.to('.layer-bg', { opacity: 1, scale: 1, duration: 1 }, 0.3);
+        });
 
-        return () => ctx.revert();
+        // SHARED LOGIC: STACKING (Works on both, but we can refine)
+        const cards = gsap.utils.toArray('.project-card') as HTMLElement[];
+        cards.forEach((card, i) => {
+            gsap.set(card, { zIndex: i + 10 });
+            ScrollTrigger.create({
+                trigger: card,
+                start: 'top 5%',
+                endTrigger: cardsContainerRef.current,
+                end: 'bottom bottom',
+                pin: true,
+                pinSpacing: false,
+                scrub: true,
+            });
+
+            if (i < cards.length - 1) {
+                const nextCard = cards[i + 1];
+                gsap.to(card, {
+                    scrollTrigger: {
+                        trigger: nextCard,
+                        start: 'top 85%',
+                        end: 'top 5%',
+                        scrub: true,
+                    },
+                    scale: 0.94,
+                    opacity: 0.2,
+                    filter: window.innerWidth > 768 ? 'blur(10px)' : 'none', // Quitamos blur en móvil
+                    y: -40,
+                    ease: 'none'
+                });
+            }
+        });
+
+        return () => mm.revert();
     }, []);
 
     return (

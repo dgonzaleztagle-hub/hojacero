@@ -76,31 +76,23 @@ export default function Navbar() {
 
                 {/* Desktop Menu */}
                 <div className="hidden md:flex gap-12 text-xs font-bold tracking-[0.2em] uppercase text-white">
-                    {menuItems.map((item) => {
-                        if (item.section) {
-                            return (
-                                <a
-                                    key={item.label}
-                                    href={getHref(item)}
-                                    onClick={(e) => handleClick(e, item.section!)}
-                                    className="hover-trigger relative group cursor-none"
-                                >
-                                    {item.label}
-                                    <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full" />
-                                </a>
-                            );
-                        }
-                        return (
-                            <Link
-                                key={item.label}
-                                href={item.href!}
-                                className={`hover-trigger relative group cursor-none ${isActive(item) ? 'opacity-50' : ''}`}
-                            >
-                                {item.label}
-                                <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full" />
-                            </Link>
-                        );
-                    })}
+                    {menuItems.map((item) => (
+                        <Link
+                            key={item.label}
+                            href={getHref(item)}
+                            onClick={(e) => {
+                                if (item.section) {
+                                    handleClick(e as any, item.section);
+                                } else {
+                                    setMobileOpen(false);
+                                }
+                            }}
+                            className={`hover-trigger relative group cursor-none ${isActive(item) ? 'opacity-50' : ''}`}
+                        >
+                            {item.label}
+                            <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-white transition-all group-hover:w-full" />
+                        </Link>
+                    ))}
                 </div>
 
                 {/* Mobile: Hamburger Button */}
@@ -155,23 +147,19 @@ export default function Navbar() {
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ delay: i * 0.08, duration: 0.5, ease: 'easeOut' }}
                                 >
-                                    {item.section ? (
-                                        <a
-                                            href={getHref(item)}
-                                            onClick={(e) => handleClick(e, item.section!)}
-                                            className="text-3xl font-display font-bold tracking-[0.15em] uppercase text-white hover:text-cyan-400 transition-colors duration-300"
-                                        >
-                                            {item.label}
-                                        </a>
-                                    ) : (
-                                        <Link
-                                            href={item.href!}
-                                            onClick={() => setMobileOpen(false)}
-                                            className={`text-3xl font-display font-bold tracking-[0.15em] uppercase transition-colors duration-300 ${isActive(item) ? 'text-cyan-400' : 'text-white hover:text-cyan-400'}`}
-                                        >
-                                            {item.label}
-                                        </Link>
-                                    )}
+                                    <Link
+                                        href={getHref(item)}
+                                        onClick={(e) => {
+                                            if (item.section) {
+                                                handleClick(e as any, item.section);
+                                            } else {
+                                                setMobileOpen(false);
+                                            }
+                                        }}
+                                        className={`text-3xl font-display font-bold tracking-[0.15em] uppercase transition-colors duration-300 ${isActive(item) ? 'text-cyan-400' : 'text-white hover:text-cyan-400'}`}
+                                    >
+                                        {item.label}
+                                    </Link>
                                 </motion.div>
                             ))}
 
