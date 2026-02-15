@@ -7,10 +7,11 @@ import CustomCursor from '@/components/ui/CustomCursor';
 import Loader from '@/components/layout/Loader';
 import Navbar from '@/components/layout/Navbar';
 import Hero from '@/components/sections/Hero';
-import Services from '@/components/sections/Services';
-import Portfolio from '@/components/sections/Portfolio';
-import Cta from '@/components/sections/Cta';
 
+// Secciones below-the-fold cargadas lazy para liberar el hilo principal e inicial
+const Services = dynamic(() => import('@/components/sections/Services'), { ssr: false });
+const Portfolio = dynamic(() => import('@/components/sections/Portfolio'), { ssr: false });
+const Cta = dynamic(() => import('@/components/sections/Cta'), { ssr: false });
 const FluidBackground = dynamic(() => import('@/components/canvas/FluidBackground'), { ssr: false });
 const ChatWidget = dynamic(() => import('@/components/sales-agent/ChatWidget').then(mod => mod.ChatWidget), { ssr: false });
 
@@ -22,7 +23,6 @@ export default function Home() {
   const [showCanvas, setShowCanvas] = useState(false);
   const [showChat, setShowChat] = useState(false);
 
-  // Check localStorage on mount
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
     const hasSeenIntro = localStorage.getItem(INTRO_SEEN_KEY);
@@ -32,21 +32,21 @@ export default function Home() {
     } else {
       setLoading(false);
       setShowIntro(false);
+      // En desktop o re-visita, cargar el canvas rápido
+      setShowCanvas(true);
     }
 
-    // Diferir elementos pesados
-    const canvasTimer = setTimeout(() => setShowCanvas(true), 200);
-    const chatTimer = setTimeout(() => setShowChat(true), 3000);
-
-    return () => {
-      clearTimeout(canvasTimer);
-      clearTimeout(chatTimer);
-    };
+    // El bot siempre al final
+    const chatTimer = setTimeout(() => setShowChat(true), 4000);
+    return () => clearTimeout(chatTimer);
   }, []);
 
   const handleIntroComplete = () => {
     localStorage.setItem(INTRO_SEEN_KEY, 'true');
     setLoading(false);
+    // IMPORTANTE: En móvil, cargar Three.js RECIÉN cuando termina el video
+    // Esto evita que compitan por ancho de banda y CPU
+    setShowCanvas(true);
   };
 
   return (
@@ -58,6 +58,7 @@ export default function Home() {
       )}
 
       <main className="relative min-h-screen w-full">
+        {/* Solo montamos Three.js cuando la intro termina (o si es desktop) */}
         {showCanvas && <FluidBackground />}
 
         {!loading && <Navbar />}
@@ -80,7 +81,6 @@ export default function Home() {
 
       </main>
 
-      {/* Bot cargado con delay para no afectar scores */}
       {showChat && <ChatWidget />}
     </SmoothScroll>
   );

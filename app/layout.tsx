@@ -101,7 +101,7 @@ export default function RootLayout({
         </noscript>
         {/* End Google Tag Manager (noscript) */}
 
-        <Script id="gtm" strategy="afterInteractive">
+        <Script id="gtm" strategy="lazyOnload">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
