@@ -10,30 +10,38 @@ import Hero from '@/components/sections/Hero';
 import Services from '@/components/sections/Services';
 import Portfolio from '@/components/sections/Portfolio';
 import Cta from '@/components/sections/Cta';
-import { ChatWidget } from '@/components/sales-agent/ChatWidget';
 
-const FluidBackground = dynamic(() => import('@/components/canvas/FluidBackground'), {
-  ssr: false,
-});
+const FluidBackground = dynamic(() => import('@/components/canvas/FluidBackground'), { ssr: false });
+const ChatWidget = dynamic(() => import('@/components/sales-agent/ChatWidget').then(mod => mod.ChatWidget), { ssr: false });
 
 const INTRO_SEEN_KEY = 'hojacero_intro_seen';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showIntro, setShowIntro] = useState(false);
+  const [showCanvas, setShowCanvas] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
   // Check localStorage on mount
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
     const hasSeenIntro = localStorage.getItem(INTRO_SEEN_KEY);
 
     if (isMobile && !hasSeenIntro) {
-      // Primera visita en móvil → mostrar intro (actúa como escudo de performance)
       setShowIntro(true);
     } else {
-      // Desktop O ya visto → saltar directo para máxima velocidad
       setLoading(false);
       setShowIntro(false);
     }
+
+    // Diferir elementos pesados
+    const canvasTimer = setTimeout(() => setShowCanvas(true), 200);
+    const chatTimer = setTimeout(() => setShowChat(true), 3000);
+
+    return () => {
+      clearTimeout(canvasTimer);
+      clearTimeout(chatTimer);
+    };
   }, []);
 
   const handleIntroComplete = () => {
@@ -50,7 +58,7 @@ export default function Home() {
       )}
 
       <main className="relative min-h-screen w-full">
-        <FluidBackground />
+        {showCanvas && <FluidBackground />}
 
         {!loading && <Navbar />}
 
@@ -72,8 +80,8 @@ export default function Home() {
 
       </main>
 
-      {/* Bot solo disponible en landing */}
-      <ChatWidget />
+      {/* Bot cargado con delay para no afectar scores */}
+      {showChat && <ChatWidget />}
     </SmoothScroll>
   );
 }

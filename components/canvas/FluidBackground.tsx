@@ -6,7 +6,7 @@ import * as THREE from 'three';
 
 function Particles() {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    const count = isMobile ? 800 : 2000;
+    const count = isMobile ? 400 : 2000;
     const mesh = useRef<THREE.Points>(null!);
 
     // Mouse state refs for smooth damping (lerping)
