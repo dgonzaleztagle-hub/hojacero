@@ -140,7 +140,7 @@ export default function VisionPage() {
                 {/* ═══════════════════════════════════════════ */}
                 <section
                     ref={heroRef}
-                    className="relative h-screen flex items-center justify-center overflow-hidden bg-black"
+                    className="relative z-50 h-screen flex items-center justify-center overflow-hidden bg-black"
                     style={{ perspective: '1200px' }}
                 >
                     {/* Layer 0: Deep Background (Nebula) */}
@@ -206,7 +206,7 @@ export default function VisionPage() {
                 {/* ═══════════════════════════════════════════ */}
                 {/* PROJECT SHOWCASE — STICKY DECK              */}
                 {/* ═══════════════════════════════════════════ */}
-                <section ref={cardsContainerRef} className="relative px-6">
+                <section ref={cardsContainerRef} className="relative z-10 px-6">
                     <div className="container mx-auto space-y-0">
                         {CASES.map((item, i) => (
                             <div
