@@ -58,7 +58,7 @@ export const CASES: CaseStudy[] = [
         year: '2026',
         description: 'Optimización de servicios técnicos. Una landing quirúrgica para un servicio de reparación de alta gama.',
         tags: ['Tech Service', 'Lead Gen', 'Minimal'],
-        imageAfter: '/og-image.jpg',
+        imageAfter: '/prospectos/reparpads/logo_v2.png',
         accentColor: '#3b82f6',
         viewUrl: '/prospectos/reparpads'
     },
@@ -69,7 +69,7 @@ export const CASES: CaseStudy[] = [
         year: '2026',
         description: 'Evolución del Food Engine v3. Diseño inmersivo para gastronomía de autor con pedidos en tiempo real.',
         tags: ['Gastronomía', 'Realtime', 'UI/UX'],
-        imageAfter: '/logo-h0-hybrid.png',
+        imageAfter: '/prospectos/mitifuu-v3/hero.png',
         accentColor: '#10b981',
         viewUrl: '/prospectos/mitifuu-v3'
     },
@@ -80,8 +80,8 @@ export const CASES: CaseStudy[] = [
         year: '2026',
         description: 'Humanizing Healthcare. Una experiencia dental que elimina la fricción y genera autoridad instantánea.',
         tags: ['Health', 'Booking', 'Trust'],
-        imageAfter: '/logo.png',
+        imageAfter: '/prospectos/family-smile/hero.png',
         accentColor: '#06b6d4',
-        viewUrl: '/prospectos/family-smile-v3'
+        viewUrl: '/prospectos/family-smile'
     }
 ];
