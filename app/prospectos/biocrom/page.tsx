@@ -75,6 +75,15 @@ const BentoCard = ({
 export default function BiocromLanding() {
     const [scrolled, setScrolled] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isContactOpen, setIsContactOpen] = useState(false);
+    const [contactSent, setContactSent] = useState(false);
+    const [contactForm, setContactForm] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        company: "",
+        message: "",
+    });
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -91,6 +100,17 @@ export default function BiocromLanding() {
         { label: "FAQ", href: "#faq" },
         { label: "Contacto", href: "#contacto" },
     ];
+
+    const openContact = () => {
+        setContactSent(false);
+        setIsContactOpen(true);
+    };
+
+    const submitContact = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setContactSent(true);
+    };
+
 
     return (
         <div className="bg-[#0B1F3A] min-h-screen selection:bg-[#C3001D] selection:text-white overflow-x-hidden text-white">
@@ -124,7 +144,7 @@ export default function BiocromLanding() {
                                 <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#C3001D] transition-all group-hover:w-full" />
                             </a>
                         ))}
-                        <button className={`px-8 py-3 rounded-full font-black transition-all hover:scale-105 active:scale-95 shadow-xl ${scrolled ? "bg-[#C3001D] text-white" : "bg-white text-[#0B1F3A]"}`}>
+                        <button onClick={openContact} className={`px-8 py-3 rounded-full font-black transition-all hover:scale-105 active:scale-95 shadow-xl ${scrolled ? "bg-[#C3001D] text-white" : "bg-white text-[#0B1F3A]"}`}>
                             COTIZAR AHORA
                         </button>
                     </div>
@@ -145,7 +165,7 @@ export default function BiocromLanding() {
                         {menuItems.map((item) => (
                             <a key={item.label} href={item.href} className="text-3xl font-bold text-white hover:text-[#C3001D]" onClick={() => setIsMenuOpen(false)}>{item.label}</a>
                         ))}
-                        <button className="bg-[#C3001D] text-white px-12 py-5 rounded-full font-black text-xl">CONTACTAR</button>
+                        <button onClick={() => { setIsMenuOpen(false); openContact(); }} className="bg-[#C3001D] text-white px-12 py-5 rounded-full font-black text-xl">CONTACTAR</button>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -180,10 +200,10 @@ export default function BiocromLanding() {
                             Soporte técnico <span className="text-white font-bold italic">multimarca</span> especializado en HPLC y GC. Elevamos la confiabilidad analítica de su laboratorio a estándares mundiales.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-6 mb-20">
-                            <button className="bg-[#C3001D] text-white px-12 py-6 rounded-full text-lg font-black hover:scale-105 transition-all shadow-[0_0_50px_rgba(195,0,29,0.5)] group flex items-center gap-3">
-                                INICIAR DIAGNÓSTICO <ChevronRight className="group-hover:translate-x-2 transition-transform" />
+                            <button onClick={openContact} className="bg-[#C3001D] text-white px-12 py-6 rounded-full text-lg font-black hover:scale-105 transition-all shadow-[0_0_50px_rgba(195,0,29,0.5)] group flex items-center gap-3">
+                                SOLICITAR COTIZACIÓN <ChevronRight className="group-hover:translate-x-2 transition-transform" />
                             </button>
-                            <button className="border border-white/20 text-white px-12 py-6 rounded-full text-lg font-bold hover:bg-white/10 transition-all backdrop-blur-xl">
+                            <button onClick={() => document.getElementById('areas')?.scrollIntoView({ behavior: 'smooth' })} className="border border-white/20 text-white px-12 py-6 rounded-full text-lg font-bold hover:bg-white/10 transition-all backdrop-blur-xl">
                                 ÁREAS DE SERVICIO
                             </button>
                         </div>
@@ -272,9 +292,19 @@ export default function BiocromLanding() {
                             icon={Microscope}
                         />
                         <div className="md:col-span-2 bg-[#122849] rounded-[2rem] md:rounded-[3rem] p-8 md:p-16 text-white flex flex-col justify-center relative shadow-3xl overflow-hidden group border border-white/5">
+                            {/* Background Image */}
+                            <div className="absolute inset-0 z-0">
+                                <Image
+                                    src="/biocrom_software_lab.jpg"
+                                    alt="Laboratory Software"
+                                    fill
+                                    className="object-cover opacity-20 group-hover:opacity-30 transition-all duration-700"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#122849] via-[#122849]/80 to-[#122849]/60" />
+                            </div>
                             <h3 className="text-3xl md:text-6xl font-black mb-6 md:mb-10 relative z-10 tracking-tighter italic">Software de <br className="hidden md:block" /><span className="text-[#C3001D]">Adquisición.</span></h3>
                             <p className="text-gray-400 mb-8 md:mb-12 max-w-lg relative z-10 font-sans text-lg md:text-xl font-light">Unificamos la captura de datos de sus equipos legacy bajo protocolos de red modernos.</p>
-                            <button className="bg-white text-[#0B1F3A] px-10 md:px-14 py-4 md:py-5 rounded-full font-black w-fit hover:bg-[#C3001D] hover:text-white transition-all transform hover:scale-110 relative z-10 text-sm md:text-base">
+                            <button onClick={openContact} className="bg-white text-[#0B1F3A] px-10 md:px-14 py-4 md:py-5 rounded-full font-black w-fit hover:bg-[#C3001D] hover:text-white transition-all transform hover:scale-110 relative z-10 text-sm md:text-base">
                                 CONSULTAR COMPATIBILIDAD
                             </button>
                         </div>
@@ -415,6 +445,104 @@ export default function BiocromLanding() {
                     <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/30">BIOCROM EIRL 2026 · <span className="text-[#C3001D]/60">HOJACERO</span></p>
                 </div>
             </footer>
+
+            {/* MODAL DE CONTACTO */}
+            <AnimatePresence>
+                {isContactOpen && (
+                    <motion.div
+                        className="fixed inset-0 z-[75] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsContactOpen(false)}
+                    >
+                        <motion.div
+                            className="bg-[#0B1F3A] border border-[#C3001D]/30 w-full max-w-2xl rounded-3xl p-8 shadow-2xl"
+                            initial={{ y: 30, opacity: 0, scale: 0.97 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: 20, opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.25 }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <p className="text-xs tracking-[0.3em] uppercase font-bold text-[#C3001D] mb-2">Contacto Comercial</p>
+                                    <h4 className="text-4xl font-black text-white tracking-tighter">Solicitar Cotización</h4>
+                                    <p className="text-sm text-gray-400 mt-2">Respuesta en menos de 24h hábiles</p>
+                                </div>
+                                <button onClick={() => setIsContactOpen(false)} className="text-gray-400 hover:text-white">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            {contactSent ? (
+                                <div className="rounded-2xl bg-[#C3001D] text-white p-8">
+                                    <CheckCircle2 size={48} className="mb-4" />
+                                    <p className="text-sm uppercase tracking-[0.2em] font-bold mb-2">Solicitud Recibida</p>
+                                    <p className="text-xl font-semibold mb-4">Gracias por contactarnos. Un ingeniero se comunicará contigo dentro de 24h hábiles.</p>
+                                    <button
+                                        className="mt-4 bg-white text-[#C3001D] px-6 py-3 rounded-full font-bold hover:scale-105 transition-all"
+                                        onClick={() => setIsContactOpen(false)}
+                                    >
+                                        Cerrar
+                                    </button>
+                                </div>
+                            ) : (
+                                <form onSubmit={submitContact} className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input
+                                            value={contactForm.name}
+                                            onChange={(e) => setContactForm((prev) => ({ ...prev, name: e.target.value }))}
+                                            placeholder="Nombre completo *"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:border-[#C3001D] focus:outline-none"
+                                            required
+                                        />
+                                        <input
+                                            value={contactForm.company}
+                                            onChange={(e) => setContactForm((prev) => ({ ...prev, company: e.target.value }))}
+                                            placeholder="Laboratorio / Empresa *"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:border-[#C3001D] focus:outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input
+                                            type="email"
+                                            value={contactForm.email}
+                                            onChange={(e) => setContactForm((prev) => ({ ...prev, email: e.target.value }))}
+                                            placeholder="Email corporativo *"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:border-[#C3001D] focus:outline-none"
+                                            required
+                                        />
+                                        <input
+                                            type="tel"
+                                            value={contactForm.phone}
+                                            onChange={(e) => setContactForm((prev) => ({ ...prev, phone: e.target.value }))}
+                                            placeholder="Teléfono *"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:border-[#C3001D] focus:outline-none"
+                                            required
+                                        />
+                                    </div>
+                                    <textarea
+                                        value={contactForm.message}
+                                        onChange={(e) => setContactForm((prev) => ({ ...prev, message: e.target.value }))}
+                                        placeholder="¿Qué equipo o servicio necesitas? (Opcional)"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:border-[#C3001D] focus:outline-none min-h-32"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="w-full bg-[#C3001D] text-white py-4 rounded-full font-black hover:scale-105 transition-all shadow-[0_0_30px_rgba(195,0,29,0.5)]"
+                                    >
+                                        ENVIAR SOLICITUD
+                                    </button>
+                                    <p className="text-xs text-gray-500 text-center">Al enviar aceptas que Biocrom contacte tu empresa para fines comerciales.</p>
+                                </form>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
 
             <style jsx global>{`
         @keyframes subtle-ken-burns {
