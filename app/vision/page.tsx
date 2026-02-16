@@ -215,50 +215,50 @@ export default function VisionPage() {
                             >
                                 <Link
                                     href={item.viewUrl}
-                                    className="relative w-full max-w-7xl h-[85vh] rounded-[2.5rem] border border-white/[0.08] bg-zinc-900/50 backdrop-blur-3xl overflow-hidden flex flex-col-reverse md:flex-row group cursor-pointer block"
+                                    className="relative w-full max-w-7xl h-[85vh] rounded-[2.5rem] border border-white/[0.08] bg-zinc-900/50 backdrop-blur-3xl overflow-hidden flex flex-col md:flex-row group cursor-pointer block"
                                     style={{
                                         boxShadow: `0 30px 100px -20px rgba(0,0,0,0.5)`,
                                     }}
                                 >
                                     {/* Project Info (Left) */}
-                                    <div className="md:w-1/2 h-[60%] md:h-full p-8 md:p-20 flex flex-col justify-between relative z-10">
+                                    <div className="md:w-1/2 p-12 md:p-20 flex flex-col justify-between relative z-10">
                                         <div>
-                                            <div className="flex items-center gap-4 mb-6 md:mb-10 overflow-hidden">
-                                                <span className="text-zinc-600 font-mono text-xs md:text-sm">0{i + 1}</span>
-                                                <div className="w-8 md:w-10 h-[1px] bg-zinc-800" />
-                                                <span className="text-[9px] md:text-[10px] font-mono tracking-widest uppercase text-zinc-400">HojaCero • {item.year}</span>
+                                            <div className="flex items-center gap-4 mb-10 overflow-hidden">
+                                                <span className="text-zinc-600 font-mono text-sm">0{i + 1}</span>
+                                                <div className="w-10 h-[1px] bg-zinc-800" />
+                                                <span className="text-[10px] font-mono tracking-widest uppercase text-zinc-400">HojaCero • {item.year}</span>
                                             </div>
 
-                                            <h2 className="text-4xl md:text-8xl font-display font-bold leading-[0.85] tracking-tighter mb-4 md:mb-8 group-hover:translate-x-2 transition-transform duration-500">
+                                            <h2 className="text-6xl md:text-8xl font-display font-bold leading-[0.85] tracking-tighter mb-8 group-hover:translate-x-2 transition-transform duration-500">
                                                 {item.client}
                                             </h2>
 
-                                            <div className="flex flex-wrap gap-2 mb-4 md:mb-8">
+                                            <div className="flex flex-wrap gap-2 mb-8">
                                                 {item.tags.map(tag => (
-                                                    <span key={tag} className="px-2 py-0.5 md:px-3 md:py-1 bg-white/5 border border-white/10 rounded-full text-[8px] md:text-[9px] font-mono uppercase tracking-wider text-zinc-400">
+                                                    <span key={tag} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-mono uppercase tracking-wider text-zinc-400">
                                                         {tag}
                                                     </span>
                                                 ))}
                                             </div>
 
-                                            <p className="text-sm md:text-lg text-zinc-400 font-light max-w-sm leading-relaxed mb-6 md:mb-12">
+                                            <p className="text-lg text-zinc-400 font-light max-w-sm leading-relaxed mb-12">
                                                 {item.description}
                                             </p>
                                         </div>
 
-                                        <div className="inline-flex items-center gap-4 md:gap-6 group/link">
-                                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-full border border-white/20 flex items-center justify-center group-hover/link:bg-white group-hover/link:text-black transition-all duration-300 font-bold">
-                                                <span className="text-xl md:text-2xl mt-[-4px]">↗</span>
+                                        <div className="inline-flex items-center gap-6 group/link">
+                                            <div className="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center group-hover/link:bg-white group-hover/link:text-black transition-all duration-300">
+                                                <span className="text-2xl mt-[-4px]">↗</span>
                                             </div>
-                                            <span className="font-display text-lg md:text-xl font-medium tracking-tight overflow-hidden">
-                                                Ver proyecto full
+                                            <span className="font-display text-xl font-medium tracking-tight overflow-hidden">
+                                                Ver proyecto completo
                                                 <div className="h-[1px] w-full bg-white/20 mt-1 group-hover/link:translate-x-0 -translate-x-full transition-transform duration-500" />
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Visual Frame (Right) */}
-                                    <div className="md:w-1/2 h-[40%] md:h-full relative bg-zinc-950/50 p-4 md:p-12">
+                                    <div className="md:w-1/2 relative bg-zinc-950/50 p-6 md:p-12">
                                         <div className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 group-hover:border-white/20 transition-colors duration-500">
                                             {/* Accent Glow */}
                                             <div
