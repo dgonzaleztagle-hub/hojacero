@@ -3,7 +3,7 @@
 import { useHoursExtra } from "@/lib/aplicaciones/horasextras/useHoursExtra";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Calendar as CalendarIcon, Clock, CheckCircle2, Gamepad2, Home } from "lucide-react";
+import { Heart, Calendar as CalendarIcon, Clock, CheckCircle2, Gamepad2, Home, List, X } from "lucide-react";
 
 import LoveMatch from "@/components/aplicaciones/horasextras/LoveMatch";
 
@@ -13,6 +13,7 @@ export default function HorasExtrasPage() {
     const [hours, setHours] = useState<number>(0);
     const [showLoveMessage, setShowLoveMessage] = useState(false);
     const [showGamePrompt, setShowGamePrompt] = useState(false);
+    const [showHistory, setShowHistory] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
 
     const { pendingHours, totalHistory } = getCycleStats();
@@ -180,7 +181,81 @@ export default function HorasExtrasPage() {
                         </motion.div>
                     )}
                 </AnimatePresence>
+                <button
+                    onClick={() => setShowHistory(true)}
+                    className="w-full mt-4 py-4 bg-white text-[#C2185B] rounded-[1.5rem] text-lg font-bold shadow-sm border-2 border-transparent hover:border-[#FFB7C5] active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                    <List className="w-5 h-5" /> Ver Histórico Completo
+                </button>
             </main>
+
+            {/* History Modal Overlay */}
+            <AnimatePresence>
+                {showHistory && (
+                    <motion.div
+                        initial={{ opacity: 0, y: "100%" }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: "100%" }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="fixed inset-0 z-40 bg-[#FFF5F7] flex flex-col"
+                    >
+                        {/* Header Modal */}
+                        <div className="bg-white px-6 py-5 shadow-sm flex items-center justify-between sticky top-0 z-10">
+                            <h2 className="text-2xl font-black text-[#880E4F] flex items-center gap-2">
+                                <List className="w-6 h-6 text-[#FF69B4]" /> Histórico
+                            </h2>
+                            <button
+                                onClick={() => setShowHistory(false)}
+                                className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 active:scale-95 transition-all"
+                            >
+                                <X className="w-6 h-6 text-gray-600" />
+                            </button>
+                        </div>
+
+                        {/* Contenido Modal */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
+                            {entries.length === 0 ? (
+                                <div className="text-center text-gray-400 mt-10">
+                                    <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                                    <p>Todavía no hay horas registradas.</p>
+                                </div>
+                            ) : (
+                                [...entries]
+                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                    .map((entry, idx) => (
+                                        <div
+                                            key={`${entry.date}-${idx}`}
+                                            className="bg-white rounded-3xl p-5 shadow-sm border border-pink-100 flex items-center justify-between"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className={`p-3 rounded-2xl ${entry.paid ? 'bg-green-100 text-green-600' : 'bg-[#FFF5F7] text-[#FF69B4]'}`}>
+                                                    <CalendarIcon className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-[#880E4F] text-lg">
+                                                        {new Date(entry.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: 'short' })}
+                                                    </p>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <div className={`w-2 h-2 rounded-full ${entry.paid ? 'bg-green-500' : 'bg-amber-400'}`} />
+                                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                                            {entry.paid ? 'Cobrado' : 'Pendiente'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-3xl font-black text-[#C2185B] leading-none">
+                                                    {entry.hours}
+                                                </span>
+                                                <span className="text-sm font-bold opacity-60 ml-1">hrs</span>
+                                            </div>
+                                        </div>
+                                    ))
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <footer className="max-w-md mx-auto mt-12 text-center opacity-40 text-xs">
                 Hecho con ❤️ por Daniel para su persona favorita
