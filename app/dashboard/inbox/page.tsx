@@ -163,8 +163,8 @@ export default function InboxPage() {
                         let htmlContent = decodeContent(body, headers);
                         // Very basic HTML to Text
                         bestHtml = htmlContent
-                            .replace(/<style[^>]*>.*<\/style>/gis, '')
-                            .replace(/<script[^>]*>.*<\/script>/gis, '')
+                            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
                             .replace(/<br\s*\/?>/gi, '\n')
                             .replace(/<\/p>/gi, '\n\n')
                             .replace(/<[^>]+>/g, '')
@@ -192,7 +192,7 @@ export default function InboxPage() {
                 }
                 const decoded = decodeContent(body, headers);
                 if (headers.toLowerCase().includes('text/html')) {
-                    return decoded.replace(/<style[^>]*>.*<\/style>/gis, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                    return decoded.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                 }
                 return decoded;
             }
