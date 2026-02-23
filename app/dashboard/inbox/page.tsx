@@ -86,34 +86,22 @@ export default function InboxPage() {
         return () => { supabase.removeChannel(channel); };
     }, [fetchEmails, fetchOutbox, supabase]);
 
-    // Helper to decode Quoted-Printable with proper UTF-8 support
     const decodeQuotedPrintable = (str: string) => {
-        // 1. Remove soft line breaks (= followed by newline)
-        const cleanStr = str.replace(/=\r\n/g, '').replace(/=\n/g, '');
-
-        // 2. Convert to byte array
-        const bytes: number[] = [];
-        for (let i = 0; i < cleanStr.length; i++) {
-            if (cleanStr[i] === '=') {
-                // Parse hex code
-                const hex = cleanStr.substr(i + 1, 2);
-                if (/^[0-9A-F]{2}$/i.test(hex)) {
-                    bytes.push(parseInt(hex, 16));
-                    i += 2; // Skip the 2 hex chars
-                } else {
-                    bytes.push(cleanStr.charCodeAt(i));
-                }
-            } else {
-                bytes.push(cleanStr.charCodeAt(i));
-            }
-        }
-
-        // 3. Decode bytes as UTF-8
         try {
-            return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+            // Remove "=" at the end of lines (soft line breaks)
+            let cleanStr = str.replace(/=\r\n/g, '').replace(/=\n/g, '');
+
+            // Replace =XX with escaped URI format %XX
+            cleanStr = cleanStr.replace(/=([0-9A-F]{2})/ig, '%$1');
+
+            // Replace HTML entities for common symbols if any got left behind
+            cleanStr = cleanStr.replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+
+            return decodeURIComponent(cleanStr);
         } catch (e) {
-            console.error("Error decoding UTF-8:", e);
-            return str; // Fallback
+            // Fallback: replace just the visible =XX if URI decoding fails
+            let fallbackStr = str.replace(/=\r\n/g, '').replace(/=\n/g, '');
+            return fallbackStr.replace(/=([0-9A-F]{2})/ig, (m, hex) => String.fromCharCode(parseInt(hex, 16)));
         }
     };
 
@@ -121,7 +109,6 @@ export default function InboxPage() {
         if (!rawText) return "";
 
         try {
-            // Helper to check for encoding and decode if needed
             const decodeContent = (text: string, headers: string) => {
                 const headerStr = headers.toLowerCase();
                 if (headerStr.includes('content-transfer-encoding: quoted-printable')) {
@@ -130,104 +117,114 @@ export default function InboxPage() {
                 if (headerStr.includes('content-transfer-encoding: base64')) {
                     try {
                         const b64 = text.replace(/\s/g, '');
+                        // Check if UTF-8 encoded
+                        if (headerStr.includes('charset="utf-8"') || headerStr.includes('charset=utf-8')) {
+                            const decodedArray = atob(b64).split('').map(function (c) {
+                                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                            }).join('');
+                            return decodeURIComponent(decodedArray);
+                        }
                         return decodeURIComponent(escape(atob(b64)));
                     } catch (e) {
-                        // Fallback is just return text
                     }
                 }
                 return text;
             };
 
-            // 1. If it doesn't look like a multipart message (no boundaries), try simple header stripping
+            const extractFromMultipart = (text: string, boundary: string): string => {
+                const parts = text.split(`--${boundary}`);
+                let bestText = "";
+                let bestHtml = "";
+
+                for (let i = 1; i < parts.length - 1; i++) { // Skip prolog and epilog
+                    const part = parts[i].trim();
+                    if (!part) continue;
+
+                    const splitIdx = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
+                    if (splitIdx === -1) continue;
+
+                    const headers = part.substring(0, splitIdx);
+                    let body = part.substring(splitIdx).trim();
+
+                    const headersLower = headers.toLowerCase();
+
+                    // Handle nested multipart
+                    if (headersLower.includes('content-type: multipart/')) {
+                        const nestedBoundaryMatch = headers.match(/boundary="?([^"\r\n]+)"?/i);
+                        if (nestedBoundaryMatch) {
+                            const nestedContent = extractFromMultipart(body, nestedBoundaryMatch[1]);
+                            if (nestedContent) return nestedContent;
+                        }
+                    }
+
+                    if (headersLower.includes("content-type: text/plain")) {
+                        bestText = decodeContent(body, headers);
+                    } else if (headersLower.includes("content-type: text/html")) {
+                        let htmlContent = decodeContent(body, headers);
+                        // Very basic HTML to Text
+                        bestHtml = htmlContent
+                            .replace(/<style[^>]*>.*<\/style>/gis, '')
+                            .replace(/<script[^>]*>.*<\/script>/gis, '')
+                            .replace(/<br\s*\/?>/gi, '\n')
+                            .replace(/<\/p>/gi, '\n\n')
+                            .replace(/<[^>]+>/g, '')
+                            .replace(/&nbsp;/g, ' ')
+                            .replace(/&amp;/g, '&')
+                            .replace(/&lt;/g, '<')
+                            .replace(/&gt;/g, '>')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                    }
+                }
+                return bestText || bestHtml || "";
+            };
+
+
             if (!rawText.includes("Content-Type: multipart")) {
                 let headers = "";
                 let body = rawText;
-
                 if (rawText.toLowerCase().includes('content-type: text/') || rawText.toLowerCase().includes('content-transfer-encoding:')) {
-                    const parts = rawText.split(/\r\n\r\n|\n\n/);
-                    if (parts.length > 1) {
-                        headers = parts[0];
-                        body = parts.slice(1).join("\n\n").trim();
+                    const splitIdx = rawText.indexOf('\r\n\r\n') !== -1 ? rawText.indexOf('\r\n\r\n') : rawText.indexOf('\n\n');
+                    if (splitIdx !== -1) {
+                        headers = rawText.substring(0, splitIdx);
+                        body = rawText.substring(splitIdx).trim();
                     }
                 }
                 const decoded = decodeContent(body, headers);
                 if (headers.toLowerCase().includes('text/html')) {
-                    return decoded.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+                    return decoded.replace(/<style[^>]*>.*<\/style>/gis, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                 }
                 return decoded;
             }
 
-            // 2. Identify Boundary
-            // Iterate lines to find the first likely boundary (starting with --)
-            const lines = rawText.split(/\r\n|\n/);
-            let boundary = "";
-            for (const line of lines) {
-                // Boundary must start with --, not be the end boundary (--...--), and be reasonably long
-                if (line.trim().startsWith("--") && !line.trim().endsWith("--") && line.trim().length > 5) {
-                    boundary = line.trim();
-                    break;
-                }
+            const mainBoundaryMatch = rawText.match(/boundary="?([^"\r\n]+)"?/i);
+            if (mainBoundaryMatch) {
+                const extracted = extractFromMultipart(rawText, mainBoundaryMatch[1]);
+                if (extracted) return extracted;
             }
 
-            if (!boundary) {
-                // Try to find base64 block anyway
-                const lowerRaw = rawText.toLowerCase();
-                if (lowerRaw.includes('content-transfer-encoding: base64')) {
-                    const parts = rawText.split(/\r\n\r\n|\n\n/);
-                    if (parts.length > 1) {
-                        try {
-                            const b64 = parts.slice(1).join('').replace(/\s/g, '');
-                            const decoded = decodeURIComponent(escape(atob(b64)));
-                            if (lowerRaw.includes('text/html')) {
-                                return decoded.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
-                            }
-                            return decoded;
-                        } catch (e) { }
-                    }
-                }
-                return rawText; // Failed to find boundary
-            }
-
-            // 3. Split by boundary
-            const parts = rawText.split(boundary);
-
-            let bestTextPart = "";
-            let bestHtmlPart = "";
-
-            // 4. Find text/plain part
-            for (const part of parts) {
-                const cleanPart = part.trim();
-                if (!cleanPart || cleanPart === "--") continue; // Skip empty or end boundary
-
-                // Find separation between headers and body of this part
-                // We look for double newline
-                const match = cleanPart.match(/\r\n\r\n|\n\n/);
-                if (!match || match.index === undefined) continue;
-
-                const headers = cleanPart.substring(0, match.index);
-                const body = cleanPart.substring(match.index + match[0].length).trim();
-                const headersLower = headers.toLowerCase();
-
-                if (headersLower.includes("content-type: text/plain")) {
-                    bestTextPart = decodeContent(body, headers);
-                } else if (headersLower.includes("content-type: text/html")) {
-                    let htmlContent = decodeContent(body, headers);
-                    bestHtmlPart = htmlContent.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+            // Fallbacks for Base64 or Quoted Printable without proper boundaries
+            const lowerRaw = rawText.toLowerCase();
+            if (lowerRaw.includes('content-transfer-encoding: base64')) {
+                const parts = rawText.split(/\r\n\r\n|\n\n/);
+                if (parts.length > 1) {
+                    try {
+                        const b64 = parts.slice(1).join('').replace(/\s/g, '');
+                        const decoded = decodeURIComponent(escape(atob(b64)));
+                        return decoded.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                    } catch (e) { }
                 }
             }
-
-            if (bestTextPart) return bestTextPart;
-            if (bestHtmlPart) return bestHtmlPart;
+            if (lowerRaw.includes('content-transfer-encoding: quoted-printable')) {
+                const parts = rawText.split(/\r\n\r\n|\n\n/);
+                if (parts.length > 1) {
+                    return decodeQuotedPrintable(parts.slice(1).join('\n\n')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                }
+            }
 
             return rawText;
         } catch (e: unknown) {
-            const message = e instanceof Error ? e.message : 'unknown';
-            console.error("Email parsing FAILED:", {
-                error: message,
-                textLength: rawText.length,
-                preview: rawText.substring(0, 200)
-            });
-            return `[Error de decodificacion: ${message}]\n\n${rawText.substring(0, 500)}...`;
+            return `[Error decodificando el correo]\n\n${rawText.substring(0, 500)}...`;
         }
     };
 
