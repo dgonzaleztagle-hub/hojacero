@@ -425,7 +425,7 @@ export default function InboxPage() {
             </div>
 
             {/* Email Detail View */}
-            <div className={`flex-col md:flex flex-1 transition-colors ${selectedEmail ? 'flex' : 'hidden'} ${isDark ? 'bg-zinc-950 text-white' : 'bg-white text-gray-900'}`}>
+            <div className={`flex-col md:flex flex-1 min-w-0 transition-colors ${selectedEmail ? 'flex' : 'hidden'} ${isDark ? 'bg-zinc-950 text-white' : 'bg-white text-gray-900'}`}>
                 {selectedEmail ? (
                     <>
                         {/* Header */}
