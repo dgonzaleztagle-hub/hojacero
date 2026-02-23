@@ -123,22 +123,38 @@ export default function InboxPage() {
         try {
             // Helper to check for encoding and decode if needed
             const decodeContent = (text: string, headers: string) => {
-                if (/content-transfer-encoding:\s*quoted-printable/i.test(headers)) {
+                const headerStr = headers.toLowerCase();
+                if (headerStr.includes('content-transfer-encoding: quoted-printable')) {
                     return decodeQuotedPrintable(text);
+                }
+                if (headerStr.includes('content-transfer-encoding: base64')) {
+                    try {
+                        const b64 = text.replace(/\s/g, '');
+                        return decodeURIComponent(escape(atob(b64)));
+                    } catch (e) {
+                        // Fallback is just return text
+                    }
                 }
                 return text;
             };
 
             // 1. If it doesn't look like a multipart message (no boundaries), try simple header stripping
             if (!rawText.includes("Content-Type: multipart")) {
-                if (rawText.includes('Content-Type: text/plain') || rawText.includes('Received:')) {
+                let headers = "";
+                let body = rawText;
+
+                if (rawText.toLowerCase().includes('content-type: text/') || rawText.toLowerCase().includes('content-transfer-encoding:')) {
                     const parts = rawText.split(/\r\n\r\n|\n\n/);
                     if (parts.length > 1) {
-                        // Ensure we assume the body part is the one after headers
-                        return decodeContent(parts.slice(1).join("\n\n").trim(), parts[0]);
+                        headers = parts[0];
+                        body = parts.slice(1).join("\n\n").trim();
                     }
                 }
-                return rawText;
+                const decoded = decodeContent(body, headers);
+                if (headers.toLowerCase().includes('text/html')) {
+                    return decoded.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+                }
+                return decoded;
             }
 
             // 2. Identify Boundary
@@ -153,10 +169,30 @@ export default function InboxPage() {
                 }
             }
 
-            if (!boundary) return rawText; // Failed to find boundary
+            if (!boundary) {
+                // Try to find base64 block anyway
+                const lowerRaw = rawText.toLowerCase();
+                if (lowerRaw.includes('content-transfer-encoding: base64')) {
+                    const parts = rawText.split(/\r\n\r\n|\n\n/);
+                    if (parts.length > 1) {
+                        try {
+                            const b64 = parts.slice(1).join('').replace(/\s/g, '');
+                            const decoded = decodeURIComponent(escape(atob(b64)));
+                            if (lowerRaw.includes('text/html')) {
+                                return decoded.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+                            }
+                            return decoded;
+                        } catch (e) { }
+                    }
+                }
+                return rawText; // Failed to find boundary
+            }
 
             // 3. Split by boundary
             const parts = rawText.split(boundary);
+
+            let bestTextPart = "";
+            let bestHtmlPart = "";
 
             // 4. Find text/plain part
             for (const part of parts) {
@@ -170,11 +206,18 @@ export default function InboxPage() {
 
                 const headers = cleanPart.substring(0, match.index);
                 const body = cleanPart.substring(match.index + match[0].length).trim();
+                const headersLower = headers.toLowerCase();
 
-                if (headers.toLowerCase().includes("content-type: text/plain")) {
-                    return decodeContent(body, headers);
+                if (headersLower.includes("content-type: text/plain")) {
+                    bestTextPart = decodeContent(body, headers);
+                } else if (headersLower.includes("content-type: text/html")) {
+                    let htmlContent = decodeContent(body, headers);
+                    bestHtmlPart = htmlContent.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
                 }
             }
+
+            if (bestTextPart) return bestTextPart;
+            if (bestHtmlPart) return bestHtmlPart;
 
             return rawText;
         } catch (e: unknown) {
