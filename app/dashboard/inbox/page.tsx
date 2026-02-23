@@ -465,8 +465,8 @@ export default function InboxPage() {
                         </div>
 
                         {/* Body */}
-                        <div className={`flex-1 p-4 md:p-8 overflow-y-auto font-sans leading-relaxed ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>
-                            <div className="whitespace-pre-wrap word-break-break-word">
+                        <div className={`flex-1 p-4 md:p-8 overflow-y-auto font-sans leading-relaxed min-w-0 ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>
+                            <div className="whitespace-pre-wrap break-all overflow-hidden">
                                 {getCleanBody(selectedEmail.body_text)}
                             </div>
                         </div>
