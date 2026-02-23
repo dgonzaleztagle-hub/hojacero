@@ -36,7 +36,7 @@ export default {
                     },
                     body: JSON.stringify({
                         from: 'Inbox Bot <bot@hojacero.cl>',
-                        to: ['daniel.letelier@hojacero.cl', 'gaston.jofre@hojacero.cl', 'contacto@hojacero.cl'],
+                        to: ['dgonzalez.tagle@gmail.com', 'Gaston.jofre1995@gmail.com', 'contacto@hojacero.cl'],
                         subject: `[INBOX] Nuevo Mensaje de: ${sender}`,
                         html: `
                             <h2>Nuevo correo en el Inbox de HojaCero</h2>
