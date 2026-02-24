@@ -290,7 +290,13 @@ function CAMSolutionsPremiumView() {
                 <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
-                    <div className="mb-20 md:mb-32 border-l-4 border-cyan-500 pl-6 md:pl-10">
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        transition={{ duration: 0.8 }}
+                        className="mb-20 md:mb-32 border-l-4 border-cyan-500 pl-6 md:pl-10"
+                    >
                         <div className="flex items-center gap-3 mb-6">
                             <span className="px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-[10px] uppercase font-bold tracking-widest">
                                 Storefront B2B
@@ -298,48 +304,55 @@ function CAMSolutionsPremiumView() {
                         </div>
                         <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-none mb-6 md:mb-10 uppercase">MATERIALES QUE<br /><span className="text-cyan-400">ESCALAN.</span></h2>
                         <p className="text-slate-400 text-xl font-sans font-light max-w-2xl">Selecciona los insumos para tu flujo de trabajo. Integración con inventario y facturación en tiempo real.</p>
-                    </div>
+                    </motion.div>
 
-                    <BentoGrid>
-                        <BentoCard
-                            className="md:col-span-2"
-                            badge="High-Speed Protocol"
-                            title="Resinas de Alta Precisión"
-                            description="Impresiones sin fallos térmicos. Formuladas para modelos, guías quirúrgicas y coronas provisorias. Curado UV optimizado para impresoras industriales Asiga y SprintRay."
-                            price="Desde $55.000"
-                            image="https://images.unsplash.com/photo-1551033406-611cf9a28f67?auto=format&fit=crop&q=80&w=1200"
-                            onClick={() => setSelectedProduct(CATALOG_PRODUCTS[0])}
-                        />
-                        <BentoCard
-                            badge="Premium Esthetics"
-                            title="Aidite 4K Multilayer"
-                            description="Discos de Zirconia con transición biónica. Ahorra tiempo en glaseado con una translucidez incisal del 53%."
-                            price="Desde $45.990"
-                            image="https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&q=80&w=800"
-                            onClick={() => setSelectedProduct(CATALOG_PRODUCTS[1])}
-                        />
-                        <BentoCard
-                            badge="Hardware"
-                            title="Fresas Roland Zirconia"
-                            description="Recubrimiento de diamante industrial para una vida útil 3x más larga. Eje calibrado sin vibración."
-                            price="Desde $24.900"
-                            image="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
-                            onClick={() => setSelectedProduct(CATALOG_PRODUCTS[2])}
-                        />
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        transition={{ duration: 0.8, delay: 0.2 }}
+                    >
+                        <BentoGrid>
+                            <BentoCard
+                                className="md:col-span-2"
+                                badge="High-Speed Protocol"
+                                title="Resinas de Alta Precisión"
+                                description="Impresiones sin fallos térmicos. Formuladas para modelos, guías quirúrgicas y coronas provisorias. Curado UV optimizado para impresoras industriales Asiga y SprintRay."
+                                price="Desde $55.000"
+                                image="https://images.unsplash.com/photo-1551033406-611cf9a28f67?auto=format&fit=crop&q=80&w=1200"
+                                onClick={() => setSelectedProduct(CATALOG_PRODUCTS[0])}
+                            />
+                            <BentoCard
+                                badge="Premium Esthetics"
+                                title="Aidite 4K Multilayer"
+                                description="Discos de Zirconia con transición biónica. Ahorra tiempo en glaseado con una translucidez incisal del 53%."
+                                price="Desde $45.990"
+                                image="https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&q=80&w=800"
+                                onClick={() => setSelectedProduct(CATALOG_PRODUCTS[1])}
+                            />
+                            <BentoCard
+                                badge="Hardware"
+                                title="Fresas Roland Zirconia"
+                                description="Recubrimiento de diamante industrial para una vida útil 3x más larga. Eje calibrado sin vibración."
+                                price="Desde $24.900"
+                                image="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
+                                onClick={() => setSelectedProduct(CATALOG_PRODUCTS[2])}
+                            />
 
-                        <div className="md:col-span-2 bg-[#0c1222] rounded-[2.5rem] p-8 md:p-16 text-white flex flex-col justify-center relative shadow-2xl overflow-hidden group border border-cyan-500/20">
-                            <div className="absolute inset-0 z-0">
-                                <img src="https://implantplaza.hu/uploads/products/styles/800x800/3-shape-e4-3d-scanner-dental-system-premium-incl-labcare-61af2c299bff5.jpg" alt="3Shape" className="w-full h-full object-contain object-right opacity-30 group-hover:scale-105 transition-transform duration-1000" />
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#0c1222] via-[#0c1222]/90 to-transparent" />
+                            <div className="md:col-span-2 bg-[#0c1222] rounded-[2.5rem] p-8 md:p-16 text-white flex flex-col justify-center relative shadow-2xl overflow-hidden group border border-cyan-500/20">
+                                <div className="absolute inset-0 z-0">
+                                    <img src="https://implantplaza.hu/uploads/products/styles/800x800/3-shape-e4-3d-scanner-dental-system-premium-incl-labcare-61af2c299bff5.jpg" alt="3Shape" className="w-full h-full object-contain object-right opacity-30 group-hover:scale-105 transition-transform duration-1000" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[#0c1222] via-[#0c1222]/90 to-transparent" />
+                                </div>
+                                <span className="px-3 py-1 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-400 text-[10px] uppercase font-bold tracking-widest mb-6 w-fit relative z-10">Equipamiento Mayor</span>
+                                <h3 className="text-4xl md:text-6xl font-black mb-6 relative z-10 tracking-tighter uppercase">Scanners &<br /><span className="text-cyan-400">Fresadoras.</span></h3>
+                                <p className="text-slate-400 mb-8 max-w-md relative z-10 font-sans text-lg font-light">Ecosistema 3Shape y Roland de entrega inmediata. Soporte de instalación e inducción clínica garantizado.</p>
+                                <button onClick={openContact} className="bg-white text-[#0f172a] px-10 py-4 rounded-full font-black w-fit hover:bg-cyan-500 transition-all transform hover:scale-105 relative z-10 text-sm tracking-widest uppercase">
+                                    SOLICITAR ASESORÍA
+                                </button>
                             </div>
-                            <span className="px-3 py-1 rounded-full border border-orange-500/30 bg-orange-500/10 text-orange-400 text-[10px] uppercase font-bold tracking-widest mb-6 w-fit relative z-10">Equipamiento Mayor</span>
-                            <h3 className="text-4xl md:text-6xl font-black mb-6 relative z-10 tracking-tighter uppercase">Scanners &<br /><span className="text-cyan-400">Fresadoras.</span></h3>
-                            <p className="text-slate-400 mb-8 max-w-md relative z-10 font-sans text-lg font-light">Ecosistema 3Shape y Roland de entrega inmediata. Soporte de instalación e inducción clínica garantizado.</p>
-                            <button onClick={openContact} className="bg-white text-[#0f172a] px-10 py-4 rounded-full font-black w-fit hover:bg-cyan-500 transition-all transform hover:scale-105 relative z-10 text-sm tracking-widest uppercase">
-                                SOLICITAR ASESORÍA
-                            </button>
-                        </div>
-                    </BentoGrid>
+                        </BentoGrid>
+                    </motion.div>
                 </div>
             </section>
 
@@ -347,7 +360,12 @@ function CAMSolutionsPremiumView() {
             <section id="logistica" className="py-24 md:py-40 bg-[#06101c] relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center">
-                        <div>
+                        <motion.div
+                            initial={{ opacity: 0, x: -50 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.8 }}
+                        >
                             <Truck className="w-16 h-16 text-cyan-500 mb-8" />
                             <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-8 uppercase leading-tight">
                                 LOGÍSTICA PRIORITARIA.<br />
@@ -367,10 +385,16 @@ function CAMSolutionsPremiumView() {
                                     <span className="text-cyan-400 font-black tracking-widest uppercase text-sm">24 Horas Hábiles</span>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* WIDGET SIMULADO CHILExpress */}
-                        <div className="bg-[#0a1220] rounded-[3rem] p-10 border border-cyan-500/20 shadow-[0_0_80px_rgba(6,182,212,0.05)] relative">
+                        <motion.div
+                            initial={{ opacity: 0, x: 50 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="bg-[#0a1220] rounded-[3rem] p-10 border border-cyan-500/20 shadow-[0_0_80px_rgba(6,182,212,0.05)] relative"
+                        >
                             <div className="absolute top-6 right-8 flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                 <span className="text-[9px] uppercase tracking-widest text-emerald-500 font-bold">API Online</span>
@@ -397,7 +421,7 @@ function CAMSolutionsPremiumView() {
                                 </div>
                                 <button className="bg-cyan-500/20 text-cyan-400 px-6 py-3 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed">Calcular</button>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </section>
@@ -405,7 +429,13 @@ function CAMSolutionsPremiumView() {
             {/* CTA FINAL CAM SOLUTIONS */}
             <section id="contacto" className="py-24 md:py-40 bg-cyan-600 relative overflow-hidden text-center">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-                <div className="relative z-10 max-w-7xl mx-auto px-6 text-[#0f172a]">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.8 }}
+                    className="relative z-10 max-w-7xl mx-auto px-6 text-[#0f172a]"
+                >
                     <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 md:mb-12 leading-[0.9] md:leading-[0.85] uppercase">
                         SÚMATE AL<br />FLUJO DIGITAL.
                     </h2>
@@ -418,7 +448,7 @@ function CAMSolutionsPremiumView() {
                             Solicitar Catálogo PDF
                         </button>
                     </div>
-                </div>
+                </motion.div>
             </section>
 
             <footer className="py-12 bg-[#06101c] text-center border-t border-white/5">
