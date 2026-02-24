@@ -13,8 +13,11 @@ import {
     X,
     CheckCircle2,
     Truck,
-    ShoppingCart
+    ShoppingCart,
 } from 'lucide-react'
+
+import { B2BSideCart, B2BProductModal } from '@/components/b2b-store/B2BEngineComponents'
+import { useB2BEngine, B2BProduct } from '@/hooks/b2b-engine/useB2BEngine'
 
 // --- COMPONENTES ATÓMICOS ---
 const Logo = ({ scrolled }: { scrolled: boolean }) => (
@@ -39,7 +42,7 @@ const BentoGrid = ({ children, className }: { children: React.ReactNode, classNa
     </div>
 )
 
-const BentoCard = ({ title, description, image, className, price, badge }: any) => (
+const BentoCard = ({ title, description, image, className, price, badge, onClick }: any) => (
     <motion.div
         whileHover={{ y: -5 }}
         className={`relative overflow-hidden rounded-[2.5rem] border border-cyan-500/10 bg-[#0c1222]/80 backdrop-blur-xl group flex flex-col h-full ${className}`}
@@ -61,7 +64,7 @@ const BentoCard = ({ title, description, image, className, price, badge }: any) 
 
             <div className="flex items-center justify-between mt-auto pt-4 border-t border-cyan-500/20">
                 <span className="text-white font-bold">{price}</span>
-                <button className="flex items-center gap-2 text-[#06b6d4] font-bold text-[10px] uppercase tracking-widest group-hover:bg-cyan-500 group-hover:text-[#0f172a] px-4 py-2 rounded-full transition-all duration-300">
+                <button onClick={onClick} className="flex items-center gap-2 text-[#06b6d4] font-bold text-[10px] uppercase tracking-widest group-hover:bg-cyan-500 group-hover:text-[#0f172a] px-4 py-2 rounded-full transition-all duration-300">
                     Añadir Pedido <ShoppingCart className="w-4 h-4" />
                 </button>
             </div>
@@ -74,6 +77,67 @@ export default function CAMSolutionsPremium() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isContactOpen, setIsContactOpen] = useState(false)
     const [contactSent, setContactSent] = useState(false)
+
+    // B2B Engine State
+    const { cartCount, setIsCartOpen } = useB2BEngine();
+    const [selectedProduct, setSelectedProduct] = useState<B2BProduct | null>(null);
+
+    // B2B Catalog Data
+    const CATALOG_PRODUCTS: B2BProduct[] = [
+        {
+            id: 'resina-hs',
+            name: 'Resinas de Alta Precisión',
+            category: 'Impresión 3D',
+            basePrice: 55000,
+            specs: [
+                { label: 'Compatibilidad', value: 'Asiga, SprintRay, Phrozen' },
+                { label: 'Longitud de Onda', value: '385nm / 405nm' },
+                { label: 'Presentación', value: 'Botella 1KG' }
+            ],
+            variants: [
+                {
+                    groupName: 'Aplicación Clínica',
+                    options: [
+                        { id: 'model', label: 'Modelos Dentales (Gris/Beige)', priceModifier: 0 },
+                        { id: 'guide', label: 'Guías Quirúrgicas (Transparente)', priceModifier: 15000 },
+                        { id: 'temp', label: 'Coronas Provisorias (A1/A2/A3)', priceModifier: 35000 }
+                    ]
+                }
+            ]
+        },
+        {
+            id: 'zirconia-4k',
+            name: 'Aidite 4K Multilayer',
+            category: 'Discos Zirconia',
+            basePrice: 45990,
+            specs: [
+                { label: 'Resistencia', value: '1050 MPa' },
+                { label: 'Translúcidez', value: '53% (Incisal)' },
+                { label: 'Sinterización', value: 'Rápida (2 Horas)' }
+            ],
+            variants: [
+                {
+                    groupName: 'Grosor',
+                    options: [
+                        { id: '12mm', label: '12mm', priceModifier: 0 },
+                        { id: '14mm', label: '14mm', priceModifier: 2000 },
+                        { id: '16mm', label: '16mm', priceModifier: 5000 },
+                        { id: '20mm', label: '20mm', priceModifier: 9000 },
+                    ]
+                },
+                {
+                    groupName: 'Color (VITA)',
+                    options: [
+                        { id: 'a1', label: 'A1', priceModifier: 0 },
+                        { id: 'a2', label: 'A2', priceModifier: 0 },
+                        { id: 'a3', label: 'A3', priceModifier: 0 },
+                        { id: 'b1', label: 'B1', priceModifier: 0 },
+                        { id: 'bl1', label: 'Bleach 1', priceModifier: 5000 },
+                    ]
+                }
+            ]
+        }
+    ];
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50)
@@ -203,15 +267,17 @@ export default function CAMSolutionsPremium() {
                             badge="High-Speed Protocol"
                             title="Resinas de Alta Precisión"
                             description="Impresiones sin fallos térmicos. Formuladas para modelos, guías quirúrgicas y coronas provisorias. Curado UV optimizado para impresoras industriales Asiga y SprintRay."
-                            price="Cotización por Volumen"
+                            price="Desde $55.000"
                             image="https://images.unsplash.com/photo-1551033406-611cf9a28f67?auto=format&fit=crop&q=80&w=1200"
+                            onClick={() => setSelectedProduct(CATALOG_PRODUCTS[0])}
                         />
                         <BentoCard
                             badge="Premium Esthetics"
                             title="Aidite 4K Multilayer"
                             description="Discos de Zirconia con transición biónica. Ahorra tiempo en glaseado con una translucidez incisal del 53%."
-                            price="$45.990 / unidad"
+                            price="Desde $45.990"
                             image="https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&q=80&w=800"
+                            onClick={() => setSelectedProduct(CATALOG_PRODUCTS[1])}
                         />
                         <BentoCard
                             badge="Hardware"
@@ -353,6 +419,16 @@ export default function CAMSolutionsPremium() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* B2B STORE COMPONENTS */}
+            {selectedProduct && (
+                <B2BProductModal
+                    isOpen={!!selectedProduct}
+                    onClose={() => setSelectedProduct(null)}
+                    product={selectedProduct}
+                />
+            )}
+            <B2BSideCart />
         </div>
     )
 }
