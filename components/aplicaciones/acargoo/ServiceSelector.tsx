@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Tv, Home, Package, Zap, ArrowLeft } from "lucide-react";
 
@@ -13,46 +14,81 @@ interface Service {
 }
 
 interface ServiceSelectorProps {
-    onSelect: (service: { id: string; name: string; icon: string }) => void;
+    onSelect: (service: { id: string; name: string; icon: string; description: string }) => void;
     onBack: () => void;
 }
 
-const SERVICES: Service[] = [
-    {
-        id: "tv-transport",
-        name: "Transporte de TV",
-        icon: "tv",
-        description: "Instalación y traslado seguro de televisores",
-        estimatedTime: "2-3 horas",
-        IconComponent: Tv,
-    },
-    {
-        id: "small-move",
-        name: "Mudanza Pequeña",
-        icon: "home",
-        description: "Hasta 15m³ de carga",
-        estimatedTime: "4-6 horas",
-        IconComponent: Home,
-    },
-    {
-        id: "general-cargo",
-        name: "Carga General",
-        icon: "package",
-        description: "Transporte de mercancía estándar",
-        estimatedTime: "3-4 horas",
-        IconComponent: Package,
-    },
-    {
-        id: "express",
-        name: "Servicio Express",
-        icon: "zap",
-        description: "Entrega prioritaria mismo día",
-        estimatedTime: "1-2 horas",
-        IconComponent: Zap,
-    },
-];
+type ApiService = {
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+};
+
+const iconMap: Record<string, any> = {
+    tv: Tv,
+    home: Home,
+    package: Package,
+    zap: Zap,
+    truck: Package,
+};
+
+function estimateTime(name: string) {
+    const value = name.toLowerCase();
+    if (value.includes("express")) return "1-2 horas";
+    if (value.includes("mudanza")) return "4-6 horas";
+    if (value.includes("tv")) return "2-3 horas";
+    return "3-4 horas";
+}
 
 export default function ServiceSelector({ onSelect, onBack }: ServiceSelectorProps) {
+    const [services, setServices] = useState<ApiService[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        const loadServices = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const response = await fetch("/api/acargoo/services", {
+                    cache: "no-store",
+                    signal: controller.signal,
+                });
+                const payload = await response.json();
+
+                if (!response.ok || !payload?.ok) {
+                    throw new Error(payload?.error || "No fue posible cargar los servicios.");
+                }
+
+                setServices(payload.services || []);
+            } catch (fetchError: any) {
+                if (fetchError?.name === "AbortError") return;
+                setError(fetchError?.message || "No fue posible cargar los servicios.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadServices();
+        return () => controller.abort();
+    }, []);
+
+    const normalizedServices: Service[] = useMemo(
+        () =>
+            services.map((service) => {
+                const iconKey = (service.icon || "").toLowerCase();
+                return {
+                    ...service,
+                    estimatedTime: estimateTime(service.name),
+                    IconComponent: iconMap[iconKey] || Package,
+                };
+            }),
+        [services]
+    );
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
             {/* Header */}
@@ -72,9 +108,38 @@ export default function ServiceSelector({ onSelect, onBack }: ServiceSelectorPro
                 </p>
             </div>
 
+            {loading && (
+                <div className="w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-lg">
+                    Cargando servicios...
+                </div>
+            )}
+
+            {!loading && error && (
+                <div className="w-full max-w-4xl rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+                    <p className="font-semibold text-red-700 mb-2">No pudimos cargar los servicios.</p>
+                    <p className="text-sm text-red-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            )}
+
+            {!loading && !error && normalizedServices.length === 0 && (
+                <div className="w-full max-w-4xl rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
+                    <p className="font-semibold text-amber-800 mb-2">No hay servicios configurados.</p>
+                    <p className="text-sm text-amber-700">
+                        Agrega al menos un servicio activo en `acargoo_services` para poder agendar.
+                    </p>
+                </div>
+            )}
+
             {/* Services Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full">
-                {SERVICES.map((service, index) => (
+            {!loading && !error && normalizedServices.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full">
+                    {normalizedServices.map((service, index) => (
                     <motion.button
                         key={service.id}
                         initial={{ opacity: 0, y: 20 }}
@@ -87,6 +152,7 @@ export default function ServiceSelector({ onSelect, onBack }: ServiceSelectorPro
                                 id: service.id,
                                 name: service.name,
                                 icon: service.icon,
+                                description: service.description,
                             })
                         }
                         className="group relative bg-white rounded-2xl p-8 border-2 border-slate-200 hover:border-[#ff9900] transition-all duration-300 text-left shadow-lg hover:shadow-2xl"
@@ -96,7 +162,7 @@ export default function ServiceSelector({ onSelect, onBack }: ServiceSelectorPro
                             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#1e3a5f] to-[#2d4a6f] flex items-center justify-center group-hover:from-[#ff9900] group-hover:to-[#ff7700] transition-all duration-300">
                                 <service.IconComponent className="w-7 h-7 text-white" />
                             </div>
-                            {service.id === "express" && (
+                            {service.name.toLowerCase().includes("express") && (
                                 <span className="px-3 py-1 bg-[#ff9900] text-white text-xs font-semibold rounded-full">
                                     Popular
                                 </span>
@@ -121,7 +187,8 @@ export default function ServiceSelector({ onSelect, onBack }: ServiceSelectorPro
                         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#ff9900]/5 to-[#ff7700]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </motion.button>
                 ))}
-            </div>
+                </div>
+            )}
 
             {/* Info Footer */}
             <motion.p
@@ -130,10 +197,7 @@ export default function ServiceSelector({ onSelect, onBack }: ServiceSelectorPro
                 transition={{ delay: 0.5 }}
                 className="text-sm text-slate-500 mt-8 text-center max-w-2xl"
             >
-                ¿No encuentras lo que buscas?{" "}
-                <a href="#" className="text-[#ff9900] hover:underline font-semibold">
-                    Contáctanos directamente
-                </a>
+                Nuestro equipo puede ayudarte si necesitas una logística fuera de catálogo.
             </motion.p>
         </div>
     );

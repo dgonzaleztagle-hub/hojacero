@@ -7,11 +7,19 @@ import type { BookingData } from "@/app/aplicaciones/acargoo/page";
 
 interface BookingFormProps {
     bookingData: BookingData;
-    onSubmit: (data: Partial<BookingData>) => void;
+    onSubmit: (data: Partial<BookingData>) => Promise<void>;
     onBack: () => void;
+    submitError?: string | null;
+    submitting?: boolean;
 }
 
-export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFormProps) {
+export default function BookingForm({
+    bookingData,
+    onSubmit,
+    onBack,
+    submitError = null,
+    submitting = false,
+}: BookingFormProps) {
     const [formData, setFormData] = useState({
         pickup: "",
         delivery: "",
@@ -48,10 +56,10 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (validate()) {
-            onSubmit({
+            await onSubmit({
                 pickup: formData.pickup,
                 delivery: formData.delivery,
                 description: formData.description,
@@ -213,13 +221,20 @@ export default function BookingForm({ bookingData, onSubmit, onBack }: BookingFo
                 </div>
 
                 {/* Submit */}
+                {submitError && (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {submitError}
+                    </div>
+                )}
+
                 <motion.button
                     type="submit"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    disabled={submitting}
                     className="w-full py-4 bg-gradient-to-r from-[#1e3a5f] to-[#2d4a6f] text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                    Confirmar Reserva
+                    {submitting ? "Confirmando reserva..." : "Confirmar reserva"}
                 </motion.button>
             </form>
         </div>

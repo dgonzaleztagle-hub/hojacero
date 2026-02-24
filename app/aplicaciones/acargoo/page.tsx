@@ -7,7 +7,6 @@ import ServiceSelector from "../../../components/aplicaciones/acargoo/ServiceSel
 import BookingCalendar from "../../../components/aplicaciones/acargoo/BookingCalendar";
 import BookingForm from "../../../components/aplicaciones/acargoo/BookingForm";
 import BookingConfirmation from "../../../components/aplicaciones/acargoo/BookingConfirmation";
-import { AcargooTracker } from "../../../components/aplicaciones/acargoo/AcargooTracker";
 
 type BookingStep = "hero" | "service" | "calendar" | "details" | "confirmation";
 
@@ -16,6 +15,7 @@ export interface BookingData {
         id: string;
         name: string;
         icon: string;
+        description?: string;
     };
     date?: string;
     time?: string;
@@ -27,11 +27,18 @@ export interface BookingData {
         phone: string;
         email: string;
     };
+    confirmation?: {
+        orderId: string;
+        trackingCode: string;
+        waMeLink: string | null;
+    };
 }
 
 export default function AcargooPage() {
     const [step, setStep] = useState<BookingStep>("hero");
     const [bookingData, setBookingData] = useState<BookingData>({});
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
 
     const updateBookingData = (data: Partial<BookingData>) => {
         setBookingData((prev) => ({ ...prev, ...data }));
@@ -41,9 +48,50 @@ export default function AcargooPage() {
         setStep(newStep);
     };
 
+    const handleCreateOrder = async (formData: Partial<BookingData>) => {
+        const payload: BookingData = { ...bookingData, ...formData };
+
+        setSubmitting(true);
+        setSubmitError(null);
+
+        try {
+            const response = await fetch("/api/acargoo/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    serviceId: payload.service?.id,
+                    date: payload.date,
+                    time: payload.time,
+                    pickup: payload.pickup,
+                    delivery: payload.delivery,
+                    description: payload.description,
+                    contact: payload.contact,
+                }),
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result?.ok) {
+                throw new Error(result?.error || "No pudimos registrar tu reserva.");
+            }
+
+            updateBookingData({
+                ...formData,
+                confirmation: {
+                    orderId: result.order.id,
+                    trackingCode: result.order.trackingCode,
+                    waMeLink: result.order.waMeLink || null,
+                },
+            });
+            goToStep("confirmation");
+        } catch (error: any) {
+            setSubmitError(error?.message || "No pudimos registrar tu reserva.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="min-h-screen">
-            <AcargooTracker />
             <AnimatePresence mode="wait">
                 {step === "hero" && (
                     <motion.div
@@ -104,11 +152,10 @@ export default function AcargooPage() {
                     >
                         <BookingForm
                             bookingData={bookingData}
-                            onSubmit={(formData: Partial<BookingData>) => {
-                                updateBookingData(formData);
-                                goToStep("confirmation");
-                            }}
+                            onSubmit={handleCreateOrder}
                             onBack={() => goToStep("calendar")}
+                            submitError={submitError}
+                            submitting={submitting}
                         />
                     </motion.div>
                 )}

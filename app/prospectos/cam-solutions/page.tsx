@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 
 import { B2BSideCart, B2BProductModal } from '@/components/b2b-store/B2BEngineComponents'
-import { useB2BEngine, B2BProduct } from '@/hooks/b2b-engine/useB2BEngine'
+import { useB2BEngine, B2BEngineProvider, B2BProduct } from '@/hooks/b2b-engine/useB2BEngine'
 
 // --- COMPONENTES ATÓMICOS ---
 const Logo = ({ scrolled }: { scrolled: boolean }) => (
@@ -72,7 +72,7 @@ const BentoCard = ({ title, description, image, className, price, badge, onClick
     </motion.div>
 )
 
-export default function CAMSolutionsPremium() {
+function CAMSolutionsPremiumView() {
     const [scrolled, setScrolled] = useState(false)
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [isContactOpen, setIsContactOpen] = useState(false)
@@ -430,5 +430,13 @@ export default function CAMSolutionsPremium() {
             )}
             <B2BSideCart />
         </div>
+    )
+}
+
+export default function CAMSolutionsPremium() {
+    return (
+        <B2BEngineProvider storeId="cam_solutions_b2b">
+            <CAMSolutionsPremiumView />
+        </B2BEngineProvider>
     )
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, Clock } from "lucide-react";
 
@@ -33,11 +33,22 @@ const TIME_SLOTS = [
     "16:00", "17:00", "18:00", "19:00",
 ];
 
-// Simular disponibilidad (algunos slots ocupados)
+const isSameLocalDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+// Regla base: no mostrar horas ya pasadas para el día actual.
 const isSlotAvailable = (date: Date, time: string): boolean => {
-    const random = Math.random();
-    // 80% de disponibilidad
-    return random > 0.2;
+    const now = new Date();
+    if (!isSameLocalDay(date, now)) {
+        return true;
+    }
+
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotDate = new Date(date);
+    slotDate.setHours(hours, minutes, 0, 0);
+    return slotDate.getTime() > now.getTime();
 };
 
 export default function BookingCalendar({
@@ -47,15 +58,68 @@ export default function BookingCalendar({
 }: BookingCalendarProps) {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedTime, setSelectedTime] = useState<string | null>(null);
+    const [occupiedTimes, setOccupiedTimes] = useState<Set<string>>(new Set());
+    const [loadingAvailability, setLoadingAvailability] = useState(false);
 
     const days = generateDays();
 
     const handleConfirm = () => {
         if (selectedDate && selectedTime) {
-            const dateStr = selectedDate.toISOString().split("T")[0];
+            const y = selectedDate.getFullYear();
+            const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+            const d = String(selectedDate.getDate()).padStart(2, "0");
+            const dateStr = `${y}-${m}-${d}`;
             onSelectSlot(dateStr, selectedTime);
         }
     };
+
+    useEffect(() => {
+        if (!selectedDate) {
+            setOccupiedTimes(new Set());
+            return;
+        }
+
+        const y = selectedDate.getFullYear();
+        const m = String(selectedDate.getMonth() + 1).padStart(2, "0");
+        const d = String(selectedDate.getDate()).padStart(2, "0");
+        const dateStr = `${y}-${m}-${d}`;
+
+        const controller = new AbortController();
+
+        const loadAvailability = async () => {
+            try {
+                setLoadingAvailability(true);
+                const response = await fetch(`/api/acargoo/orders?date=${dateStr}&limit=200`, {
+                    cache: "no-store",
+                    signal: controller.signal,
+                });
+                const payload = await response.json();
+
+                if (!response.ok || !payload?.ok) {
+                    setOccupiedTimes(new Set());
+                    return;
+                }
+
+                const blockedStatuses = new Set(["cancelled", "failed_delivery"]);
+                const occupied = new Set<string>();
+                for (const order of payload.orders || []) {
+                    if (blockedStatuses.has(order.status)) continue;
+                    const timeRaw = String(order.scheduled_time || "").slice(0, 5);
+                    if (TIME_SLOTS.includes(timeRaw)) {
+                        occupied.add(timeRaw);
+                    }
+                }
+                setOccupiedTimes(occupied);
+            } catch {
+                setOccupiedTimes(new Set());
+            } finally {
+                setLoadingAvailability(false);
+            }
+        };
+
+        loadAvailability();
+        return () => controller.abort();
+    }, [selectedDate]);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
@@ -134,7 +198,7 @@ export default function BookingCalendar({
                         </h3>
                         <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                             {TIME_SLOTS.map((time) => {
-                                const available = isSlotAvailable(selectedDate, time);
+                                const available = isSlotAvailable(selectedDate, time) && !occupiedTimes.has(time);
                                 const isSelected = selectedTime === time;
 
                                 return (
@@ -159,6 +223,9 @@ export default function BookingCalendar({
                                 );
                             })}
                         </div>
+                        {loadingAvailability && (
+                            <p className="mt-3 text-xs text-slate-500">Actualizando disponibilidad...</p>
+                        )}
                     </motion.div>
                 )}
 

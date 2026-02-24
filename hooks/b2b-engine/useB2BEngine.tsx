@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 
 export interface B2BVariant {
     id: string;
-    label: string; // e.g., "14mm - A2" or "98mm Open System"
-    priceModifier: number; // How much it adds/subtracts from base price
+    label: string;
+    priceModifier: number;
 }
 
 export interface B2BProduct {
@@ -16,21 +16,37 @@ export interface B2BProduct {
     description?: string;
     specs?: { label: string; value: string }[];
     variants?: {
-        groupName: string; // e.g., "Grosor", "Color"
+        groupName: string;
         options: B2BVariant[];
     }[];
 }
 
 export interface B2BCartItem extends B2BProduct {
-    cartItemId: string; // Unique ID for the cart instance (product + specific variants)
+    cartItemId: string;
     quantity: number;
-    selectedVariants: Record<string, B2BVariant>; // groupName -> selected variant
+    selectedVariants: Record<string, B2BVariant>;
     finalUnitPrice: number;
 }
 
-export function useB2BEngine(storeId: string = 'cam_solutions_b2b') {
+interface B2BEngineContextType {
+    cart: B2BCartItem[];
+    cartTotal: number;
+    cartCount: number;
+    isCartOpen: boolean;
+    setIsCartOpen: (open: boolean) => void;
+    addToCart: (product: B2BProduct, selectedVariants?: Record<string, B2BVariant>, quantity?: number) => void;
+    updateQuantity: (cartItemId: string, delta: number) => void;
+    removeFromCart: (cartItemId: string) => void;
+    clearCart: () => void;
+    generateWhatsAppOrder: (phone: string, companyName: string) => void;
+}
+
+const B2BEngineContext = createContext<B2BEngineContextType | undefined>(undefined);
+
+export const B2BEngineProvider = ({ children, storeId = 'cam_solutions_b2b' }: { children: React.ReactNode, storeId?: string }) => {
     const [cart, setCart] = useState<B2BCartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     // Persistencia en LocalStorage
     useEffect(() => {
@@ -38,11 +54,14 @@ export function useB2BEngine(storeId: string = 'cam_solutions_b2b') {
         if (savedCart) {
             try { setCart(JSON.parse(savedCart)); } catch (e) { console.error(e); }
         }
+        setIsLoaded(true);
     }, [storeId]);
 
     useEffect(() => {
-        localStorage.setItem(`${storeId}_cart`, JSON.stringify(cart));
-    }, [cart, storeId]);
+        if (isLoaded) {
+            localStorage.setItem(`${storeId}_cart`, JSON.stringify(cart));
+        }
+    }, [cart, storeId, isLoaded]);
 
     const addToCart = (product: B2BProduct, selectedVariants: Record<string, B2BVariant> = {}, quantity: number = 1) => {
         // Calculate final price based on base price + variant modifiers
@@ -111,16 +130,28 @@ export function useB2BEngine(storeId: string = 'cam_solutions_b2b') {
         setIsCartOpen(false);
     };
 
-    return {
-        cart,
-        cartTotal,
-        cartCount,
-        isCartOpen,
-        setIsCartOpen,
-        addToCart,
-        updateQuantity,
-        removeFromCart,
-        clearCart,
-        generateWhatsAppOrder
-    };
-}
+    return (
+        <B2BEngineContext.Provider value={{
+            cart,
+            cartTotal,
+            cartCount,
+            isCartOpen,
+            setIsCartOpen,
+            addToCart,
+            updateQuantity,
+            removeFromCart,
+            clearCart,
+            generateWhatsAppOrder
+        }}>
+            {children}
+        </B2BEngineContext.Provider>
+    );
+};
+
+export const useB2BEngine = () => {
+    const context = useContext(B2BEngineContext);
+    if (!context) {
+        throw new Error('useB2BEngine must be used within a B2BEngineProvider');
+    }
+    return context;
+};

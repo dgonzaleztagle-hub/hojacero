@@ -1,0 +1,25 @@
+import { createClient } from "@supabase/supabase-js";
+
+const schema = process.env.ACARGOO_DB_SCHEMA || "acargoo_dev";
+
+export function getAcargooAdminClient() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl) {
+        throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+    }
+
+    if (!serviceRoleKey) {
+        throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+    }
+
+    return createClient(supabaseUrl, serviceRoleKey, {
+        db: { schema },
+        auth: { persistSession: false, autoRefreshToken: false },
+    });
+}
+
+export function getAcargooSchemaName() {
+    return schema;
+}

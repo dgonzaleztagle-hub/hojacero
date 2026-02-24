@@ -13,8 +13,19 @@ export default function BookingConfirmation({
     bookingData,
     onNewBooking,
 }: BookingConfirmationProps) {
-    const whatsappMessage = `Hola! Acabo de agendar un servicio de ${bookingData.service?.name} para el ${bookingData.date} a las ${bookingData.time}. Mi nombre es ${bookingData.contact?.name}.`;
-    const whatsappUrl = `https://wa.me/56912345678?text=${encodeURIComponent(whatsappMessage)}`;
+    const whatsappUrl = bookingData.confirmation?.waMeLink || null;
+    const formattedDate = (() => {
+        if (!bookingData.date) return "";
+        const [year, month, day] = bookingData.date.split("-").map(Number);
+        if (!year || !month || !day) return bookingData.date;
+        const localDate = new Date(year, month - 1, day);
+        return localDate.toLocaleDateString("es-CL", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+    })();
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
@@ -47,6 +58,12 @@ export default function BookingConfirmation({
                 <p className="text-slate-600 text-lg">
                     Tu servicio ha sido agendado exitosamente
                 </p>
+                {bookingData.confirmation?.trackingCode && (
+                    <p className="text-sm text-slate-500 mt-2">
+                        Código de seguimiento:{" "}
+                        <span className="font-semibold text-[#1e3a5f]">{bookingData.confirmation.trackingCode}</span>
+                    </p>
+                )}
             </motion.div>
 
             {/* Resumen */}
@@ -78,12 +95,7 @@ export default function BookingConfirmation({
                         <div>
                             <p className="text-sm text-slate-500 mb-1">Fecha y hora</p>
                             <p className="font-semibold text-[#1e3a5f]">
-                                {new Date(bookingData.date!).toLocaleDateString("es-CL", {
-                                    weekday: "long",
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })}{" "}
+                                {formattedDate}{" "}
                                 a las {bookingData.time}
                             </p>
                         </div>
@@ -143,15 +155,17 @@ export default function BookingConfirmation({
                 transition={{ delay: 0.4 }}
                 className="w-full max-w-2xl space-y-4"
             >
-                <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                >
-                    <MessageCircle className="w-6 h-6" />
-                    Confirmar por WhatsApp
-                </a>
+                {whatsappUrl && (
+                    <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                    >
+                        <MessageCircle className="w-6 h-6" />
+                        Confirmar por WhatsApp
+                    </a>
+                )}
 
                 <button
                     onClick={onNewBooking}
@@ -168,7 +182,7 @@ export default function BookingConfirmation({
                 transition={{ delay: 0.6 }}
                 className="text-sm text-slate-500 mt-8 text-center max-w-2xl"
             >
-                Recibirás un correo de confirmación en {bookingData.contact?.email} con todos los detalles de tu servicio.
+                Si configuraste email/WhatsApp en backend, recibirás confirmaciones automáticas de estado.
             </motion.p>
         </div>
     );
