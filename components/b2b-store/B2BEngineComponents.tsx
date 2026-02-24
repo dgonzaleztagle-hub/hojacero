@@ -105,8 +105,8 @@ export const B2BProductModal = ({ product, isOpen, onClose }: B2BProductModalPro
                                                     key={variant.id}
                                                     onClick={() => handleVariantChange(group.groupName, variant)}
                                                     className={`px-4 py-3 rounded-xl border text-sm font-bold transition-all flex items-center gap-2 ${isSelected
-                                                            ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
-                                                            : 'bg-[#0f172a] border-white/10 text-slate-400 hover:border-white/30'
+                                                        ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
+                                                        : 'bg-[#0f172a] border-white/10 text-slate-400 hover:border-white/30'
                                                         }`}
                                                 >
                                                     {variant.label}
@@ -247,7 +247,7 @@ export const B2BSideCart = () => {
                                 </div>
 
                                 <button
-                                    onClick={() => generateWhatsAppOrder("56912345678", companyName || "Laboratorio B2B")}
+                                    onClick={() => generateWhatsAppOrder("56941281289", companyName || "Laboratorio B2B")}
                                     className="w-full bg-cyan-500 text-[#0f172a] py-4 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-cyan-400 transition-colors shadow-[0_0_20px_rgba(6,182,212,0.2)]"
                                 >
                                     Solicitar Cotización Formal

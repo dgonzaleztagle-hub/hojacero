@@ -42,7 +42,17 @@ const BentoGrid = ({ children, className }: { children: React.ReactNode, classNa
     </div>
 )
 
-const BentoCard = ({ title, description, image, className, price, badge, onClick }: any) => (
+interface BentoCardProps {
+    title: string;
+    description: string;
+    image?: string;
+    className?: string;
+    price: string;
+    badge?: string;
+    onClick?: () => void;
+}
+
+const BentoCard = ({ title, description, image, className, price, badge, onClick }: BentoCardProps) => (
     <motion.div
         whileHover={{ y: -5 }}
         className={`relative overflow-hidden rounded-[2.5rem] border border-cyan-500/10 bg-[#0c1222]/80 backdrop-blur-xl group flex flex-col h-full ${className}`}
@@ -136,6 +146,28 @@ function CAMSolutionsPremiumView() {
                     ]
                 }
             ]
+        },
+        {
+            id: 'roland-burs',
+            name: 'Fresas Roland Zirconia',
+            category: 'Hardware & Repuestos',
+            basePrice: 24900,
+            specs: [
+                { label: 'Compatibilidad', value: 'Roland DWX-52D / 52DCi' },
+                { label: 'Recubrimiento', value: 'Diamante Industrial' },
+                { label: 'Vida Útil Estimada', value: '3x Mayor a Genéricas' }
+            ],
+            variants: [
+                {
+                    groupName: 'Diámetro de Fresa',
+                    options: [
+                        { id: '2.0mm', label: '2.0mm (Desbaste Max)', priceModifier: 0 },
+                        { id: '1.0mm', label: '1.0mm (Detalle Fino)', priceModifier: 0 },
+                        { id: '0.6mm', label: '0.6mm (Fisuras)', priceModifier: 2000 },
+                        { id: '0.3mm', label: '0.3mm (Micro Detalle)', priceModifier: 5000 },
+                    ]
+                }
+            ]
         }
     ];
 
@@ -169,8 +201,8 @@ function CAMSolutionsPremiumView() {
                                 <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-cyan-500 transition-all group-hover:w-full" />
                             </a>
                         ))}
-                        <button onClick={openContact} className={`px-8 py-3 rounded-full font-black transition-all hover:scale-105 active:scale-95 shadow-xl flex items-center gap-2 ${scrolled ? 'bg-cyan-500 text-[#0f172a]' : 'bg-white text-[#0f172a]'}`}>
-                            <ShoppingCart size={16} /> MI PEDIDO (0)
+                        <button onClick={() => setIsCartOpen(true)} className={`px-8 py-3 rounded-full font-black transition-all hover:scale-105 active:scale-95 shadow-xl flex items-center gap-2 ${scrolled ? 'bg-cyan-500 text-[#0f172a]' : 'bg-white text-[#0f172a]'}`}>
+                            <ShoppingCart size={16} /> MI PEDIDO ({cartCount})
                         </button>
                     </div>
 
@@ -285,6 +317,7 @@ function CAMSolutionsPremiumView() {
                             description="Recubrimiento de diamante industrial para una vida útil 3x más larga. Eje calibrado sin vibración."
                             price="Desde $24.900"
                             image="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
+                            onClick={() => setSelectedProduct(CATALOG_PRODUCTS[2])}
                         />
 
                         <div className="md:col-span-2 bg-[#0c1222] rounded-[2.5rem] p-8 md:p-16 text-white flex flex-col justify-center relative shadow-2xl overflow-hidden group border border-cyan-500/20">
