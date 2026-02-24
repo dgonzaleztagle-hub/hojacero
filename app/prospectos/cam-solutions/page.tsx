@@ -55,12 +55,13 @@ interface BentoCardProps {
 const BentoCard = ({ title, description, image, className, price, badge, onClick }: BentoCardProps) => (
     <motion.div
         whileHover={{ y: -5 }}
-        className={`relative overflow-hidden rounded-[2.5rem] border border-cyan-500/10 bg-[#0c1222]/80 backdrop-blur-xl group flex flex-col h-full ${className}`}
+        onClick={onClick}
+        className={`relative overflow-hidden rounded-[2.5rem] border border-cyan-500/10 bg-[#0c1222]/80 backdrop-blur-xl group flex flex-col h-full cursor-pointer hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all duration-500 ${className}`}
     >
         {image && (
             <div className="absolute inset-0 z-0">
-                <img src={image} alt={title} className="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-all duration-700 group-hover:scale-105" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0c1222] via-[#0c1222]/80 to-[#0c1222]/20" />
+                <img src={image} alt={title} className="w-full h-full object-cover opacity-50 group-hover:opacity-75 transition-all duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0c1222] via-[#0c1222]/70 to-[#0c1222]/20" />
             </div>
         )}
         <div className="relative z-10 p-6 md:p-10 flex flex-col flex-1 justify-end min-h-[320px] md:min-h-[400px]">
@@ -72,9 +73,15 @@ const BentoCard = ({ title, description, image, className, price, badge, onClick
             <h3 className="text-2xl md:text-4xl font-black text-white mb-2 md:mb-3 tracking-tighter leading-[1.1] mt-6">{title}</h3>
             <p className="text-slate-400 text-sm md:text-base leading-relaxed mb-6 font-sans font-light">{description}</p>
 
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-cyan-500/20">
-                <span className="text-white font-bold">{price}</span>
-                <button onClick={onClick} className="flex items-center gap-2 text-[#06b6d4] font-bold text-[10px] uppercase tracking-widest group-hover:bg-cyan-500 group-hover:text-[#0f172a] px-4 py-2 rounded-full transition-all duration-300">
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-cyan-500/20 group-hover:border-cyan-500/50 transition-all duration-500">
+                <span className="text-white font-bold text-lg">{price}</span>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (onClick) onClick();
+                    }}
+                    className="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500 text-cyan-400 font-bold text-[10px] uppercase tracking-widest group-hover:bg-cyan-500 group-hover:text-[#0f172a] px-5 py-3 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.1)] group-hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                >
                     Añadir Pedido <ShoppingCart className="w-4 h-4" />
                 </button>
             </div>
