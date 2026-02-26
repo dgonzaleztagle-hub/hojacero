@@ -353,7 +353,7 @@ export default function CaprexPage() {
 
                             <motion.p variants={fadeUp} initial="hidden" animate="visible" custom={2}
                                 style={{ color: '#94A3B8', fontSize: '1rem', lineHeight: 1.75, marginBottom: '2.25rem', maxWidth: '420px' }}>
-                                Consultoría boutique en prevención de riesgos laborales. Rigor técnico, trato directo — sin intermediarios ni call centers.
+                                CAPREX es una consultora en prevención de riesgos enfocada en entregar soluciones claras, aplicables y estratégicas. Trabajamos desde la gestión legal básica hasta el desarrollo de programas de cultura y comunicación preventiva, adaptándonos al tamaño y realidad de cada empresa.
                             </motion.p>
 
                             <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}
@@ -632,15 +632,15 @@ export default function CaprexPage() {
                             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={0}>
                                 <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Por qué CAPREX</span>
                                 <h2 style={{ fontSize: 'clamp(2rem,4vw,3.5rem)', fontWeight: 900, lineHeight: 1.05, marginTop: '0.75rem', marginBottom: '1.5rem', letterSpacing: '-0.04em' }}>
-                                    No eres un número de expediente.<br />
-                                    <span style={{ color: '#2563EB' }}>Eres una empresa que proteger.</span>
+                                    Soluciones claras, aplicables<br />
+                                    <span style={{ color: '#2563EB' }}>y estratégicas.</span>
                                 </h2>
                                 <p style={{ color: '#64748B', lineHeight: 1.8, marginBottom: '2rem' }}>
-                                    Carla lleva más de 7 años implementando sistemas de prevención en empresas reales — no en auditorías masivas. Cada cliente tiene acceso directo, respuesta rápida y soluciones adaptadas al rubro.
+                                    CAPREX es una consultora en prevención de riesgos enfocada en entregar soluciones claras, aplicables y estratégicas para organizaciones que necesitan cumplir con la normativa vigente y fortalecer su cultura preventiva. Trabajamos desde la gestión legal básica hasta el desarrollo de programas de cultura y comunicación preventiva, adaptándonos al tamaño y realidad de cada empresa.
                                 </p>
                             </motion.div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                                {['Trato directo con la prevencionista titular', 'Experiencia DS44, Ley Karin y riesgos psicosociales', 'Respuesta en menos de 24 horas garantizada', 'Sin contratos mínimos de planta'].map((f, i) => (
+                                {['Soluciones adaptadas al tamaño y realidad de cada empresa', 'Desde cumplimiento legal hasta cultura y comunicación preventiva', 'Trato directo — sin intermediarios ni call centers', 'Respuesta en menos de 24 horas'].map((f, i) => (
                                     <motion.div key={f} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i + 1}
                                         style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
                                         <CheckCircle2 size={16} color="#2563EB" style={{ marginTop: '0.15rem', flexShrink: 0 }} />
