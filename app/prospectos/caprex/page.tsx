@@ -178,8 +178,17 @@ export default function CaprexPage() {
           /* Botones */
           .c-btn{padding:0.85rem 1.4rem!important;font-size:0.78rem!important;}
 
-          /* Padding secciones en mobile */
-          .caprex-root section{padding-left:1.25rem!important;padding-right:1.25rem!important;padding-top:4rem!important;padding-bottom:4rem!important;}
+          /* Padding secciones en mobile (no hero) */
+          .caprex-root section:not(.hero-section){padding-left:1.25rem!important;padding-right:1.25rem!important;padding-top:4rem!important;padding-bottom:4rem!important;}
+
+          /* Hero: padding top suficiente para el nav fijo */
+          .hero-section{padding-left:1.25rem!important;padding-right:1.25rem!important;padding-top:5.5rem!important;padding-bottom:2rem!important;height:auto!important;min-height:100svh!important;}
+
+          /* Logo nav más pequeño */
+          .caprex-logo{width:130px!important;height:36px!important;}
+
+          /* Nav padding */
+          .caprex-root nav{padding:1rem 1.25rem!important;}
 
           /* Inputs full width */
           .caprex-root input{width:100%!important;box-sizing:border-box!important;}
@@ -203,7 +212,7 @@ export default function CaprexPage() {
                 transition: 'all 0.4s',
             }}>
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    <Image src={LOGO} alt="CAPREX" width={200} height={56} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5)) drop-shadow(0 0 3px rgba(255,255,255,0.8))' }} priority />
+                    <Image src={LOGO} alt="CAPREX" width={200} height={56} className="caprex-logo" style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5)) drop-shadow(0 0 3px rgba(255,255,255,0.8))' }} priority />
                 </motion.div>
                 <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }} className="desktop-nav">
                     {NAV.map(l => (
@@ -240,7 +249,8 @@ export default function CaprexPage() {
             </AnimatePresence>
 
             {/* ── HERO ── */}
-            <section ref={heroRef} style={{ height: '100vh', display: 'flex', alignItems: 'center', padding: '5rem 2.5rem 3rem', position: 'relative', overflow: 'hidden' }}>
+            <section ref={heroRef} className="hero-section" style={{ height: '100vh', display: 'flex', alignItems: 'center', padding: '5rem 2.5rem 3rem', position: 'relative', overflow: 'hidden' }}>
+
                 {/* Video BG con parallax */}
                 <motion.video autoPlay loop muted playsInline
                     style={{ position: 'absolute', inset: 0, width: '100%', height: '120%', objectFit: 'cover', opacity: 0.55, y: heroParallax, top: '-10%' } as any}>
