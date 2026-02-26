@@ -16,6 +16,28 @@ gsap.registerPlugin(ScrollTrigger);
 const projects = [
     {
         id: '01',
+        title: 'ACARGOO',
+        category: 'LOGTECH / B2B & B2C',
+        description: 'Plataforma de logística completa con APK nativa para drivers, seguimiento en mapa en tiempo real y gestión B2C y B2B.',
+        image: '/projects/acargoo.png',
+        link: 'https://acargoo.cl',
+        status: 'live',
+        isNew: true,
+        launchDate: 'FEB 2026'
+    },
+    {
+        id: '02',
+        title: 'VUELVE+',
+        category: 'LOYALTY SAAS / MARTECH',
+        description: 'App de fidelización para negocios locales con motores de retención de clientela integrados a las wallets nativas de Android e iPhone.',
+        image: '/projects/vuelve.png',
+        link: 'https://vuelve.vip',
+        status: 'live',
+        isNew: true,
+        launchDate: 'FEB 2026'
+    },
+    {
+        id: '03',
         title: 'SUPERPANEL',
         category: 'SAAS / ENTERTAINMENT',
         description: 'Plataforma global de gestión para resellers IPTV. Infraestructura escalable para mercados internacionales.',
@@ -24,7 +46,7 @@ const projects = [
         status: 'live'
     },
     {
-        id: '02',
+        id: '04',
         title: 'PLUS CONTABLE',
         category: 'FINTECH / SAAS',
         description: 'Gestión administrativa y tributaria integral. Contabilidad automatizada adaptada a normativa chilena.',
@@ -33,39 +55,21 @@ const projects = [
         status: 'live'
     },
     {
-        id: '03',
+        id: '05',
         title: 'TRUCK POS',
         category: 'WEB APP / IN DEVELOPMENT',
         description: 'Sistema de punto de venta móvil para Food Trucks. Control eficiente y flexible en movimiento.',
         image: '/projects/truckpos.png',
         link: '#',
-        status: 'development' // Flag para desactivar click
+        status: 'development'
     },
     {
-        id: '04',
+        id: '06',
         title: 'ICE BUIN',
         category: 'E-COMMERCE',
         description: 'Ecommerce de productos congelados premium. Catálogo digital y logística de distribución optimizada.',
         image: '/projects/icebuin.png',
         link: 'https://icebuin.cl',
-        status: 'live'
-    },
-    {
-        id: '05',
-        title: 'ACARGOO',
-        category: 'LOGTECH / B2B & B2C',
-        description: 'Plataforma de logística completa con APK nativa para drivers, seguimiento en mapa en tiempo real y gestión B2C y B2B.',
-        image: '/projects/acargoo.png',
-        link: 'https://acargoo.cl',
-        status: 'live'
-    },
-    {
-        id: '06',
-        title: 'VUELVE+',
-        category: 'LOYALTY SAAS / MARTECH',
-        description: 'App de fidelización para negocios locales con motores de retención de clientela integrados a las wallets nativas de Android e iPhone.',
-        image: '/projects/vuelve.png',
-        link: 'https://vuelve.vip',
         status: 'live'
     }
 ];
@@ -107,7 +111,9 @@ export default function Portfolio() {
                 <div className="flex flex-col">
                     {projects.map((project) => {
                         const isDev = project.status === 'development';
-                        const CardTag = isDev ? 'div' : Link; // Renderiza div si es dev, Link si es live
+                        const isNew = (project as { isNew?: boolean }).isNew === true;
+                        const launchDate = (project as { launchDate?: string }).launchDate;
+                        const CardTag = isDev ? 'div' : Link;
 
                         return (
                             <CardTag
@@ -121,6 +127,21 @@ export default function Portfolio() {
                                     <div className="flex flex-col max-w-xl">
                                         <div className="flex items-center gap-3 mb-4">
                                             <span className="text-xs font-mono text-gray-500">{project.category}</span>
+
+                                            {/* Badge NEW — punto pulsante + fecha */}
+                                            {isNew && (
+                                                <span className="flex items-center gap-1.5">
+                                                    <span className="relative flex h-2 w-2">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                    </span>
+                                                    <span className="text-[10px] font-mono text-emerald-400 tracking-widest uppercase">
+                                                        NUEVO · {launchDate}
+                                                    </span>
+                                                </span>
+                                            )}
+
+                                            {/* Badge EN DESARROLLO */}
                                             {isDev && (
                                                 <span className="px-2 py-1 bg-yellow-500/20 text-yellow-500 text-[10px] font-bold uppercase tracking-widest rounded-full border border-yellow-500/50">
                                                     Próximamente
