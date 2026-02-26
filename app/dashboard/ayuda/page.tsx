@@ -438,6 +438,33 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
         },
         steps: ['Motor Octokit.', 'Editable Sockets.', 'Admin Dash.'],
         rules: ['Prohibido Supabase.', 'GitHub Key activa.']
+    },
+    {
+        id: 'worker-vuelve',
+        category: 'worker',
+        title: 'Worker Vuelve+',
+        slash: '/worker-vuelve',
+        icon: Star,
+        strategy: 'Inyecta fidelización Vuelve+ en paneles de clientes H0, invisible y sin revelar la plataforma.',
+        description: 'Convierte cualquier panel de cliente H0 en una máquina de retención mediante el módulo de fidelización Vuelve+ (vuelve.vip), sin que el cliente final sepa que es un sistema externo. Usa un protocolo SSO White Label de token único (TTL 60s) que autentica automáticamente al cliente en su dashboard de Vuelve+ inyectado como iframe. El flujo completo es: (1) crear el tenant en vuelve.vip desde el panel admin de Vuelve+, (2) copiar el tenant_id, (3) ejecutar este worker en el proyecto del cliente. El dashboard que ve el cliente es el ClientePanel completo de Vuelve+ (plan pyme, motor sellos) operativo desde el día 0.',
+        impact: {
+            db: ['sso_tokens (Vuelve+)', 'tenants (Vuelve+)', 'programs (Vuelve+)'],
+            files: ['app/admin/fidelizacion/page.tsx', '.env.local (VUELVE_TENANT_ID, VUELVE_SSO_SECRET)'],
+            core: ['SSO White Label', 'Iframe Auth', 'Loyalty Engine']
+        },
+        steps: [
+            'Pre-requisito: crear el tenant en vuelve.vip/admin → "Nuevo Negocio". Copiar el tenant_id.',
+            'Agregar VUELVE_TENANT_ID y VUELVE_SSO_SECRET al .env.local del proyecto cliente.',
+            'Crear app/admin/fidelizacion/page.tsx con el Server Component que llama /api/sso/exchange.',
+            'Agregar entrada "Fidelización" al sidebar del admin del cliente (icono Gift o Star).',
+            'Verificar que el iframe carga sin pantalla de login. Hacer commit y push.'
+        ],
+        rules: [
+            'VUELVE_SSO_SECRET debe ser idéntico en ambos proyectos (Vuelve+ y el cliente H0).',
+            'Pre-requisito obligatorio: tenant ya creado en vuelve.vip antes de ejecutar.',
+            'El iframe usa ?iframe=true para ocultar el sidebar de Vuelve+.',
+            'No revelar al cliente final que el sistema es Vuelve+.'
+        ]
     }
 ];
 
