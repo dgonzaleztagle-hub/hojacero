@@ -161,7 +161,7 @@ export default function CaprexPage() {
     const count185k = useCounter(185000, statsVisible, 2000);
     const countEmp = useCounter(80, statsVisible, 1400);
     const countHrs = useCounter(500, statsVisible, 1600);
-    const countYrs = useCounter(7, statsVisible, 1000);
+    const countYrs = useCounter(16, statsVisible, 1000);
 
     useEffect(() => {
         const s = () => setScrolled(window.scrollY > 60);
@@ -626,28 +626,38 @@ export default function CaprexPage() {
             <section id="nosotros" style={{ padding: '7rem 2.5rem', background: '#0F1A2E', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', bottom: '-10%', left: '-5%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle,#2563EB12 0%,transparent 70%)', pointerEvents: 'none' }} />
                 <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-                    <div className="carla-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', alignItems: 'center' }}>
+                    <div className="carla-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '4rem', alignItems: 'start' }}>
 
-                        {/* Foto editorial */}
-                        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} style={{ position: 'relative' }}>
-                            <div className="carla-foto" style={{
-                                width: '100%', aspectRatio: '3/4',
-                                background: 'linear-gradient(160deg,#1A2D6B 0%,#0B1526 100%)',
-                                borderRadius: '2rem', border: '1px solid #1E3A5F',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end',
-                                padding: '3rem', overflow: 'hidden', position: 'relative',
-                            }}>
-                                <div style={{ position: 'absolute', top: '2rem', left: '50%', transform: 'translateX(-50%)', fontSize: '6rem', opacity: 0.08, fontFamily: "'Space Grotesk',sans-serif", fontWeight: 900, letterSpacing: '-0.05em', color: '#2563EB', whiteSpace: 'nowrap' }}>CARLA</div>
-                                <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                                    <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.35em', color: '#2563EB', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Prevencionista de Riesgos</div>
-                                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: '2.5rem', fontWeight: 900, color: '#E2EAF8', letterSpacing: '-0.04em' }}>Carla</div>
-                                    <div style={{ color: '#64748B', fontSize: '0.85rem', marginTop: '0.5rem' }}>Fundadora · CAPREX</div>
-                                </div>
-                                <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#2563EB', borderRadius: '0.5rem', padding: '0.4rem 0.8rem' }}>
-                                    <span style={{ color: '#fff', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em' }}>7+ AÑOS EXP.</span>
-                                </div>
-                            </div>
-                        </motion.div>
+                        {/* Contenedor de Fotos (Cards de Fundadores) */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }} className="bento-row">
+                            {[
+                                { name: 'Carla Gajardo', role: 'Cofundadora', bg: 'linear-gradient(160deg,#1A2D6B 0%,#0B1526 100%)' },
+                                { name: 'Juan Avendaño', role: 'Cofundador', bg: 'linear-gradient(160deg,#1E3A5F 0%,#0B1526 100%)' }
+                            ].map((f, idx) => (
+                                <motion.div key={f.name} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={idx * 0.2} style={{ position: 'relative' }}>
+                                    <div className="carla-foto" style={{
+                                        width: '100%', aspectRatio: '3/4',
+                                        background: f.bg,
+                                        borderRadius: '1.5rem', border: '1px solid #1E3A5F',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end',
+                                        padding: '1.5rem', overflow: 'hidden', position: 'relative',
+                                    }}>
+                                        <div style={{ position: 'absolute', top: '1.5rem', left: '50%', transform: 'translateX(-50%)', fontSize: '2.5rem', opacity: 0.08, fontFamily: "'Space Grotesk',sans-serif", fontWeight: 900, letterSpacing: '-0.05em', color: '#2563EB', whiteSpace: 'nowrap' }}>
+                                            {f.name.split(' ')[0].toUpperCase()}
+                                        </div>
+                                        <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+                                            <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.2em', color: '#2563EB', textTransform: 'uppercase', marginBottom: '0.3rem' }}>{f.role}</div>
+                                            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: '1.4rem', fontWeight: 900, color: '#E2EAF8', letterSpacing: '-0.04em', lineHeight: 1.1 }}>{f.name}</div>
+                                        </div>
+                                        {f.name === 'Carla Gajardo' && (
+                                            <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#2563EB', borderRadius: '0.5rem', padding: '0.3rem 0.6rem' }}>
+                                                <span style={{ color: '#fff', fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.05em' }}>16 AÑOS EXP.</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
 
                         {/* Copy */}
                         <div>
@@ -673,7 +683,7 @@ export default function CaprexPage() {
                             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={5}
                                 style={{ marginTop: '2.5rem' }}>
                                 <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="c-btn c-btn-primary">
-                                    <MessageCircle size={16} /> Hablar con Carla
+                                    <MessageCircle size={16} /> Contactar a los socios
                                 </a>
                             </motion.div>
                         </div>
