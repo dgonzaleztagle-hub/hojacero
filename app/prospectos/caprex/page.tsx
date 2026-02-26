@@ -3,20 +3,87 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { ChevronRight, Menu, X, Shield, BookOpen, Users, Search, AlertTriangle, FileCheck, Brain, MessageCircle, ChevronDown, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ChevronRight, Menu, X, FileText, CalendarCheck, AlertOctagon, Heart, Video, Trophy, MessageCircle, ChevronDown, CheckCircle2, ArrowRight, Building2, TrendingUp, Landmark, Users } from 'lucide-react';
 
 const LOGO = '/prospectos/caprex/logo.png';
 const WA_LINK = 'https://wa.me/56926198159?text=Hola%2C%20quiero%20un%20diagn%C3%B3stico%20gratuito%20para%20mi%20empresa';
 const NAV = ['Servicios', 'Nosotros', 'Proceso', 'Contacto'];
 
+// ── SERVICIOS REALES (del documento del cliente) ──────────────────
 const SERVICES = [
-    { icon: Shield, n: '01', title: 'Asesoría Externa DS44', sub: 'Cumplimiento normativo continuo', desc: 'Tu empresa cumple el DS44 con un prevencionista externo dedicado. Sin costos de planta. Sin brechas legales.' },
-    { icon: Search, n: '02', title: 'Diagnóstico IPER', sub: 'Identificación de peligros en terreno', desc: 'Levantamos la matriz de riesgos real de tu operación. Cada peligro identificado, con plan de control concreto.' },
-    { icon: BookOpen, n: '03', title: 'Planes de Prevención', sub: 'Programa anual a medida', desc: 'Diseño del programa preventivo anual adaptado a tu rubro. Documentación técnica, registros y acompañamiento.' },
-    { icon: Users, n: '04', title: 'Capacitación', sub: 'Equipos y comités paritarios', desc: 'Cursos certificados presencial e híbrido. Trabajos en altura, riesgos eléctricos, 5S, primeros auxilios.' },
-    { icon: AlertTriangle, n: '05', title: 'Protocolo Ley Karin', sub: 'Ley 21.643 — vigente agosto 2024', desc: 'Diseño e implementación del protocolo obligatorio. Canales de denuncia, capacitación RRHH y directivos.', hot: true },
-    { icon: FileCheck, n: '06', title: 'Auditorías de Seguridad', sub: 'Documental y en terreno', desc: 'Verificación de cumplimiento normativo. Informe con hallazgos, brechas y recomendaciones priorizadas.' },
-    { icon: Brain, n: '07', title: 'Riesgos Psicosociales', sub: 'CEAL-SM/SUSESO + plan de acción', desc: 'Diagnóstico, focus group e informe técnico. Cumplimiento Protocolo MINSAL y DS44.' },
+    {
+        n: '01', icon: FileText,
+        title: 'Cumplimiento Legal y Gestión Preventiva',
+        sub: 'Proyecto puntual o asesoría mensual',
+        tag: null,
+        price: null,
+        size: 'large', // ocupa 2/3 en bento
+        items: ['Constitución y asesoría de Comité Paritario (CPHS)', 'Reglamento Interno (RIOHS)', 'Matriz IPER', 'Programas preventivos anuales', 'Protocolos TMERT, PREXOR y Psicosocial', 'Auditorías internas', 'Preparación ante fiscalizaciones', 'Investigación de accidentes'],
+        cta: 'Solicita tu cotización',
+        desc: 'Soluciones claras y aplicables para cumplir con la normativa vigente. Nos adaptamos al tamaño y realidad de tu empresa.',
+    },
+    {
+        n: '02', icon: CalendarCheck,
+        title: 'Asesoría Externa Mensual',
+        sub: 'Respaldo técnico continuo',
+        tag: 'Más solicitado',
+        price: 'Desde 10 UF /mes',
+        size: 'small',
+        items: [],
+        cta: 'Contáctanos',
+        desc: 'Servicio ideal para empresas que necesitan respaldo técnico continuo sin contratar un prevencionista de planta.',
+    },
+    {
+        n: '03', icon: AlertOctagon,
+        title: 'Planes de Emergencia',
+        sub: 'Condominios, edificios y empresas',
+        tag: null,
+        price: 'Desde $3.000 por persona',
+        size: 'small',
+        items: [],
+        cta: 'Ver detalles',
+        desc: 'Para condominios (+100 copropietarios) y empresas (+100 trabajadores). Comunidades menores: valor fijo conversable.',
+    },
+    {
+        n: '04', icon: Heart,
+        title: 'Cultura Preventiva y Bienestar Organizacional',
+        sub: 'Talleres, jornadas y programas de equipo',
+        tag: null,
+        price: null,
+        size: 'small',
+        items: ['Jornadas de autocuidado organizacional', 'Experiencias preventivas', 'Talleres de gestión del estrés', 'Programas de fortalecimiento de equipos'],
+        cta: 'Cotizar programa',
+        desc: '',
+    },
+    {
+        n: '05', icon: Video,
+        title: 'Cápsulas Audiovisuales y Comunicación Preventiva',
+        sub: 'Proyecto puntual o programa mensual',
+        tag: null,
+        price: null,
+        size: 'small',
+        items: ['Cápsulas de cultura preventiva', 'Videos de planes de emergencia', 'Programas de sensibilización interna', 'Campañas internas de seguridad'],
+        cta: 'Solicitar propuesta',
+        desc: '',
+    },
+    {
+        n: '06', icon: Trophy,
+        title: 'CAPREX AWARDS',
+        sub: 'Sistema de Reconocimiento Preventivo',
+        tag: '★ Único en el mercado',
+        price: null,
+        size: 'featured', // full width
+        items: ['Trabajador Seguro del Mes', 'Equipo Preventivo Destacado', 'Liderazgo en Seguridad', 'Mejora Continua en Prevención'],
+        cta: 'Solicitar propuesta personalizada',
+        desc: 'Programa diseñado para reconocer y premiar conductas seguras. Incluye diseño del programa, material gráfico, diplomas, trofeos simbólicos y acompañamiento en la implementación.',
+    },
+];
+
+const TARGETS = [
+    { icon: Building2, label: 'PYMES', desc: 'Sin obligación de prevencionista full-time' },
+    { icon: TrendingUp, label: 'Empresas en crecimiento', desc: 'Que necesitan orden documental y estructura' },
+    { icon: Users, label: 'Grandes empresas', desc: 'Que buscan fortalecer su cultura preventiva' },
+    { icon: Landmark, label: 'Instituciones', desc: 'Públicas y privadas — bienestar y capacitación' },
 ];
 
 const STEPS = [
@@ -190,6 +257,11 @@ export default function CaprexPage() {
           /* Nav padding */
           .caprex-root nav{padding:1rem 1.25rem!important;}
 
+          /* Bento grid mobile */
+          .bento-row{grid-template-columns:1fr!important;}
+          .bento-row-3{grid-template-columns:1fr!important;}
+          .bento-awards{grid-template-columns:1fr!important;gap:1.5rem!important;}
+
           /* Inputs full width */
           .caprex-root input{width:100%!important;box-sizing:border-box!important;}
         }
@@ -267,7 +339,7 @@ export default function CaprexPage() {
                             <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}
                                 style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                                 <div style={{ width: '40px', height: '1px', background: '#2563EB' }} />
-                                <span style={{ color: '#2563EB', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>DS44 · Ley Karin · Ley 16.744</span>
+                                <span style={{ color: '#2563EB', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Gestión · Cultura · Comunicación Preventiva</span>
                             </motion.div>
 
                             <div style={{ overflow: 'hidden', marginBottom: '1.5rem' }}>
@@ -332,33 +404,164 @@ export default function CaprexPage() {
                 </motion.div>
             </section>
 
-            {/* ── SERVICIOS (lista editorial) ── */}
+            {/* ── ¿A QUIÉN VA DIRIGIDO? ── */}
+            <section style={{ background: '#060E1A', padding: '5rem 2.5rem' }}>
+                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
+                        style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+                        <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>¿Para quién?</span>
+                        <h2 style={{ fontSize: 'clamp(2rem,4vw,3.5rem)', fontWeight: 900, lineHeight: 0.95, marginTop: '0.5rem', letterSpacing: '-0.05em' }}>
+                            DISEÑADO PARA<br /><span style={{ color: '#2563EB' }}>TU REALIDAD.</span>
+                        </h2>
+                    </motion.div>
+                    <div className="testi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
+                        {TARGETS.map((t, i) => (
+                            <motion.div key={t.label} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i}
+                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1E3A5F44', borderRadius: '1rem', padding: '1.75rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <t.icon size={22} color="#2563EB" />
+                                <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.03em' }}>{t.label}</div>
+                                <div style={{ color: '#64748B', fontSize: '0.82rem', lineHeight: 1.5 }}>{t.desc}</div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── SERVICIOS (Bento Grid) ── */}
             <section id="servicios" style={{ background: '#0F1A2E', padding: '7rem 2.5rem' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
-                        style={{ borderLeft: '4px solid #2563EB', paddingLeft: '1.5rem', marginBottom: '5rem' }}>
+                        style={{ borderLeft: '4px solid #2563EB', paddingLeft: '1.5rem', marginBottom: '4rem' }}>
                         <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Lo que hacemos</span>
-                        <h2 style={{ fontSize: 'clamp(3rem,7vw,6rem)', fontWeight: 900, lineHeight: 0.95, marginTop: '0.5rem', letterSpacing: '-0.05em' }}>
-                            SERVICIOS<br /><span style={{ color: '#1E3A5F' }}>DE IMPACTO.</span>
+                        <h2 style={{ fontSize: 'clamp(2.5rem,6vw,5.5rem)', fontWeight: 900, lineHeight: 0.92, marginTop: '0.5rem', letterSpacing: '-0.05em' }}>
+                            NUESTROS<br /><span style={{ color: '#1E3A5F' }}>SERVICIOS.</span>
                         </h2>
                     </motion.div>
 
-                    {SERVICES.map((s, i) => (
-                        <motion.div key={s.n} className="svc-row"
-                            variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i * 0.5}>
-                            <div style={{ color: '#2563EB22', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.1em', paddingTop: '0.25rem', fontFamily: "'Space Grotesk',sans-serif" }}>{s.n}</div>
-                            <div style={{ paddingRight: '2rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
-                                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.03em', color: '#E2EAF8', lineHeight: 1.1 }}>{s.title}</h3>
-                                    {s.hot && <span className="hot-tag">Alta demanda</span>}
+                    {/* Fila 1: Cumplimiento (grande) + Asesoría Mensual (pequeña) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }} className="bento-row">
+                        {/* Card grande: Cumplimiento Legal */}
+                        {(() => {
+                            const s = SERVICES[0]; return (
+                                <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ background: '#2563EB18', borderRadius: '0.75rem', padding: '0.75rem' }}><s.icon size={24} color="#2563EB" /></div>
+                                        <span style={{ color: '#1E3A5F', fontSize: '0.72rem', fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>{s.n}</span>
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: '0.5rem' }}>{s.title}</h3>
+                                        <p style={{ color: '#64748B', fontSize: '0.9rem', lineHeight: 1.65 }}>{s.desc}</p>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                        {s.items.map(item => (
+                                            <div key={item} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                                <CheckCircle2 size={13} color="#2563EB" style={{ marginTop: '0.2rem', flexShrink: 0 }} />
+                                                <span style={{ color: '#94A3B8', fontSize: '0.78rem', lineHeight: 1.4 }}>{item}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button onClick={() => setContactOpen(true)} className="c-btn c-btn-ghost" style={{ alignSelf: 'flex-start', padding: '0.7rem 1.5rem', fontSize: '0.75rem' }}>
+                                        {s.cta} <ArrowRight size={13} />
+                                    </button>
+                                </motion.div>
+                            );
+                        })()}
+
+                        {/* Card pequeña: Asesoría Mensual */}
+                        {(() => {
+                            const s = SERVICES[1]; return (
+                                <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={1}
+                                    style={{ background: 'linear-gradient(135deg,#1A2D6B 0%,#0B1526 100%)', border: '1px solid #2563EB44', borderRadius: '1.5rem', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+                                    <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#2563EB', borderRadius: '100px', padding: '0.2rem 0.7rem' }}>
+                                        <span style={{ color: '#fff', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em' }}>{s.tag}</span>
+                                    </div>
+                                    <s.icon size={26} color="#2563EB" />
+                                    <div>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: '0.5rem' }}>{s.title}</h3>
+                                        <p style={{ color: '#64748B', fontSize: '0.85rem', lineHeight: 1.6 }}>{s.desc}</p>
+                                    </div>
+                                    <div style={{ background: 'rgba(37,99,235,0.15)', border: '1px solid #2563EB44', borderRadius: '0.75rem', padding: '0.9rem 1.1rem', textAlign: 'center' }}>
+                                        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: '1.6rem', fontWeight: 900, color: '#E2EAF8' }}>{s.price}</div>
+                                    </div>
+                                    <button onClick={() => setContactOpen(true)} className="c-btn c-btn-primary" style={{ padding: '0.8rem 1.4rem', fontSize: '0.75rem', justifyContent: 'center' }}>
+                                        {s.cta}
+                                    </button>
+                                </motion.div>
+                            );
+                        })()}
+                    </div>
+
+                    {/* Fila 2: Planes de Emergencia + Cultura + Audiovisual */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.25rem', marginBottom: '1.25rem' }} className="bento-row-3">
+                        {SERVICES.slice(2, 5).map((s, i) => (
+                            <motion.div key={s.n} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i}
+                                style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ background: '#2563EB12', borderRadius: '0.65rem', padding: '0.6rem' }}><s.icon size={20} color="#2563EB" /></div>
+                                    {s.price && (
+                                        <div style={{ background: '#F5A62318', border: '1px solid #F5A62344', borderRadius: '0.5rem', padding: '0.25rem 0.6rem' }}>
+                                            <span style={{ color: '#F5A623', fontSize: '0.7rem', fontWeight: 800 }}>{s.price}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.sub}</div>
-                            </div>
-                            <p className="svc-desc" style={{ color: '#64748B', fontSize: '0.93rem', lineHeight: 1.7 }}>{s.desc}</p>
-                        </motion.div>
-                    ))}
+                                <div>
+                                    <h3 style={{ fontSize: '1.05rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '0.4rem', lineHeight: 1.2 }}>{s.title}</h3>
+                                    <div style={{ color: '#2563EB', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.sub}</div>
+                                </div>
+                                <p style={{ color: '#64748B', fontSize: '0.82rem', lineHeight: 1.6, flexGrow: 1 }}>{s.desc || s.items.join(' · ')}</p>
+                                {s.items.length > 0 && !s.desc && (
+                                    <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                        {s.items.map(item => (
+                                            <li key={item} style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-start' }}>
+                                                <CheckCircle2 size={11} color="#2563EB" style={{ marginTop: '0.2rem', flexShrink: 0 }} />
+                                                <span style={{ color: '#64748B', fontSize: '0.75rem' }}>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <button onClick={() => setContactOpen(true)} style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left', padding: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    {s.cta} <ArrowRight size={13} />
+                                </button>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Fila 3: CAPREX AWARDS — featured full width */}
+                    {(() => {
+                        const s = SERVICES[5]; return (
+                            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
+                                style={{ background: 'linear-gradient(135deg,#1A1200 0%,#2A1A00 50%,#0B1526 100%)', border: '1px solid #F5A62333', borderRadius: '1.5rem', padding: '3rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center', position: 'relative', overflow: 'hidden' }}
+                                className="bento-awards">
+                                {/* Glow dorado */}
+                                <div style={{ position: 'absolute', top: '-20%', right: '-5%', width: '350px', height: '350px', borderRadius: '50%', background: 'radial-gradient(circle,#F5A62322 0%,transparent 65%)', pointerEvents: 'none' }} />
+                                <div style={{ position: 'relative', zIndex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                                        <div style={{ background: '#F5A62320', border: '1px solid #F5A62366', borderRadius: '0.75rem', padding: '0.65rem' }}><Trophy size={22} color="#F5A623" /></div>
+                                        <span style={{ background: 'linear-gradient(90deg,#F5A623,#FCD34D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.2em' }}>{s.tag}</span>
+                                    </div>
+                                    <h3 style={{ fontSize: 'clamp(1.8rem,3.5vw,3rem)', fontWeight: 900, letterSpacing: '-0.04em', marginBottom: '0.75rem', lineHeight: 0.95 }}>
+                                        CAPREX<br /><span style={{ color: '#F5A623' }}>AWARDS™</span>
+                                    </h3>
+                                    <p style={{ color: '#94A3B8', fontSize: '0.92rem', lineHeight: 1.7, marginBottom: '1.75rem' }}>{s.desc}</p>
+                                    <button onClick={() => setContactOpen(true)} style={{ background: 'linear-gradient(135deg,#F5A623,#D97706)', color: '#000', border: 'none', borderRadius: '9999px', padding: '0.9rem 2.2rem', fontWeight: 900, fontSize: '0.82rem', letterSpacing: '0.06em', cursor: 'pointer', fontFamily: "'Space Grotesk',sans-serif", display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        {s.cta} <ArrowRight size={14} />
+                                    </button>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
+                                    {s.items.map((item, i) => (
+                                        <div key={item} style={{ background: 'rgba(245,166,35,0.06)', border: '1px solid #F5A62322', borderRadius: '1rem', padding: '1.25rem' }}>
+                                            <div style={{ color: '#F5A623', fontSize: '1.5rem', marginBottom: '0.5rem' }}>{'🏆🌟👑📈'[i]}</div>
+                                            <div style={{ color: '#E2EAF8', fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.3 }}>{item}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        );
+                    })()}
                 </div>
             </section>
+
 
             {/* ── CÓMO FUNCIONA ── */}
             <section id="proceso" style={{ background: '#0B1526', padding: '7rem 2.5rem' }}>
