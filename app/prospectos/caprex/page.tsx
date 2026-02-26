@@ -147,14 +147,42 @@ export default function CaprexPage() {
         .testi-card { background:rgba(255,255,255,0.03);border:1px solid #1E3A5F44;border-radius:1.25rem;padding:2rem;display:flex;flex-direction:column;gap:1.25rem;transition:all 0.3s; }
         .testi-card:hover { border-color:#2563EB44;background:rgba(37,99,235,0.05); }
         @media(max-width:768px){
-          .svc-row{grid-template-columns:50px 1fr;grid-template-rows:auto auto;}
-          .svc-desc{grid-column:2;margin-top:0.5rem;}
-          .hero-h1{font-size:clamp(3rem,14vw,6rem)!important;}
+          /* Nav */
           .desktop-nav{display:none!important}
           .mob-menu-btn{display:block!important}
-          .hero-grid{grid-template-columns:1fr!important;}
+
+          /* Hero */
+          .hero-h1{font-size:clamp(2.2rem,10vw,3.5rem)!important;}
+          .hero-grid{grid-template-columns:1fr!important;gap:1.5rem!important;}
+
+          /* Servicios */
+          .svc-row{grid-template-columns:40px 1fr!important;grid-template-rows:auto auto;gap:0!important;padding:1.25rem 0!important;}
+          .svc-desc{grid-column:2!important;margin-top:0.35rem!important;}
+
+          /* Pasos */
+          .steps-grid{grid-template-columns:1fr!important;gap:1rem!important;}
+
+          /* Testimonios */
           .testi-grid{grid-template-columns:1fr!important;}
-          .steps-grid{grid-template-columns:1fr!important;}
+
+          /* Carla */
+          .carla-grid{grid-template-columns:1fr!important;gap:2.5rem!important;}
+          .carla-foto{aspect-ratio:16/9!important;}
+
+          /* CTA */
+          .cta-grid{grid-template-columns:1fr!important;gap:2.5rem!important;}
+
+          /* FAQ */
+          .faq-q{font-size:0.9rem!important;}
+
+          /* Botones */
+          .c-btn{padding:0.85rem 1.4rem!important;font-size:0.78rem!important;}
+
+          /* Padding secciones en mobile */
+          .caprex-root section{padding-left:1.25rem!important;padding-right:1.25rem!important;padding-top:4rem!important;padding-bottom:4rem!important;}
+
+          /* Inputs full width */
+          .caprex-root input{width:100%!important;box-sizing:border-box!important;}
         }
       `}</style>
 
@@ -362,11 +390,11 @@ export default function CaprexPage() {
             <section id="nosotros" style={{ padding: '7rem 2.5rem', background: '#0F1A2E', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', bottom: '-10%', left: '-5%', width: '500px', height: '500px', borderRadius: '50%', background: 'radial-gradient(circle,#2563EB12 0%,transparent 70%)', pointerEvents: 'none' }} />
                 <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', alignItems: 'center' }}>
+                    <div className="carla-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', alignItems: 'center' }}>
 
                         {/* Foto editorial */}
                         <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} style={{ position: 'relative' }}>
-                            <div style={{
+                            <div className="carla-foto" style={{
                                 width: '100%', aspectRatio: '3/4',
                                 background: 'linear-gradient(160deg,#1A2D6B 0%,#0B1526 100%)',
                                 borderRadius: '2rem', border: '1px solid #1E3A5F',
@@ -480,7 +508,7 @@ export default function CaprexPage() {
 
             {/* ── CTA FINAL ── */}
             <section id="contacto" style={{ background: '#2563EB', padding: '7rem 2.5rem' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'center' }}>
+                <div className="cta-grid" style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'center' }}>
                     <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
                         <h2 style={{ fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.05em', color: '#fff' }}>
                             ¿TU EMPRESA<br />ESTÁ<br />PROTEGIDA?
