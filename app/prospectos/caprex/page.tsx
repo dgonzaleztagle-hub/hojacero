@@ -551,7 +551,8 @@ export default function CaprexPage() {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
                                     {s.items.map((item, i) => (
                                         <div key={item} style={{ background: 'rgba(245,166,35,0.06)', border: '1px solid #F5A62322', borderRadius: '1rem', padding: '1.25rem' }}>
-                                            <div style={{ color: '#F5A623', fontSize: '1.5rem', marginBottom: '0.5rem' }}>{'🏆🌟👑📈'[i]}</div>
+                                            <div style={{ color: '#F5A623', fontSize: '1.5rem', marginBottom: '0.5rem' }}>{['🏆', '🌟', '👑', '📈'][i]}</div>
+
                                             <div style={{ color: '#E2EAF8', fontSize: '0.82rem', fontWeight: 700, lineHeight: 1.3 }}>{item}</div>
                                         </div>
                                     ))}
