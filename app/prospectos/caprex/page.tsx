@@ -335,7 +335,7 @@ export default function CaprexPage() {
             {/* ── SERVICIOS (lista editorial) ── */}
             <section id="servicios" style={{ background: '#0F1A2E', padding: '7rem 2.5rem' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
                         style={{ borderLeft: '4px solid #2563EB', paddingLeft: '1.5rem', marginBottom: '5rem' }}>
                         <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Lo que hacemos</span>
                         <h2 style={{ fontSize: 'clamp(3rem,7vw,6rem)', fontWeight: 900, lineHeight: 0.95, marginTop: '0.5rem', letterSpacing: '-0.05em' }}>
@@ -345,7 +345,7 @@ export default function CaprexPage() {
 
                     {SERVICES.map((s, i) => (
                         <motion.div key={s.n} className="svc-row"
-                            variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i * 0.5}>
+                            variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i * 0.5}>
                             <div style={{ color: '#2563EB22', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.1em', paddingTop: '0.25rem', fontFamily: "'Space Grotesk',sans-serif" }}>{s.n}</div>
                             <div style={{ paddingRight: '2rem' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
@@ -363,7 +363,7 @@ export default function CaprexPage() {
             {/* ── CÓMO FUNCIONA ── */}
             <section id="proceso" style={{ background: '#0B1526', padding: '7rem 2.5rem' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
                         style={{ marginBottom: '5rem', textAlign: 'center' }}>
                         <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>El proceso</span>
                         <h2 style={{ fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 900, lineHeight: 0.95, marginTop: '0.5rem', letterSpacing: '-0.05em' }}>
@@ -371,12 +371,12 @@ export default function CaprexPage() {
                         </h2>
                     </motion.div>
 
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
                         style={{ marginTop: '3rem', marginBottom: '3rem', height: '1px', background: 'linear-gradient(90deg,transparent,#2563EB,transparent)' }} />
 
                     <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '2rem', position: 'relative' }}>
                         {STEPS.map((step, i) => (
-                            <motion.div key={step.n} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}
+                            <motion.div key={step.n} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i}
                                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
                                 <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', background: '#0B1526', border: '2px solid #2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                                     <span style={{ color: '#2563EB', fontFamily: "'Space Grotesk',sans-serif", fontWeight: 900, fontSize: '0.85rem' }}>{step.n}</span>
@@ -387,7 +387,7 @@ export default function CaprexPage() {
                         ))}
                     </div>
 
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
                         style={{ marginTop: '3rem', textAlign: 'center' }}>
                         <button className="c-btn c-btn-primary" onClick={() => setContactOpen(true)}>
                             Empezar con el diagnóstico <ArrowRight size={16} />
@@ -403,7 +403,7 @@ export default function CaprexPage() {
                     <div className="carla-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6rem', alignItems: 'center' }}>
 
                         {/* Foto editorial */}
-                        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} style={{ position: 'relative' }}>
+                        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} style={{ position: 'relative' }}>
                             <div className="carla-foto" style={{
                                 width: '100%', aspectRatio: '3/4',
                                 background: 'linear-gradient(160deg,#1A2D6B 0%,#0B1526 100%)',
@@ -425,7 +425,7 @@ export default function CaprexPage() {
 
                         {/* Copy */}
                         <div>
-                            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0}>
+                            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={0}>
                                 <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Por qué CAPREX</span>
                                 <h2 style={{ fontSize: 'clamp(2rem,4vw,3.5rem)', fontWeight: 900, lineHeight: 1.05, marginTop: '0.75rem', marginBottom: '1.5rem', letterSpacing: '-0.04em' }}>
                                     No eres un número de expediente.<br />
@@ -437,14 +437,14 @@ export default function CaprexPage() {
                             </motion.div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                                 {['Trato directo con la prevencionista titular', 'Experiencia DS44, Ley Karin y riesgos psicosociales', 'Respuesta en menos de 24 horas garantizada', 'Sin contratos mínimos de planta'].map((f, i) => (
-                                    <motion.div key={f} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i + 1}
+                                    <motion.div key={f} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i + 1}
                                         style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
                                         <CheckCircle2 size={16} color="#2563EB" style={{ marginTop: '0.15rem', flexShrink: 0 }} />
                                         <span style={{ color: '#94A3B8', fontSize: '0.95rem' }}>{f}</span>
                                     </motion.div>
                                 ))}
                             </div>
-                            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={5}
+                            <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={5}
                                 style={{ marginTop: '2.5rem' }}>
                                 <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="c-btn c-btn-primary">
                                     <MessageCircle size={16} /> Hablar con Carla
@@ -458,7 +458,7 @@ export default function CaprexPage() {
             {/* ── TESTIMONIOS ── */}
             <section style={{ background: '#0B1526', padding: '7rem 2.5rem' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
                         style={{ marginBottom: '4rem' }}>
                         <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Clientes</span>
                         <h2 style={{ fontSize: 'clamp(2.5rem,5vw,4.5rem)', fontWeight: 900, lineHeight: 0.95, marginTop: '0.5rem', letterSpacing: '-0.05em' }}>
@@ -467,7 +467,7 @@ export default function CaprexPage() {
                     </motion.div>
                     <div className="testi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem' }}>
                         {TESTIMONIALS.map((t, i) => (
-                            <motion.div key={t.initials} className="testi-card" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i}>
+                            <motion.div key={t.initials} className="testi-card" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i}>
                                 <p style={{ color: '#94A3B8', fontSize: '0.95rem', lineHeight: 1.75, fontStyle: 'italic' }}>"{t.quote}"</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                                     <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'linear-gradient(135deg,#2563EB,#1A2D6B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: '0.8rem', color: '#fff', flexShrink: 0 }}>
@@ -487,7 +487,7 @@ export default function CaprexPage() {
             {/* ── FAQ ── */}
             <section style={{ background: '#0F1A2E', padding: '7rem 2.5rem' }}>
                 <div style={{ maxWidth: '860px', margin: '0 auto' }}>
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} style={{ marginBottom: '4rem', textAlign: 'center' }}>
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} style={{ marginBottom: '4rem', textAlign: 'center' }}>
                         <span style={{ color: '#2563EB', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase' }}>Preguntas frecuentes</span>
                         <h2 style={{ fontSize: 'clamp(2rem,5vw,4rem)', fontWeight: 900, lineHeight: 0.95, marginTop: '0.5rem', letterSpacing: '-0.05em' }}>
                             TODO LO QUE<br /><span style={{ color: '#2563EB' }}>NECESITAS SABER.</span>
@@ -495,7 +495,7 @@ export default function CaprexPage() {
                     </motion.div>
                     <div>
                         {FAQS.map((faq, i) => (
-                            <motion.div key={i} className="faq-item" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i * 0.3}>
+                            <motion.div key={i} className="faq-item" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i * 0.3}>
                                 <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                                     <span>{faq.q}</span>
                                     <motion.div animate={{ rotate: openFaq === i ? 180 : 0 }} transition={{ duration: 0.3 }}>
@@ -519,7 +519,7 @@ export default function CaprexPage() {
             {/* ── CTA FINAL ── */}
             <section id="contacto" style={{ background: '#2563EB', padding: '7rem 2.5rem' }}>
                 <div className="cta-grid" style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'center' }}>
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}>
                         <h2 style={{ fontSize: 'clamp(2.5rem,6vw,5rem)', fontWeight: 900, lineHeight: 0.92, letterSpacing: '-0.05em', color: '#fff' }}>
                             ¿TU EMPRESA<br />ESTÁ<br />PROTEGIDA?
                         </h2>
@@ -527,7 +527,7 @@ export default function CaprexPage() {
                             El primer diagnóstico es gratuito. Sin compromiso. Evaluamos tu empresa frente al DS44 y la Ley Karin en una sesión directa con Carla.
                         </p>
                     </motion.div>
-                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1}>
+                    <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={1}>
                         {!sent ? (
                             <form onSubmit={e => { e.preventDefault(); setSent(true); }} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                                 {['Nombre de tu empresa', 'Tu email', 'WhatsApp / teléfono'].map(p => (
