@@ -49,6 +49,24 @@ const projects = [
         image: '/projects/icebuin.png',
         link: 'https://icebuin.cl',
         status: 'live'
+    },
+    {
+        id: '05',
+        title: 'ACARGOO',
+        category: 'LOGTECH / B2B & B2C',
+        description: 'Plataforma de logística completa con APK nativa para drivers, seguimiento en mapa en tiempo real y gestión B2C y B2B.',
+        image: '/projects/acargoo.png',
+        link: 'https://acargoo.cl',
+        status: 'live'
+    },
+    {
+        id: '06',
+        title: 'VUELVE+',
+        category: 'LOYALTY SAAS / MARTECH',
+        description: 'App de fidelización para negocios locales con motores de retención de clientela integrados a las wallets nativas de Android e iPhone.',
+        image: '/projects/vuelve.png',
+        link: 'https://vuelve.vip',
+        status: 'live'
     }
 ];
 
