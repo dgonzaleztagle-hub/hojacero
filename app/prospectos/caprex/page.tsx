@@ -204,7 +204,7 @@ export default function CaprexPage() {
         .c-btn-primary { background:#2563EB;color:#fff;box-shadow:0 0 40px #2563EB44; }
         .c-btn-primary:hover { background:#1d4ed8;transform:scale(1.04);box-shadow:0 0 60px #2563EB66; }
         .c-btn-ghost { background:transparent;color:#E2EAF8;border:1.5px solid #1E3A5F;text-decoration:none; }
-        .c-btn-ghost:hover { border-color:#2563EB;color:#2563EB; }
+        .c-btn-ghost:hover { border-color:#2563EB;color:#2563EB; background:rgba(37,99,235,0.05); transform:scale(1.04); }
         .svc-row { display:grid;grid-template-columns:80px 1fr 2fr;gap:0;padding:2rem 0;border-top:1px solid #1E3A5F33;align-items:start;transition:all 0.3s; }
         .svc-row:hover { border-top-color:#2563EB; }
         .svc-row:last-child { border-bottom:1px solid #1E3A5F33; }
@@ -215,8 +215,8 @@ export default function CaprexPage() {
         .faq-item { border-bottom:1px solid #1E3A5F33;overflow:hidden; }
         .faq-q { width:100%;background:none;border:none;color:#E2EAF8;text-align:left;padding:1.5rem 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:1rem;font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:-0.02em;transition:color 0.2s; }
         .faq-q:hover { color:#2563EB; }
-        .testi-card { background:rgba(255,255,255,0.03);border:1px solid #1E3A5F44;border-radius:1.25rem;padding:2rem;display:flex;flex-direction:column;gap:1.25rem;transition:all 0.3s; }
-        .testi-card:hover { border-color:#2563EB44;background:rgba(37,99,235,0.05); }
+        .testi-card { background:rgba(255,255,255,0.03);border:1px solid #1E3A5F44;border-radius:1.25rem;padding:2rem;display:flex;flex-direction:column;gap:1.25rem;transition:all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .testi-card:hover { border-color:#2563EB66; background:rgba(37,99,235,0.07); transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px -20px rgba(37,99,235,0.3); }
         @media(max-width:768px){
           /* Nav */
           .desktop-nav{display:none!important}
@@ -421,7 +421,8 @@ export default function CaprexPage() {
                     <div className="testi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
                         {TARGETS.map((t, i) => (
                             <motion.div key={t.label} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i}
-                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1E3A5F44', borderRadius: '1rem', padding: '1.75rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                whileHover={{ y: -5, scale: 1.02, backgroundColor: 'rgba(255,255,255,0.05)', borderColor: '#2563EB66' }}
+                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1E3A5F44', borderRadius: '1rem', padding: '1.75rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'all 0.3s ease' }}>
                                 <t.icon size={22} color="#2563EB" />
                                 <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.03em' }}>{t.label}</div>
                                 <div style={{ color: '#64748B', fontSize: '0.82rem', lineHeight: 1.5 }}>{t.desc}</div>
@@ -448,7 +449,8 @@ export default function CaprexPage() {
                         {(() => {
                             const s = SERVICES[0]; return (
                                 <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
-                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                    whileHover={{ y: -8, scale: 1.01, borderColor: '#2563EB88', boxShadow: '0 25px 50px -12px rgba(37,99,235,0.2)' }}
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', transition: 'all 0.4s ease' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div style={{ background: '#2563EB18', borderRadius: '0.75rem', padding: '0.75rem' }}><s.icon size={24} color="#2563EB" /></div>
                                         <span style={{ color: '#1E3A5F', fontSize: '0.72rem', fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>{s.n}</span>
@@ -481,7 +483,8 @@ export default function CaprexPage() {
                         {(() => {
                             const s = SERVICES[1]; return (
                                 <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={1}
-                                    style={{ background: 'linear-gradient(135deg,#1A2D6B 0%,#0B1526 100%)', border: '1px solid #2563EB44', borderRadius: '1.5rem', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative', overflow: 'hidden' }}>
+                                    whileHover={{ y: -8, scale: 1.02, boxShadow: '0 25px 50px -12px rgba(37,99,235,0.4)' }}
+                                    style={{ background: 'linear-gradient(135deg,#1A2D6B 0%,#0B1526 100%)', border: '1px solid #2563EB44', borderRadius: '1.5rem', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative', overflow: 'hidden', transition: 'all 0.4s ease' }}>
                                     <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#2563EB', borderRadius: '100px', padding: '0.2rem 0.7rem' }}>
                                         <span style={{ color: '#fff', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em' }}>{s.tag}</span>
                                     </div>
@@ -505,7 +508,8 @@ export default function CaprexPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.25rem', marginBottom: '1.25rem' }} className="bento-row-3">
                         {SERVICES.slice(2, 5).map((s, i) => (
                             <motion.div key={s.n} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i}
-                                style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                whileHover={{ y: -8, scale: 1.02, borderColor: '#2563EB88', backgroundColor: 'rgba(255,255,255,0.04)' }}
+                                style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', transition: 'all 0.4s ease' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ background: '#2563EB12', borderRadius: '0.65rem', padding: '0.6rem' }}><s.icon size={20} color="#2563EB" /></div>
                                     {s.price && (
@@ -521,11 +525,13 @@ export default function CaprexPage() {
                                 {'segments' in s && s.segments ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', flexGrow: 1 }}>
                                         {(s.segments as { label: string, price: string, note: string }[]).map(seg => (
-                                            <div key={seg.label} style={{ background: 'rgba(245,166,35,0.06)', border: '1px solid #F5A62322', borderRadius: '0.65rem', padding: '0.75rem' }}>
+                                            <motion.div key={seg.label}
+                                                whileHover={{ x: 5, backgroundColor: 'rgba(245,166,35,0.1)', borderColor: '#F5A62344' }}
+                                                style={{ background: 'rgba(245,166,35,0.06)', border: '1px solid #F5A62322', borderRadius: '0.65rem', padding: '0.75rem', transition: 'all 0.2s ease' }}>
                                                 <div style={{ color: '#F5A623', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>{seg.label}</div>
                                                 <div style={{ color: '#E2EAF8', fontWeight: 800, fontSize: '0.88rem', fontFamily: "'Space Grotesk',sans-serif" }}>{seg.price}</div>
                                                 <div style={{ color: '#64748B', fontSize: '0.72rem', marginTop: '0.15rem', lineHeight: 1.4 }}>{seg.note}</div>
-                                            </div>
+                                            </motion.div>
                                         ))}
                                     </div>
                                 ) : (
@@ -553,7 +559,8 @@ export default function CaprexPage() {
                     {(() => {
                         const s = SERVICES[5]; return (
                             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
-                                style={{ background: 'linear-gradient(135deg,#1A1200 0%,#2A1A00 50%,#0B1526 100%)', border: '1px solid #F5A62333', borderRadius: '1.5rem', padding: '3rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center', position: 'relative', overflow: 'hidden' }}
+                                whileHover={{ scale: 1.01, borderColor: '#F5A62388', boxShadow: '0 25px 80px -20px rgba(245,166,35,0.25)' }}
+                                style={{ background: 'linear-gradient(135deg,#1A1200 0%,#2A1A00 50%,#0B1526 100%)', border: '1px solid #F5A62333', borderRadius: '1.5rem', padding: '3rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center', position: 'relative', overflow: 'hidden', transition: 'all 0.5s ease' }}
                                 className="bento-awards">
                                 {/* Glow dorado */}
                                 <div style={{ position: 'absolute', top: '-20%', right: '-5%', width: '350px', height: '350px', borderRadius: '50%', background: 'radial-gradient(circle,#F5A62322 0%,transparent 65%)', pointerEvents: 'none' }} />
@@ -603,7 +610,8 @@ export default function CaprexPage() {
                     <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '2rem', position: 'relative' }}>
                         {STEPS.map((step, i) => (
                             <motion.div key={step.n} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i}
-                                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2.5rem 2rem', position: 'relative', zIndex: 1 }}>
+                                whileHover={{ y: -8, scale: 1.01, borderColor: '#2563EB88', backgroundColor: 'rgba(255,255,255,0.04)' }}
+                                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #1E3A5F44', borderRadius: '1.5rem', padding: '2.5rem 2rem', position: 'relative', zIndex: 1, transition: 'all 0.4s ease' }}>
                                 <div style={{ width: '3.5rem', height: '3.5rem', borderRadius: '50%', background: '#0B1526', border: '2px solid #2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                                     <span style={{ color: '#2563EB', fontFamily: "'Space Grotesk',sans-serif", fontWeight: 900, fontSize: '0.85rem' }}>{step.n}</span>
                                 </div>
@@ -634,7 +642,9 @@ export default function CaprexPage() {
                                 { name: 'Carla Gajardo', role: 'Cofundadora', bg: 'linear-gradient(160deg,#1A2D6B 0%,#0B1526 100%)' },
                                 { name: 'Juan Avendaño', role: 'Cofundador', bg: 'linear-gradient(160deg,#1E3A5F 0%,#0B1526 100%)' }
                             ].map((f, idx) => (
-                                <motion.div key={f.name} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={idx * 0.2} style={{ position: 'relative' }}>
+                                <motion.div key={f.name} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={idx * 0.2}
+                                    whileHover={{ y: -10, scale: 1.03, boxShadow: '0 30px 60px -15px rgba(37,99,235,0.3)' }}
+                                    style={{ position: 'relative', transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
                                     <div className="carla-foto" style={{
                                         width: '100%', aspectRatio: '3/4',
                                         background: f.bg,
@@ -674,7 +684,8 @@ export default function CaprexPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                                 {['Soluciones adaptadas al tamaño y realidad de cada empresa', 'Desde cumplimiento legal hasta cultura y comunicación preventiva', 'Trato directo — sin intermediarios ni call centers', 'Respuesta en menos de 24 horas'].map((f, i) => (
                                     <motion.div key={f} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={i + 1}
-                                        style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                                        whileHover={{ x: 5, color: '#E2EAF8' }}
+                                        style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start', cursor: 'default', transition: 'all 0.2s ease' }}>
                                         <CheckCircle2 size={16} color="#2563EB" style={{ marginTop: '0.15rem', flexShrink: 0 }} />
                                         <span style={{ color: '#94A3B8', fontSize: '0.95rem' }}>{f}</span>
                                     </motion.div>
