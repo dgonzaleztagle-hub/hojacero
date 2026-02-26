@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { ChevronRight, Menu, X, FileText, CalendarCheck, AlertOctagon, Heart, Video, Trophy, MessageCircle, ChevronDown, CheckCircle2, ArrowRight, Building2, TrendingUp, Landmark, Users } from 'lucide-react';
 
 const LOGO = '/prospectos/caprex/logo.png';
-const WA_LINK = 'https://wa.me/56926198159?text=Hola%2C%20quiero%20un%20diagn%C3%B3stico%20gratuito%20para%20mi%20empresa';
+const WA_LINK = 'https://wa.me/56926198159?text=Hola%2C%20quiero%20una%20propuesta%20personalizada%20para%20mi%20empresa';
 const NAV = ['Servicios', 'Nosotros', 'Proceso', 'Contacto'];
 
 // ── SERVICIOS REALES (del documento del cliente) ──────────────────
@@ -91,9 +91,9 @@ const TARGETS = [
 ];
 
 const STEPS = [
-    { n: '01', title: 'Diagnóstico gratuito', desc: 'Sesión de 45 min con Carla para evaluar el estado real de tu empresa frente al DS44, Ley Karin y normativa vigente.' },
-    { n: '02', title: 'Plan a medida', desc: 'Proponemos un plan específico para tu rubro, tamaño y riesgos. Sin paquetes genéricos, sin costos de planta.' },
-    { n: '03', title: 'Acompañamiento continuo', desc: 'Implementamos, capacitamos y auditamos. Contigo cada vez que la normativa cambie o un inspector llegue.' },
+    { n: '01', title: 'Evaluamos tu empresa', desc: 'Analizamos tu realidad: rubro, tamaño, normativa aplicable y brechas actuales. Proyecto puntual o asesoría mensual — según lo que necesites.' },
+    { n: '02', title: 'Propuesta a medida', desc: 'Te presentamos un plan concreto, aplicable y con alcance claro. Sin paquetes genéricos. Adaptado al tamaño y realidad de tu organización.' },
+    { n: '03', title: 'Implementación y acompañamiento', desc: 'Ejecutamos, capacitamos y documentamos. Estamos disponibles cuando la normativa cambia, cuando llega un inspector o cuando tu equipo necesita apoyo.' },
 ];
 
 const TESTIMONIALS = [
@@ -300,7 +300,7 @@ export default function CaprexPage() {
                         </a>
                     ))}
                     <button className="c-btn c-btn-primary" style={{ padding: '0.7rem 1.6rem', fontSize: '0.75rem' }} onClick={() => setContactOpen(true)}>
-                        Diagnóstico gratuito
+                        Cotizar ahora
                     </button>
                 </div>
                 <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: 'none', background: 'none', border: 'none', color: '#E2EAF8', cursor: 'pointer' }} className="mob-menu-btn">
@@ -319,7 +319,7 @@ export default function CaprexPage() {
                                 {l}
                             </a>
                         ))}
-                        <button className="c-btn c-btn-primary" onClick={() => { setMenuOpen(false); setContactOpen(true); }}>Agendar diagnóstico</button>
+                        <button className="c-btn c-btn-primary" onClick={() => { setMenuOpen(false); setContactOpen(true); }}>Contáctanos ahora</button>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -363,7 +363,7 @@ export default function CaprexPage() {
                             <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}
                                 style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                                 <button className="c-btn c-btn-primary" onClick={() => setContactOpen(true)}>
-                                    Diagnóstico gratuito <ChevronRight size={15} />
+                                    Solicitar cotización <ChevronRight size={15} />
                                 </button>
                                 <a href="#servicios" className="c-btn c-btn-ghost">Ver servicios</a>
                             </motion.div>
@@ -616,7 +616,7 @@ export default function CaprexPage() {
                     <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }}
                         style={{ marginTop: '3rem', textAlign: 'center' }}>
                         <button className="c-btn c-btn-primary" onClick={() => setContactOpen(true)}>
-                            Empezar con el diagnóstico <ArrowRight size={16} />
+                            Coticemos tu propuesta <ArrowRight size={16} />
                         </button>
                     </motion.div>
                 </div>
@@ -750,7 +750,7 @@ export default function CaprexPage() {
                             ¿TU EMPRESA<br />ESTÁ<br />PROTEGIDA?
                         </h2>
                         <p style={{ color: 'rgba(255,255,255,0.7)', marginTop: '1.5rem', lineHeight: 1.7 }}>
-                            El primer diagnóstico es gratuito. Sin compromiso. Evaluamos tu empresa frente al DS44 y la Ley Karin en una sesión directa con Carla.
+                            Solicita tu propuesta personalizada. Evaluamos tu empresa frente al DS44 y la Ley Karin en una sesión directa con Carla para diseñar un plan a tu medida.
                         </p>
                     </motion.div>
                     <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} custom={1}>
@@ -765,7 +765,8 @@ export default function CaprexPage() {
                                 <button type="submit" style={{ background: '#fff', color: '#2563EB', border: 'none', borderRadius: '9999px', padding: '1rem', fontWeight: 900, fontSize: '0.9rem', letterSpacing: '0.08em', cursor: 'pointer', fontFamily: "'Space Grotesk',sans-serif", marginTop: '0.5rem', transition: 'transform 0.2s' }}
                                     onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
                                     onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>
-                                    QUIERO MI DIAGNÓSTICO GRATUITO →
+                                    SOLICITAR COTIZACIÓN →
+
                                 </button>
                                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', textAlign: 'center' }}>Sin spam. Respondemos en menos de 24 horas.</p>
                             </form>
@@ -800,7 +801,7 @@ export default function CaprexPage() {
                             onClick={e => e.stopPropagation()}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                                 <div>
-                                    <p style={{ color: '#2563EB', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Diagnóstico Gratuito</p>
+                                    <p style={{ color: '#2563EB', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Solicitar propuesta</p>
                                     <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: '2rem', fontWeight: 900, color: '#E2EAF8', letterSpacing: '-0.04em' }}>Hablemos.</h3>
                                 </div>
                                 <button onClick={() => setContactOpen(false)} style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer' }}><X size={22} /></button>
