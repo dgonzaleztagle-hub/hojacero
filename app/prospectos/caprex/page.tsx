@@ -38,11 +38,15 @@ const SERVICES = [
         title: 'Planes de Emergencia',
         sub: 'Condominios, edificios y empresas',
         tag: null,
-        price: 'Desde $3.000 por persona',
+        price: null,
         size: 'small',
         items: [],
-        cta: 'Ver detalles',
-        desc: 'Para condominios (+100 copropietarios) y empresas (+100 trabajadores). Comunidades menores: valor fijo conversable.',
+        cta: 'Solicitar cotización',
+        desc: '',
+        segments: [
+            { label: 'Condominios y Edificios', price: 'Desde $3.000 / copropietario', note: 'Para comunidades sobre 100 copropietarios. Menos de 100: valor fijo conversable.' },
+            { label: 'Empresas', price: 'Desde $3.000 / trabajador', note: 'Para empresas sobre 100 trabajadores. Menos de 100: valor fijo conversable.' },
+        ],
     },
     {
         n: '04', icon: Heart,
@@ -514,8 +518,21 @@ export default function CaprexPage() {
                                     <h3 style={{ fontSize: '1.05rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '0.4rem', lineHeight: 1.2 }}>{s.title}</h3>
                                     <div style={{ color: '#2563EB', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.sub}</div>
                                 </div>
-                                <p style={{ color: '#64748B', fontSize: '0.82rem', lineHeight: 1.6, flexGrow: 1 }}>{s.desc || s.items.join(' · ')}</p>
-                                {s.items.length > 0 && !s.desc && (
+                                {'segments' in s && s.segments ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', flexGrow: 1 }}>
+                                        {(s.segments as { label: string, price: string, note: string }[]).map(seg => (
+                                            <div key={seg.label} style={{ background: 'rgba(245,166,35,0.06)', border: '1px solid #F5A62322', borderRadius: '0.65rem', padding: '0.75rem' }}>
+                                                <div style={{ color: '#F5A623', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>{seg.label}</div>
+                                                <div style={{ color: '#E2EAF8', fontWeight: 800, fontSize: '0.88rem', fontFamily: "'Space Grotesk',sans-serif" }}>{seg.price}</div>
+                                                <div style={{ color: '#64748B', fontSize: '0.72rem', marginTop: '0.15rem', lineHeight: 1.4 }}>{seg.note}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p style={{ color: '#64748B', fontSize: '0.82rem', lineHeight: 1.6, flexGrow: 1 }}>{s.desc || s.items.join(' · ')}</p>
+                                )}
+                                {s.items.length > 0 && !s.desc && !('segments' in s) && (
+
                                     <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                                         {s.items.map(item => (
                                             <li key={item} style={{ display: 'flex', gap: '0.4rem', alignItems: 'flex-start' }}>
