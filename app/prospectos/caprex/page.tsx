@@ -461,9 +461,14 @@ export default function CaprexPage() {
                                             </div>
                                         ))}
                                     </div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#2563EB12', border: '1px solid #2563EB33', borderRadius: '0.5rem', padding: '0.5rem 0.85rem' }}>
+                                        <span style={{ color: '#2563EB', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Modalidad:</span>
+                                        <span style={{ color: '#94A3B8', fontSize: '0.78rem' }}>{s.sub}</span>
+                                    </div>
                                     <button onClick={() => setContactOpen(true)} className="c-btn c-btn-ghost" style={{ alignSelf: 'flex-start', padding: '0.7rem 1.5rem', fontSize: '0.75rem' }}>
                                         {s.cta} <ArrowRight size={13} />
                                     </button>
+
                                 </motion.div>
                             );
                         })()}
