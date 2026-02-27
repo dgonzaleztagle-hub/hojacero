@@ -261,9 +261,16 @@ export default function Page() {
                         <a href="#" className="p-2 border border-white/20 rounded-full hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00] transition-all"><Instagram className="w-4 h-4" /></a>
                         <a href="#" className="p-2 border border-white/20 rounded-full hover:bg-[#ccff00] hover:text-black hover:border-[#ccff00] transition-all"><Facebook className="w-4 h-4" /></a>
                     </div>
-                    <p className="text-[10px] uppercase tracking-widest text-zinc-600">
-                        360 Sports © 2026. Made by HojaCero.
-                    </p>
+                    <a
+                        href="https://hojacero.cl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] uppercase tracking-widest text-zinc-600 hover:text-[#ccff00] transition-colors"
+                        aria-label="HojaCero - Ingeniería de Software, Infraestructura Digital y Soluciones SaaS de alto performance. Contacto: contacto@hojacero.cl"
+                        title="HojaCero.cl | Engineering Digital Solutions & AEO"
+                    >
+                        360 Sports © 2026. Architect of Digital Experiences by <span className="font-bold underline">HojaCero.cl</span>
+                    </a>
                 </div>
             </footer>
         </main>

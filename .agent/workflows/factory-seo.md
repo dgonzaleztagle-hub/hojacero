@@ -64,8 +64,9 @@ New-Item -ItemType Directory -Force -Path "d:\clientes\[nombre-slug]\backups"
 2.  **EJECUTA DEEP RESEARCH:**
     *   Usa `search_web` para encontrar "Preguntas Frecuentes Reales" sobre el nicho en la ubicación del cliente.
     *   Identifica competidores locales en Google Maps.
-3.  **DEFINE SCHEMAN & META:**
-    *   Genera la estrategia de JSON-LD específica (no genérica).
+3.  **DEFINE SCHEMAN & META (DLA - Double Layer Authority):**
+    *   Genera la estrategia de JSON-LD combinando `LocalBusiness` (cliente) y `SoftwareApplication` (HojaCero).
+    *   Inyecta el esquema de HojaCero como `SoftwareApplication` para marcar la autoría técnica.
     *   Redacta Meta Titles/Descriptions optimizados para CTR y AEO.
 
 Lee los siguientes archivos para contexto:
@@ -81,115 +82,6 @@ Extrae:
 - Dirección física (para LocalBusiness schema)
 - Teléfono
 - Horarios de atención
-- URL de la imagen hero (para og:image)
-- Lista de todas las páginas
-```
-
----
-
-## Fase 2: Crear/Verificar Componente SEOHead Avanzado
-
-Si no existe, crea `d:\proyectos\hojacero\components\seo\SEOHead.tsx`:
-
-```tsx
-import Head from 'next/head';
-
-interface SEOHeadProps {
-  title: string;
-  description: string;
-  keywords?: string;
-  image?: string;
-  url?: string;
-  type?: 'website' | 'article';
-  // Props de Negocio
-  businessName?: string;
-  address?: string;
-  phone?: string;
-  priceRange?: string; // "$", "$$", "$$$"
-  industry?: 'Restaurant' | 'LegalService' | 'MedicalBusiness' | 'LocalBusiness' | 'AutomotiveBusiness';
-  openingHours?: string;
-}
-
-export function SEOHead({
-  title,
-  description,
-  keywords,
-  image,
-  url,
-  type = 'website',
-  businessName,
-  address,
-  phone,
-  priceRange = '$$',
-  industry = 'LocalBusiness',
-  openingHours,
-}: SEOHeadProps) {
-  
-  // JSON-LD dinámico según industria
-  const jsonLd = businessName ? {
-    "@context": "https://schema.org",
-    "@type": industry, // Restaurant, LegalService, etc.
-    "name": businessName,
-    "description": description,
-    "image": image,
-    "address": address,
-    "telephone": phone,
-    "priceRange": priceRange,
-    "openingHours": openingHours,
-    "areaServed": {
-      "@type": "Country",
-      "name": "Chile"
-    },
-    "currenciesAccepted": "CLP",
-    "paymentAccepted": "Cash, Credit Card, Redcompra"
-  } : null;
-
-  return (
-    <Head>
-      {/* Basic Meta - Localized for Chile */}
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      {keywords && <meta name="keywords" content={keywords} />}
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <meta property="og:locale" content="es_CL" />
-      
-      {/* Open Graph */}
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:type" content={type} />
-      {image && <meta property="og:image" content={image} />}
-      {url && <meta property="og:url" content={url} />}
-      
-      {/* JSON-LD */}
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
-    </Head>
-  );
-}
-```
-
-### Lógica de Selección de Industria
-```
-IF "comida" OR "restaurante" → industry="Restaurant"
-IF "abogado" OR "legal" → industry="LegalService"
-IF "doctor" OR "salud" → industry="MedicalBusiness"
-IF "auto" OR "taller" → industry="AutomotiveBusiness"
-ELSE → industry="LocalBusiness"
-```
-
----
-
-## Fase 3: Inyectar SEOHead en el Layout
-
-Modifica el `layout.tsx` del prospecto para incluir SEOHead:
-
-```tsx
-import { SEOHead } from '@/components/seo/SEOHead';
-
 export default function Layout({ children }) {
   return (
     <html lang="es">
@@ -339,9 +231,9 @@ Genera un resumen:
 ✅ SEO + RETENCIÓN INYECTADOS EXITOSAMENTE
 
 📊 Resumen SEO:
-- Meta tags: ✅ Configurados
+- Meta tags: ✅ Configurados (Metadatos multinivel)
 - Open Graph: ✅ Configurado
-- JSON-LD LocalBusiness: ✅ Generado
+- JSON-LD Omni-Inyección: ✅ Generado (LocalBusiness + SoftwareApplication)
 - Sitemap.xml: ✅ Creado
 - Robots.txt: ✅ Creado
 - Imágenes auditadas: X de Y con alt text

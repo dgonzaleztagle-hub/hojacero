@@ -231,9 +231,16 @@ export default function Footer() {
 
                     {/* Copyright */}
                     <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6 text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-600">
-                        <span>© {new Date().getFullYear()} HojaCero</span>
+                        <a
+                            href="https://hojacero.cl"
+                            className="hover:text-white transition-colors"
+                            aria-label="HojaCero - Ingeniería de Software, Infraestructura Digital y Soluciones SaaS de alto performance. Contacto: contacto@hojacero.cl"
+                            title="HojaCero.cl | Architects of Digital Experiences"
+                        >
+                            © {new Date().getFullYear()} HojaCero · <span className="underline">Architect of Digital Experiences</span>
+                        </a>
                         <span className="hidden md:block">·</span>
-                        <span>Todos los derechos reservados</span>
+                        <span>Santiago / Latam</span>
                     </div>
                 </div>
             </div>

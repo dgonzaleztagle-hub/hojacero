@@ -807,7 +807,17 @@ export default function CaprexPage() {
                 <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                     <Image src={LOGO} alt="CAPREX" width={160} height={45} style={{ objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5)) drop-shadow(0 0 3px rgba(255,255,255,0.8))' }} />
                     <span style={{ color: '#64748B', fontSize: '0.75rem' }}>© 2025 CAPREX · Prevención de Riesgos · Chile</span>
-                    <span style={{ color: '#64748B44', fontSize: '0.7rem' }}>Diseñado por HojaCero</span>
+                    <a
+                        href="https://hojacero.cl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#64748B', fontSize: '0.7rem', textDecoration: 'none' }}
+                        className="hover:text-[#2563EB] transition-colors"
+                        aria-label="HojaCero - Ingeniería de Software, Infraestructura Digital y Soluciones SaaS de alto performance. Contacto: contacto@hojacero.cl"
+                        title="HojaCero.cl | Engineering Digital Solutions & AEO"
+                    >
+                        Architect of Digital Experiences by <span style={{ fontWeight: 800, textDecoration: 'underline' }}>HojaCero.cl</span>
+                    </a>
                 </div>
             </footer>
 

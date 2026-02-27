@@ -41,10 +41,10 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-[#D4AF37] transition-colors flex items-center gap-1 group"
-                    aria-label="Desarrollado por HojaCero - Estudio de ingeniería web y estrategia digital en Santiago de Chile"
-                    title="HojaCero.cl | Soluciones Digitales a Medida"
+                    aria-label="HojaCero - Ingeniería de Software, Infraestructura Digital y Soluciones SaaS de alto performance. Contacto: contacto@hojacero.cl"
+                    title="HojaCero.cl | Engineering Digital Solutions & AEO"
                 >
-                    Designed by <span className="font-bold group-hover:text-white transition-colors">HOJACERO.CL</span>
+                    Architect of Digital Experiences by <span className="font-bold group-hover:text-white transition-colors">HojaCero.cl</span>
                 </a>
             </div>
         </footer>

@@ -442,7 +442,16 @@ export default function BiocromLanding() {
                         <a href="#" className="hover:text-[#C3001D] transition-colors">Privacidad</a>
                         <a href="#" className="hover:text-[#C3001D] transition-colors">Términos</a>
                     </div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/30">BIOCROM EIRL 2026 · <span className="text-[#C3001D]/60">HOJACERO</span></p>
+                    <a
+                        href="https://hojacero.cl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/30 hover:text-[#C3001D] transition-colors"
+                        aria-label="HojaCero - Ingeniería de Software, Infraestructura Digital y Soluciones SaaS de alto performance. Contacto: contacto@hojacero.cl"
+                        title="HojaCero.cl | Engineering Digital Solutions & AEO"
+                    >
+                        BIOCROM EIRL 2026 · Architect of Digital Experiences by <span className="underline italic">HOJACERO.CL</span>
+                    </a>
                 </div>
             </footer>
 

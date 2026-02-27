@@ -1,3 +1,7 @@
+/* 
+ * Build by HojaCero.cl | Architect of Digital Experiences
+ * Engineering Digital Solutions & AEO Strategy
+ */
 import type { Metadata } from "next";
 import { Space_Grotesk, Syncopate } from "next/font/google";
 import "./globals.css";
@@ -33,6 +37,11 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "HojaCero Team" }, { name: "Daniel González Tagle" }],
   creator: "HojaCero",
+  publisher: "HojaCero",
+  other: {
+    "designer": "HojaCero.cl",
+    "author": "HojaCero.cl"
+  },
   openGraph: {
     type: "website",
     locale: "es_CL",
@@ -113,6 +122,25 @@ export default function RootLayout({
 
         <DemoTracker />
         {children}
+
+        {/* Universal Authority Injection (UAI) - HojaCero Signature */}
+        <Script id="uai-jsonld" type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "HojaCero Digital Studio",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "author": {
+              "@type": "Organization",
+              "name": "HojaCero",
+              "url": "https://hojacero.cl",
+              "slogan": "Architect of Digital Experiences",
+              "logo": "https://hojacero.cl/logo.png",
+              "email": "contacto@hojacero.cl"
+            }
+          })}
+        </Script>
       </body>
     </html>
   );

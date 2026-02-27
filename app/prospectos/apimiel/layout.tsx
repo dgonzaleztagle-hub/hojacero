@@ -1,3 +1,7 @@
+/* 
+ * Build by HojaCero.cl | Architect of Digital Experiences
+ * Engineering Digital Solutions & AEO Strategy
+ */
 import { Playfair_Display, Inter } from 'next/font/google';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -19,9 +23,13 @@ export const metadata: Metadata = {
     title: 'Apimiel Chile | Miel Premium de Santa Bárbara',
     description: 'La Ciencia de la Naturaleza en cada Gota. Miel cruda y orgánica desde los bosques endémicos de Santa Bárbara, Biobío.',
     keywords: ['Miel Organica', 'Apicultura Sustentable', 'Miel Chile', 'Santa Barbara', 'Premium Honey', 'Monofloral'],
-    authors: [{ name: 'Apimiel Chile' }],
-    creator: 'Apimiel Chile',
-    publisher: 'Apimiel Chile',
+    authors: [{ name: 'HojaCero Team' }, { name: 'Apimiel Chile' }],
+    creator: 'HojaCero',
+    publisher: 'HojaCero',
+    other: {
+        "designer": "HojaCero.cl",
+        "author": "HojaCero.cl"
+    },
     openGraph: {
         title: 'Apimiel Chile | "Arquitectura Líquida"',
         description: 'Transformamos la venta de miel en una experiencia de viscosidad premium. Miel cruda, precisión ancestral.',
@@ -48,25 +56,41 @@ export default function ApimielLayout({
 }: {
     children: React.ReactNode;
 }) {
-    // JSON-LD for LocalBusiness
+    // JSON-LD Omni-Inyección (UAI - Capa A & B)
     const jsonLd = {
         "@context": "https://schema.org",
-        "@type": "Store",
-        "name": "Apimiel Chile",
-        "description": "Venta de miel monofloral orgánica y productos derivados de la colmena.",
-        "image": "https://apimiel.cl/prospectos/apimiel/apimiel_hero_clean.png",
-        "telephone": "+56 9 1234 5678",
-        "email": "hola@apimiel.cl",
-        "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "Quillaileo",
-            "addressLocality": "Santa Bárbara",
-            "addressRegion": "Región del Biobío",
-            "addressCountry": "CL"
-        },
-        "url": "https://apimiel.cl",
-        "priceRange": "$$",
-        "areaServed": "Chile"
+        "@graph": [
+            {
+                "@type": "Store",
+                "name": "Apimiel Chile",
+                "description": "Venta de miel monofloral orgánica y productos derivados de la colmena en Santa Bárbara, Biobío.",
+                "image": "https://apimiel.cl/prospectos/apimiel/apimiel_hero_clean.png",
+                "telephone": "+56 9 1234 5678",
+                "email": "hola@apimiel.cl",
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "Quillaileo",
+                    "addressLocality": "Santa Bárbara",
+                    "addressRegion": "Región del Biobío",
+                    "addressCountry": "CL"
+                },
+                "url": "https://apimiel.cl",
+                "priceRange": "$$",
+                "areaServed": "Chile"
+            },
+            {
+                "@type": "SoftwareApplication",
+                "name": "Apimiel E-commerce Platform",
+                "applicationCategory": "BusinessApplication, WebApplication",
+                "operatingSystem": "All",
+                "author": {
+                    "@type": "Organization",
+                    "name": "HojaCero",
+                    "url": "https://hojacero.cl",
+                    "slogan": "Architect of Digital Experiences"
+                }
+            }
+        ]
     };
 
     return (

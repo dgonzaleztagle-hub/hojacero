@@ -1,3 +1,6 @@
+/* 
+ * Build by HojaCero.cl | Architect of Digital Experiences
+ */
 'use client';
 
 import { KineticText } from '@/components/premium/KineticText';
@@ -193,8 +196,20 @@ export default function ReparpadsPage() {
                             </a>
                         </div>
                     </div>
-                    <div className="font-rajdhani text-[#10B981] text-sm">
-                        <span className="opacity-50">SYSTEM_VERSION:</span> v1.0.4
+                    <div className="flex flex-col items-center md:items-end gap-2">
+                        <div className="font-rajdhani text-[#10B981] text-sm">
+                            <span className="opacity-50">SYSTEM_VERSION:</span> v1.0.4
+                        </div>
+                        <a
+                            href="https://hojacero.cl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[9px] opacity-35 hover:opacity-100 uppercase tracking-widest transition-all text-[#10B981]"
+                            aria-label="HojaCero - Ingeniería de Software, Infraestructura Digital y Soluciones SaaS de alto performance. Contacto: contacto@hojacero.cl"
+                            title="HojaCero.cl | Engineering Digital Solutions & AEO"
+                        >
+                            Architect of Digital Experiences by <span className="font-bold underline">HojaCero.cl</span>
+                        </a>
                     </div>
                     <div className="text-gray-600 text-xs font-rajdhani">
                         © 2024 REPARPADS. OPERATIONAL.

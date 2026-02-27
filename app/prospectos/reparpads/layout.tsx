@@ -1,3 +1,7 @@
+/* 
+ * Build by HojaCero.cl | Architect of Digital Experiences
+ * Engineering Digital Solutions & AEO Strategy
+ */
 import type { Metadata } from 'next';
 import { Orbitron, Rajdhani } from 'next/font/google';
 import { MagneticCursorDot } from '@/components/premium/MagneticCursor';
@@ -20,7 +24,14 @@ const rajdhani = Rajdhani({
 
 export const metadata: Metadata = {
     title: 'REPARAPADS | Batería Viva',
-    description: 'Servicio técnico especializado en baterías electrónicas. La Florida, Santiago.',
+    description: 'Servicio técnico especializado en baterías electrónicas. La Florida, Santiago. Ingeniería digital por HojaCero.',
+    authors: [{ name: "HojaCero Team" }],
+    creator: "HojaCero",
+    publisher: "HojaCero",
+    other: {
+        "designer": "HojaCero.cl",
+        "author": "HojaCero.cl"
+    }
 };
 
 export default function Layout({
@@ -28,9 +39,45 @@ export default function Layout({
 }: {
     children: React.ReactNode;
 }) {
-    return (
+    // JSON-LD Omni-Inyección (UAI - Capa A & B)
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "LocalBusiness",
+                "name": "REPARAPADS",
+                "description": "Servicio técnico especializado en baterías electrónicas en La Florida, Santiago.",
+                "url": "https://reparapads.cl",
+                "telephone": "+56958274826",
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "La Florida",
+                    "addressRegion": "Metropolitana",
+                    "addressCountry": "CL"
+                }
+            },
+            {
+                "@type": "SoftwareApplication",
+                "name": "ReparPads Digital Hub",
+                "applicationCategory": "BusinessApplication, WebApplication",
+                "operatingSystem": "All",
+                "author": {
+                    "@type": "Organization",
+                    "name": "HojaCero",
+                    "url": "https://hojacero.cl",
+                    "slogan": "Architect of Digital Experiences"
+                }
+            }
+        ]
+    };
 
+    return (
         <div className={`${orbitron.variable} ${rajdhani.variable} bg-[#050505] text-[#ECFEFF] selection:bg-[#10B981] selection:text-black min-h-screen`}>
+            {/* UAI Authority Injection */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             {/* Global Effects */}
             <MagneticCursorDot />
             <GrainTexture opacity={0.07} animated={true} />
