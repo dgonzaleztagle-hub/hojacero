@@ -213,6 +213,26 @@ export default function VisionPage() {
                                 key={item.id}
                                 className="project-card sticky top-0 h-screen flex items-center justify-center py-20"
                             >
+                                {/* ── CreativeWork JSON-LD por demo ── */}
+                                <script
+                                    type="application/ld+json"
+                                    dangerouslySetInnerHTML={{
+                                        __html: JSON.stringify({
+                                            "@context": "https://schema.org",
+                                            "@type": "CreativeWork",
+                                            "name": `${item.client} — Demo de Solución Digital`,
+                                            "description": item.description,
+                                            "image": `https://hojacero.cl${item.imageAfter}`,
+                                            "url": `https://hojacero.cl${item.viewUrl}`,
+                                            "dateCreated": item.year,
+                                            "genre": item.industry,
+                                            "keywords": item.tags.join(', '),
+                                            "author": { "@id": "https://hojacero.cl/#organization" },
+                                            "publisher": { "@id": "https://hojacero.cl/#organization" },
+                                            "inLanguage": "es-CL"
+                                        })
+                                    }}
+                                />
                                 <Link
                                     href={item.viewUrl}
                                     className="relative w-full max-w-7xl h-[85vh] rounded-[2.5rem] border border-white/[0.08] bg-zinc-900/50 backdrop-blur-3xl overflow-hidden flex flex-col md:flex-row group cursor-pointer block"

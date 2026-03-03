@@ -8,6 +8,7 @@ export interface CaseStudy {
     imageAfter: string;
     accentColor: string;
     viewUrl: string;
+    industry: string;
     imageBefore?: string;
     imageBeforeHero?: string;
     imageAfterHero?: string;
@@ -27,7 +28,8 @@ export const CASES: CaseStudy[] = [
         tags: ['E-Commerce', 'Store Engine', '3D'],
         imageAfter: '/prospectos/apimiel/apimiel_hero_clean.png',
         accentColor: '#fbbf24',
-        viewUrl: '/prospectos/apimiel'
+        viewUrl: '/prospectos/apimiel',
+        industry: 'Agroindustria & E-Commerce'
     },
     {
         id: 'biocrom',
@@ -38,7 +40,8 @@ export const CASES: CaseStudy[] = [
         tags: ['Industrial', 'Bento Grid', 'Laboratorio'],
         imageAfter: '/biocrom_hero.png',
         accentColor: '#ef4444',
-        viewUrl: '/prospectos/biocrom'
+        viewUrl: '/prospectos/biocrom',
+        industry: 'Laboratorio & Instrumentación Científica'
     },
     {
         id: 'donde-germain',
@@ -49,7 +52,8 @@ export const CASES: CaseStudy[] = [
         tags: ['Food Tech', 'Ecommerce', 'Tracking'],
         imageAfter: '/germain_pwa_icon.jpg',
         accentColor: '#f97316',
-        viewUrl: '/prospectos/donde-germain'
+        viewUrl: '/prospectos/donde-germain',
+        industry: 'Gastronomía & Food Tech'
     },
     {
         id: 'reparapads',
@@ -60,7 +64,8 @@ export const CASES: CaseStudy[] = [
         tags: ['Tech Service', 'Lead Gen', 'Minimal'],
         imageAfter: '/prospectos/reparpads/logo_v2.png',
         accentColor: '#3b82f6',
-        viewUrl: '/prospectos/reparpads'
+        viewUrl: '/prospectos/reparpads',
+        industry: 'Servicio Técnico & Electrónica'
     },
     {
         id: 'mitifuu',
@@ -71,7 +76,8 @@ export const CASES: CaseStudy[] = [
         tags: ['Gastronomía', 'Realtime', 'UI/UX'],
         imageAfter: '/prospectos/mitifuu-v3/hero.png',
         accentColor: '#10b981',
-        viewUrl: '/prospectos/mitifuu-v3'
+        viewUrl: '/prospectos/mitifuu-v3',
+        industry: 'Gastronomía & Hospitalidad'
     },
     {
         id: 'family-smile',
@@ -82,6 +88,7 @@ export const CASES: CaseStudy[] = [
         tags: ['Health', 'Booking', 'Trust'],
         imageAfter: '/prospectos/family-smile/hero.png',
         accentColor: '#06b6d4',
-        viewUrl: '/prospectos/family-smile'
+        viewUrl: '/prospectos/family-smile',
+        industry: 'Salud & Odontología'
     }
 ];

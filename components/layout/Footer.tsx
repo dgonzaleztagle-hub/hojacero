@@ -26,6 +26,9 @@ const ecosystem = [
     { label: 'Plus Contable', href: 'https://pluscontable.cl' },
     { label: 'Ice Buin', href: 'https://icebuin.cl' },
     { label: 'SuperPanel', href: 'https://superpanel.lat' },
+    { label: 'Apimiel', href: 'https://apimiel.cl' },
+    { label: 'ReparaPads', href: 'https://reparpads.cl' },
+    { label: 'Caprex', href: 'https://caprex.cl' },
 ];
 
 const socials = [
