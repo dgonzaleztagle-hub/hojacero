@@ -20,6 +20,14 @@ const navigation = [
     { label: 'Contact', href: '/contact' },
 ];
 
+const ecosystem = [
+    { label: 'Acargoo', href: 'https://acargoo.cl' },
+    { label: 'Vuelve+', href: 'https://vuelve.vip' },
+    { label: 'Plus Contable', href: 'https://pluscontable.cl' },
+    { label: 'Ice Buin', href: 'https://icebuin.cl' },
+    { label: 'SuperPanel', href: 'https://superpanel.lat' },
+];
+
 const socials = [
     {
         name: 'Instagram',
@@ -129,7 +137,7 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
 
                     {/* Brand Column */}
-                    <div className="footer-col md:col-span-5">
+                    <div className="footer-col md:col-span-4">
                         <Link href="/" className="inline-block group">
                             <span className="font-display font-bold tracking-[0.3em] text-sm text-white group-hover:opacity-70 transition-opacity">
                                 HOJA CERO_
@@ -146,7 +154,7 @@ export default function Footer() {
                     </div>
 
                     {/* Navigation Column */}
-                    <div className="footer-col md:col-span-3">
+                    <div className="footer-col md:col-span-2">
                         <h4 className="text-[11px] font-mono uppercase tracking-[0.25em] text-zinc-500 mb-6">
                             Navegación
                         </h4>
@@ -165,8 +173,30 @@ export default function Footer() {
                         </ul>
                     </div>
 
+                    {/* Ecosystem Column */}
+                    <div className="footer-col md:col-span-3">
+                        <h4 className="text-[11px] font-mono uppercase tracking-[0.25em] text-zinc-500 mb-6">
+                            Ecosistema
+                        </h4>
+                        <ul className="space-y-3">
+                            {ecosystem.map((item) => (
+                                <li key={item.label}>
+                                    <a
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-sm text-zinc-400 hover:text-white transition-colors duration-300 relative group inline-block"
+                                    >
+                                        {item.label}
+                                        <span className="absolute -bottom-0.5 left-0 w-0 h-[1px] bg-accent transition-all duration-300 group-hover:w-full" />
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
                     {/* Contact Column */}
-                    <div className="footer-col md:col-span-4">
+                    <div className="footer-col md:col-span-3">
                         <h4 className="text-[11px] font-mono uppercase tracking-[0.25em] text-zinc-500 mb-6">
                             Contacto
                         </h4>
