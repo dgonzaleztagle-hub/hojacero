@@ -169,7 +169,15 @@ export default function RootLayout({
                   "sameAs": [
                     "https://www.instagram.com/hojacero.cl",
                     "https://www.linkedin.com/company/hojacero",
-                    "https://www.facebook.com/share/1TyKsQC3GJ/"
+                    "https://www.facebook.com/share/1TyKsQC3GJ/",
+                    "https://vuelve.vip",
+                    "https://pluscontable.cl",
+                    "https://apimiel.cl",
+                    "https://icebuin.cl",
+                    "https://reparpads.cl",
+                    "https://superpanel.lat",
+                    "https://acargoo.cl",
+                    "https://caprex.cl"
                   ]
                 },
                 {
