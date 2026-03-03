@@ -13,7 +13,8 @@ import {
     CheckCircle2, AlertTriangle, Info,
     Settings2, ShieldCheck, CreditCard,
     Server, GitBranch, Share2, ClipboardList,
-    Monitor, Smartphone, Brain, BarChart
+    Monitor, Smartphone, Brain, BarChart,
+    Menu, X, Award
 } from 'lucide-react';
 
 type WorkflowCategory = 'factory' | 'worker' | 'maintenance' | 'dna';
@@ -465,11 +466,41 @@ const WORKFLOW_DATABASE: WorkflowDetail[] = [
             'El iframe usa ?iframe=true para ocultar el sidebar de Vuelve+.',
             'No revelar al cliente final que el sistema es Vuelve+.'
         ]
+    },
+    // SEO PREMIUM ENGINE
+    {
+        id: 'seo-premium',
+        category: 'worker',
+        title: 'SEO Premium',
+        slash: '/seo-premium',
+        icon: Award,
+        strategy: 'Auditoría SEO/AEO/GEO de nivel enterprise con auto-fix y checklist.',
+        description: 'Motor de auditoría premium que ejecuta 42+ checks automáticos sobre cualquier sitio: meta tags, schemas JSON-LD (Organization, Person, WebSite, ProfessionalService, FAQ, BreadcrumbList, Article), performance (Core Web Vitals, AVIF/WebP, cache headers, lazy loading), accesibilidad (aria-labels, contraste, roles) y contenido E-E-A-T. Corrige automáticamente lo que puede (schemas faltantes, aria-labels, configuración de next.config) y genera un reporte detallado con checklist de pendientes manuales (backlinks, Google Business Profile, LinkedIn). Incluye validación externa vía PageSpeed Insights y Rich Results Test de Google. Es el servicio SEO que ninguna agencia chilena ofrece: no solo audita, arregla.',
+        impact: {
+            db: ['N/A'],
+            files: ['layout.tsx', 'next.config.ts', 'sitemap.ts', 'robots.txt'],
+            core: ['AEO/GEO Optimization', 'Schema Architecture', 'Performance Tuning', 'E-E-A-T Signals']
+        },
+        steps: [
+            'Fase 0: Reúne contexto del negocio (nombre, URL, rubro, redes, fundador).',
+            'Fase 1: Diagnóstico técnico — 42+ checks en meta tags, schemas, performance, accesibilidad y contenido.',
+            'Fase 2: Auto-fix — Inyecta schemas faltantes, aria-labels, cache headers, optimiza next.config.',
+            'Fase 3: Validación externa — PageSpeed Insights + Rich Results Test de Google.',
+            'Fase 4: Reporte final — seo_premium_report.md con scores, fixes aplicados y checklist de pendientes.',
+            'Fase 5: Commit & push de todos los cambios.'
+        ],
+        rules: [
+            'Target: SEO ≥ 95, Rendimiento ≥ 80, Accesibilidad ≥ 90.',
+            'Schemas con @id para referencias cruzadas (Organization ↔ Person ↔ WebSite).',
+            'Nunca hardcodear datos — siempre preguntar al usuario.',
+            'Rich Results Test debe pasar sin errores (warnings menores aceptables).'
+        ]
     }
 ];
 
 export default function AyudaPage() {
     const [selectedWorkflowId, setSelectedWorkflowId] = useState<string>(WORKFLOW_DATABASE[0].id);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     const currentWorkflow = useMemo(() =>
@@ -483,12 +514,57 @@ export default function AyudaPage() {
         )
         , [searchQuery]);
 
+    const handleSelectWorkflow = (id: string) => {
+        setSelectedWorkflowId(id);
+        setSidebarOpen(false);
+    };
+
     return (
         <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans border-t border-border/40">
+            {/* MOBILE HEADER */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                        <BookOpen size={14} />
+                    </div>
+                    <div>
+                        <h1 className="text-xs font-bold tracking-tight">Manual H0</h1>
+                        <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">v3.6</p>
+                    </div>
+                </div>
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    aria-label={sidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+                >
+                    {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+                </button>
+            </div>
+
+            {/* MOBILE OVERLAY */}
+            <AnimatePresence>
+                {sidebarOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* SIDEBAR: Navegación de Protocolos */}
-            <aside className="w-80 border-r border-border bg-muted/30 flex flex-col">
-                <div className="p-6 border-b border-border space-y-4">
-                    <div className="flex items-center gap-3">
+            <aside className={`
+                fixed lg:relative z-40 lg:z-auto
+                w-[280px] lg:w-80 h-full
+                border-r border-border bg-muted/30 flex flex-col
+                transform transition-transform duration-300 ease-in-out
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                pt-14 lg:pt-0
+            `}>
+                <div className="p-4 lg:p-6 border-b border-border space-y-4">
+                    <div className="hidden lg:flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                             <BookOpen size={18} />
                         </div>
@@ -510,7 +586,7 @@ export default function AyudaPage() {
                     </div>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto p-4 space-y-8 hide-scrollbar">
+                <nav className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-6 lg:space-y-8 hide-scrollbar">
                     {(['dna', 'factory', 'worker'] as WorkflowCategory[]).map(cat => {
                         const items = filteredWorkflows.filter(w => w.category === cat);
                         if (items.length === 0) return null;
@@ -525,7 +601,7 @@ export default function AyudaPage() {
                                     {items.map(w => (
                                         <button
                                             key={w.id}
-                                            onClick={() => setSelectedWorkflowId(w.id)}
+                                            onClick={() => handleSelectWorkflow(w.id)}
                                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all relative ${selectedWorkflowId === w.id
                                                 ? 'bg-primary/10 text-primary shadow-sm'
                                                 : 'hover:bg-muted text-muted-foreground hover:text-foreground'
@@ -552,8 +628,8 @@ export default function AyudaPage() {
             </aside>
 
             {/* MAIN: Documentación Detallada */}
-            <main className="flex-1 overflow-y-auto bg-background p-12 lg:p-20 relative">
-                <div className="max-w-3xl mx-auto space-y-16">
+            <main className="flex-1 overflow-y-auto bg-background p-4 pt-16 sm:p-8 sm:pt-16 lg:p-20 lg:pt-20 relative">
+                <div className="max-w-3xl mx-auto space-y-10 lg:space-y-16">
                     {/* Header */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-3">
@@ -564,7 +640,7 @@ export default function AyudaPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <h2 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">
+                            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">
                                 {currentWorkflow.title}
                             </h2>
                             <p className="text-sm font-mono text-muted-foreground uppercase tracking-widest">
@@ -600,7 +676,7 @@ export default function AyudaPage() {
                     </div>
 
                     {/* Contenido Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
                         {/* Pasos */}
                         <div className="space-y-6">
                             <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest">
