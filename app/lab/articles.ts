@@ -69,11 +69,19 @@ export const articles: Article[] = [
 
 <p>Esos 40 dólares fueron el precio de una lección: <strong>la IA no tiene contexto</strong>. Si no le das el contexto del entorno, va a probar soluciones infinitas y te va a cobrar por cada una.</p>
 
-<h2>Hoy: HojaCero</h2>
+<h2>Hoy, HojaCero es otra cosa</h2>
 
-<p>Ese viaje, desde la camioneta hasta la creación de software profesional, es lo que hoy es HojaCero. Construimos desde <a href="https://hojacero.cl/pricing" rel="dofollow">landing pages de $50.000</a> hasta aplicaciones complejas como <a href="https://acargoo.cl" rel="dofollow">Acargoo</a> (logística), <a href="https://vuelve.vip" rel="dofollow">Vuelve+</a> (fidelización) o <a href="https://icebuin.cl" rel="dofollow">IceBuin</a> (catálogos inteligentes).</p>
+<p>Cuando empecé, mi único superpoder era saber explicar lo que me dolía. Hoy ya no soy ese repartidor que le hablaba a una IA como si fuera un compañero de ruta. Hoy estudio todos los días, me mantengo al día con cada tecnología que sale, y no solo sé <em>usar</em> inteligencia artificial — entiendo lo que implica armar sistemas grandes, prolijos y que funcionen en producción real.</p>
 
-<p>No somos una agencia que vende humo. Somos una agencia que nació del barro, que sabe lo que es no tener presupuesto, y que por eso construye soluciones que funcionan desde el primer día. Si tú estás hoy donde yo empecé, la herramienta ya está ahí, esperándote.</p>
+<p>La diferencia entre el Daniel de la camioneta y el de hoy no es un título ni un curso. Son meses de pulirme a punta de errores, de construir cosas que se rompían a las 3 de la mañana y de aprender a arreglarlas antes de que el cliente se diera cuenta.</p>
+
+<p>Y eso se nota. <a href="https://acargoo.cl" rel="dofollow">Acargoo</a> no es "una landing bonita" — es literalmente un sistema de logística con cotización automática, panel de control para el dueño y seguimiento en tiempo real con vista de mapa para que el cliente sepa dónde va su pedido. Eso son palabras mayores. Y lo construimos en una fracción del tiempo y el costo que cobraría cualquier agencia tradicional.</p>
+
+<p>HojaCero nació de un piscinazo con fundamento. Hoy es el resultado de ese salto, pero con la experiencia técnica real para respaldarlo. Precios que desafían al mercado, tiempos de entrega que nadie iguala, y una calidad que habla por sí sola.</p>
+
+<p>Construimos desde <a href="https://hojacero.cl/pricing" rel="dofollow">landing pages de $50.000</a> hasta aplicaciones complejas como <a href="https://vuelve.vip" rel="dofollow">Vuelve+</a> (fidelización) o <a href="https://icebuin.cl" rel="dofollow">IceBuin</a> (catálogos inteligentes). Nuestra dispersión no es una debilidad — es el ángulo que nos hace únicos: entendemos desde el peluquero que necesita su primera página hasta la empresa que necesita un sistema de logística con mapas en tiempo real.</p>
+
+<p>Si estás buscando a alguien que entienda tu problema antes de escribir una sola línea de código, <a href="https://hojacero.cl/pricing" rel="dofollow">estamos acá</a>.</p>
         `,
     },
 
