@@ -486,7 +486,7 @@ export default function PricingPage() {
                         />
 
                         {/* Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                             {plans.map((plan, index) => (
                                 <MagneticCard key={plan.id}>
                                     <motion.div
@@ -515,48 +515,48 @@ export default function PricingPage() {
                                             </div>
                                         )}
 
-                                        <div className="p-8 lg:p-10">
+                                        <div className="p-6 lg:p-7 flex flex-col h-full">
                                             {/* Plan header */}
-                                            <div className="mb-8">
-                                                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                                                <p className="text-sm text-zinc-500">{plan.description}</p>
+                                            <div className="mb-6">
+                                                <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
+                                                <p className="text-xs text-zinc-500 leading-relaxed">{plan.description}</p>
                                             </div>
 
                                             {/* Price */}
-                                            <div className="mb-8">
+                                            <div className="mb-6">
                                                 {plan.yearlyPrice !== null ? (
-                                                    <div className="flex items-baseline gap-2">
-                                                        <span className="text-5xl lg:text-6xl font-display font-bold">
-                                                            $<AnimatedCounter to={plan.yearlyPrice} duration={1.5} />
+                                                    <div className="flex items-baseline gap-1">
+                                                        <span className="text-3xl lg:text-4xl font-display font-bold">
+                                                            ${plan.yearlyPrice.toLocaleString('es-CL')}
                                                         </span>
-                                                        <span className="text-zinc-500">CLP</span>
+                                                        <span className="text-zinc-500 text-sm">CLP</span>
                                                     </div>
                                                 ) : (
-                                                    <div className="text-5xl font-display font-light text-zinc-400">
+                                                    <div className="text-3xl lg:text-4xl font-display font-bold text-zinc-300">
                                                         Cotizar
                                                     </div>
                                                 )}
-                                                <p className="text-xs text-zinc-600 mt-2">Pago único</p>
+                                                <p className="text-[10px] text-zinc-600 mt-1 uppercase tracking-wider">Pago único</p>
                                                 {plan.id === 'express' && (
-                                                    <p className="text-xs text-cyan-400/80 mt-1">+ $25.000/mes mantención opcional</p>
+                                                    <p className="text-[10px] text-cyan-400/80 mt-1">+ $25.000/mes mantención opcional</p>
                                                 )}
                                             </div>
 
                                             {/* Features */}
-                                            <ul className="space-y-4 mb-10">
+                                            <ul className="space-y-3 mb-8 flex-grow">
                                                 {plan.features.map((feature, i) => (
                                                     <motion.li
                                                         key={i}
-                                                        className="flex items-center gap-3 text-sm"
+                                                        className="flex items-start gap-2.5 text-[13px]"
                                                         initial={{ opacity: 0, x: -10 }}
                                                         whileInView={{ opacity: 1, x: 0 }}
                                                         viewport={{ once: true }}
                                                         transition={{ delay: 0.1 * i }}
                                                     >
-                                                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/5 flex items-center justify-center">
-                                                            <span className="text-cyan-400 text-xs">✓</span>
+                                                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-white/5 flex items-center justify-center mt-0.5">
+                                                            <span className="text-cyan-400 text-[10px]">✓</span>
                                                         </span>
-                                                        <span className="text-zinc-400">{feature}</span>
+                                                        <span className="text-zinc-400 leading-tight">{feature}</span>
                                                     </motion.li>
                                                 ))}
                                             </ul>
