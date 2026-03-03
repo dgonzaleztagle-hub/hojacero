@@ -17,6 +17,7 @@ const navigation = [
     { label: 'Work', href: '/#portfolio' },
     { label: 'Vision', href: '/vision' },
     { label: 'Pricing', href: '/pricing' },
+    { label: 'Lab', href: '/lab' },
     { label: 'Contact', href: '/contact' },
 ];
 
