@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   experimental: {
-    optimizePackageImports: ['framer-motion', 'gsap', 'three'],
+    optimizePackageImports: ['framer-motion'],
   },
   async headers() {
     return [

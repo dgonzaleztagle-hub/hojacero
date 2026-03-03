@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import gsap from 'gsap';
 
 // ============================================================================
 // HERO (V5 FINAL) - "THE PERFECT MERGE"
@@ -22,15 +23,12 @@ export default function Hero() {
     const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
-        // Lazy load GSAP para no bloquear el bundle inicial
-        import('gsap').then(({ default: gsap }) => {
-            const tl = gsap.timeline({ defaults: { ease: 'power4.out', duration: 1.5 } });
+        const tl = gsap.timeline({ defaults: { ease: 'power4.out', duration: 1.5 } });
 
-            if (subtitleRef.current && ctaRef.current) {
-                tl.fromTo(subtitleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, delay: 0.2 })
-                    .fromTo(ctaRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1 }, '-=0.6');
-            }
-        });
+        if (subtitleRef.current && ctaRef.current) {
+            tl.fromTo(subtitleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1, delay: 0.2 })
+                .fromTo(ctaRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 1 }, '-=0.6');
+        }
     }, []);
 
     return (
