@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { articles } from './lab/articles'
+import { allArticles as articles } from './lab/articles'
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://hojacero.cl'

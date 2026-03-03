@@ -3,6 +3,9 @@
 // Fuente: Libro "IA sin Humo" de Daniel González + artículos estratégicos
 // ============================================================================
 
+import { bookArticles } from './articles-book';
+import { bookArticlesFinal } from './articles-final';
+
 export interface Article {
     slug: string;
     title: string;
@@ -15,7 +18,7 @@ export interface Article {
     content: string; // HTML content
 }
 
-export const articles: Article[] = [
+const coreArticles: Article[] = [
     // ========================================================================
     // ARTÍCULO 1: Origin Story — Ataca "desarrollo web Chile", "IA sin programar"
     // ========================================================================
@@ -310,3 +313,10 @@ export const articles: Article[] = [
         `,
     },
 ];
+
+// Merge all articles — originals + book chapters
+export const allArticles: Article[] = [
+    ...coreArticles,
+    ...bookArticles,
+    ...bookArticlesFinal,
+].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

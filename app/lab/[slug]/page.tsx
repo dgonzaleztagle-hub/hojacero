@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { articles } from '../articles';
+import { allArticles as articles } from '../articles';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
