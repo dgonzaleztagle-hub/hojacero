@@ -18,6 +18,7 @@ const navigation = [
     { label: 'Vision', href: '/vision' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Lab', href: '/lab' },
+    { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
 ];
 
