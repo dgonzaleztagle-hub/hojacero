@@ -167,6 +167,23 @@ interface Plan {
 
 const plans: Plan[] = [
     {
+        id: 'starter',
+        name: 'Starter',
+        description: 'Landing de conversión directa',
+        monthlyPrice: null,
+        yearlyPrice: 50000,
+        highlight: false,
+        features: [
+            'Diseño one-page responsive',
+            'Formulario de contacto',
+            'Botón WhatsApp directo',
+            'SSL incluido',
+            'Entrega en 24-48 hrs',
+        ],
+        cta: 'Empezar',
+        gradient: 'from-emerald-500/10 to-green-500/5',
+    },
+    {
         id: 'express',
         name: 'Express',
         description: 'Landing page premium en 48 hrs',
@@ -421,8 +438,55 @@ export default function PricingPage() {
                             </p>
                         </motion.div>
 
+                        {/* JSON-LD Pricing Offers para Google Rich Results */}
+                        <script
+                            type="application/ld+json"
+                            dangerouslySetInnerHTML={{
+                                __html: JSON.stringify({
+                                    "@context": "https://schema.org",
+                                    "@type": "Service",
+                                    "name": "HojaCero — Desarrollo Web Profesional",
+                                    "provider": { "@id": "https://hojacero.cl/#organization" },
+                                    "areaServed": { "@type": "Country", "name": "Chile" },
+                                    "hasOfferCatalog": {
+                                        "@type": "OfferCatalog",
+                                        "name": "Planes de Desarrollo Web",
+                                        "itemListElement": [
+                                            {
+                                                "@type": "Offer",
+                                                "name": "Plan Starter — Landing de Conversión",
+                                                "description": "Landing page de conversión directa con diseño responsive, formulario y WhatsApp. Entrega en 24-48 hrs.",
+                                                "price": "50000",
+                                                "priceCurrency": "CLP",
+                                                "priceValidUntil": "2026-12-31",
+                                                "url": "https://hojacero.cl/pricing"
+                                            },
+                                            {
+                                                "@type": "Offer",
+                                                "name": "Plan Express — Landing Premium",
+                                                "description": "Landing page premium con animaciones fluidas, SEO optimizado y diseño responsive. Entrega en 48-72 hrs.",
+                                                "price": "150000",
+                                                "priceCurrency": "CLP",
+                                                "priceValidUntil": "2026-12-31",
+                                                "url": "https://hojacero.cl/pricing"
+                                            },
+                                            {
+                                                "@type": "Offer",
+                                                "name": "Auditoría Web Completa",
+                                                "description": "Diagnóstico técnico profundo: velocidad, seguridad, competencia y reunión de 30 minutos.",
+                                                "price": "100000",
+                                                "priceCurrency": "CLP",
+                                                "priceValidUntil": "2026-12-31",
+                                                "url": "https://hojacero.cl/pricing"
+                                            }
+                                        ]
+                                    }
+                                })
+                            }}
+                        />
+
                         {/* Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
                             {plans.map((plan, index) => (
                                 <MagneticCard key={plan.id}>
                                     <motion.div
