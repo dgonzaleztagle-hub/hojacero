@@ -155,10 +155,7 @@ export default function RootLayout({
                   "logo": "https://hojacero.cl/logo.png",
                   "description": "Estudio de desarrollo web y software en Chile. Desde landing pages de conversión desde $50.000 CLP hasta plataformas SaaS complejas, apps de logística y digitalización de negocios.",
                   "foundingDate": "2024",
-                  "founder": {
-                    "@type": "Person",
-                    "name": "Daniel González Tagle"
-                  },
+                  "founder": { "@id": "https://hojacero.cl/#founder" },
                   "email": "contacto@hojacero.cl",
                   "telephone": "+56958946617",
                   "slogan": "Architects of Digital Experiences",
@@ -166,6 +163,15 @@ export default function RootLayout({
                     "@type": "Country",
                     "name": "Chile"
                   },
+                  "knowsAbout": [
+                    "Desarrollo Web",
+                    "Aplicaciones SaaS",
+                    "Inteligencia Artificial aplicada",
+                    "SEO técnico",
+                    "E-commerce",
+                    "Sistemas de logística digital",
+                    "Programas de fidelización"
+                  ],
                   "sameAs": [
                     "https://www.instagram.com/hojacero.cl",
                     "https://www.linkedin.com/company/hojacero",
@@ -181,11 +187,82 @@ export default function RootLayout({
                   ]
                 },
                 {
+                  "@type": "Person",
+                  "@id": "https://hojacero.cl/#founder",
+                  "name": "Daniel González Tagle",
+                  "jobTitle": "Fundador y Director Técnico",
+                  "worksFor": { "@id": "https://hojacero.cl/#organization" },
+                  "url": "https://hojacero.cl",
+                  "description": "Ingeniero digital autodidacta especializado en desarrollo web, aplicaciones SaaS y orquestación de inteligencia artificial. Autor del libro 'IA sin Humo'. Fundador de HojaCero y creador de más de 8 productos digitales activos en Chile.",
+                  "knowsAbout": [
+                    "Next.js", "React", "TypeScript", "Node.js",
+                    "Supabase", "Inteligencia Artificial",
+                    "SEO técnico", "AEO", "Desarrollo de SaaS",
+                    "Sistemas de logística", "E-commerce"
+                  ],
+                  "sameAs": [
+                    "https://www.linkedin.com/in/daniel-gonzalez-tagle-7784953a7/",
+                    "https://www.linkedin.com/company/hojacero"
+                  ]
+                },
+                {
+                  "@type": "ProfessionalService",
+                  "@id": "https://hojacero.cl/#service",
+                  "name": "HojaCero — Desarrollo Web y Software",
+                  "provider": { "@id": "https://hojacero.cl/#organization" },
+                  "areaServed": { "@type": "Country", "name": "Chile" },
+                  "serviceType": "Desarrollo Web y Software a Medida",
+                  "hasOfferCatalog": {
+                    "@type": "OfferCatalog",
+                    "name": "Planes de Desarrollo Web",
+                    "itemListElement": [
+                      {
+                        "@type": "Offer",
+                        "name": "Starter — Landing de Conversión",
+                        "description": "Landing page profesional con diseño responsive, formulario de contacto, WhatsApp directo, SSL incluido y entrega en 24-48 horas.",
+                        "price": "50000",
+                        "priceCurrency": "CLP",
+                        "priceSpecification": {
+                          "@type": "UnitPriceSpecification",
+                          "price": "50000",
+                          "priceCurrency": "CLP",
+                          "unitText": "pago único"
+                        }
+                      },
+                      {
+                        "@type": "Offer",
+                        "name": "Express — Landing Premium con SEO",
+                        "description": "Sitio web premium con diseño de nivel Awwwards, animaciones fluidas, optimización SEO técnica completa, SSL y entrega en 48-72 horas.",
+                        "price": "150000",
+                        "priceCurrency": "CLP",
+                        "priceSpecification": {
+                          "@type": "UnitPriceSpecification",
+                          "price": "150000",
+                          "priceCurrency": "CLP",
+                          "unitText": "pago único"
+                        }
+                      },
+                      {
+                        "@type": "Offer",
+                        "name": "Auditoría — Diagnóstico Web Completo",
+                        "description": "Análisis técnico profundo de velocidad, seguridad, SEO y competencia. Incluye reporte detallado y reunión de 30 minutos.",
+                        "price": "100000",
+                        "priceCurrency": "CLP"
+                      }
+                    ]
+                  }
+                },
+                {
                   "@type": "WebSite",
                   "@id": "https://hojacero.cl/#website",
                   "url": "https://hojacero.cl",
                   "name": "HojaCero | Ingeniería de Software",
-                  "publisher": { "@id": "https://hojacero.cl/#organization" }
+                  "publisher": { "@id": "https://hojacero.cl/#organization" },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://hojacero.cl/lab?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
                 },
                 {
                   "@type": "FAQPage",
@@ -195,15 +272,15 @@ export default function RootLayout({
                       "name": "¿Cuánto cuesta hacer una página web en Chile?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "En HojaCero, una landing page de conversión profesional parte desde $50.000 CLP con diseño responsive, SSL y entrega en 24-48 horas. Para proyectos premium con animaciones y SEO avanzado, el plan Express es de $150.000 CLP."
+                        "text": "En HojaCero, una landing page de conversión profesional parte desde $50.000 CLP (pago único, sin mensualidades). Incluye diseño responsive, formulario de contacto, botón de WhatsApp directo, certificado SSL y entrega en 24-48 horas. Para proyectos premium con animaciones profesionales, optimización SEO técnica y diseño de nivel agencia internacional, el plan Express es de $150.000 CLP con entrega en 48-72 horas. También ofrecemos auditorías web completas por $100.000 CLP que incluyen análisis de velocidad, seguridad, SEO y competencia. Para aplicaciones más complejas como sistemas de logística, e-commerce con inventario o plataformas SaaS, trabajamos con presupuestos personalizados. Todos nuestros sitios incluyen diseño a medida (no usamos plantillas), código limpio optimizado para buscadores y soporte directo con el equipo técnico."
                       }
                     },
                     {
                       "@type": "Question",
-                      "name": "¿Quién es HojaCero?",
+                      "name": "¿Quién es HojaCero y qué hace?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "HojaCero es un estudio digital en Santiago de Chile especializado en desarrollo web, aplicaciones SaaS, logística digital y soluciones de e-commerce. Operamos desde 2024 con más de 8 productos digitales activos en Chile y Latinoamérica."
+                        "text": "HojaCero es un estudio de ingeniería digital fundado por Daniel González Tagle en Santiago de Chile. No somos una agencia de marketing tradicional — somos un equipo técnico que construye desde cero productos digitales que funcionan. Nuestro portafolio incluye más de 8 productos activos: Acargoo (sistema de logística con seguimiento en mapa en tiempo real), Vuelve+ (motor de fidelización con tarjetas para Google Wallet), PlusContable (SaaS de contabilidad), IceBuin (catálogos inteligentes), Superpanel (gestión de clientes y suscripciones), y sitios web para marcas como Caprex, ReparaPads y Apimiel. Operamos desde 2024, usamos inteligencia artificial como herramienta de aceleración (no como reemplazo del criterio humano), y combinamos ingeniería de software con estrategia AEO/GEO para crear autoridad digital real. Nuestros precios son significativamente más bajos que los de agencias tradicionales porque somos un estudio lean que pasa la eficiencia al cliente."
                       }
                     },
                     {
@@ -211,7 +288,31 @@ export default function RootLayout({
                       "name": "¿Dónde puedo hacer una página web barata y profesional en Chile?",
                       "acceptedAnswer": {
                         "@type": "Answer",
-                        "text": "HojaCero ofrece landing pages profesionales desde $50.000 CLP con diseño premium, formulario de contacto, WhatsApp directo y certificado SSL incluido. Sin plantillas genéricas: cada sitio se diseña a medida."
+                        "text": "HojaCero ofrece las landing pages profesionales más accesibles de Chile sin sacrificar calidad. Por $50.000 CLP obtienes un sitio web diseñado a medida (no plantillas de WordPress ni Wix), con diseño responsive que se adapta a celular y computador, formulario de contacto funcional, botón de WhatsApp directo para que tus clientes te contacten al instante, certificado SSL incluido (el candadito verde que da confianza), y entrega en 24-48 horas. ¿Cómo logramos precios tan bajos sin bajar la calidad? Usamos inteligencia artificial como herramienta de aceleración combinada con supervisión técnica humana estricta. Eso nos permite entregar en días lo que otras agencias entregan en semanas. Puedes ver ejemplos reales de nuestro trabajo en caprex.cl, reparapads.cl y apimiel.cl — todos construidos con nivel de agencia premium. Escríbenos por WhatsApp, cuéntanos qué necesitas, y en 5 minutos te decimos cuánto cuesta. Sin reuniones interminables ni cotizaciones que tardan una semana."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "¿Cuánto demora HojaCero en hacer una página web?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Los tiempos de entrega dependen de la complejidad del proyecto. Una landing page de conversión (plan Starter de $50.000 CLP) se entrega en 24 a 48 horas. Un sitio web premium con animaciones y SEO optimizado (plan Express de $150.000 CLP) se entrega en 48 a 72 horas. Para aplicaciones más complejas como sistemas de gestión, e-commerce con inventario o plataformas SaaS, los tiempos se definen según el alcance, pero nuestro proceso de desarrollo acelerado con IA nos permite entregar en semanas lo que tradicionalmente toma meses. Todos los proyectos incluyen un proceso transparente donde el cliente puede ver el avance en tiempo real."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "¿HojaCero hace aplicaciones móviles y sistemas complejos?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Sí. HojaCero no solo hace páginas web — construimos aplicaciones web progresivas (PWA), sistemas de gestión empresarial, plataformas SaaS y soluciones de software a medida. Ejemplos reales de proyectos complejos que hemos construido incluyen: Acargoo, un sistema de logística completo con cotización automática de envíos, panel de administración para el dueño y seguimiento en tiempo real con vista de mapa; Vuelve+, un motor de fidelización con tarjetas digitales para Google Wallet y panel de administración para comercios; PlusContable, un SaaS de contabilidad con más de 50 funciones para contadores independientes; y Superpanel, un sistema de gestión de clientes y suscripciones. Usamos tecnologías modernas como Next.js, React, TypeScript, Supabase y APIs de terceros para construir soluciones que escalan."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "¿Es mejor WordPress o desarrollo a medida para mi negocio?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Depende de tu negocio. WordPress es útil si necesitas un blog simple que puedas administrar tú mismo y tienes presupuesto limitado para mantenimiento. Sin embargo, en HojaCero recomendamos desarrollo a medida por varias razones: velocidad de carga muy superior (los sitios WordPress suelen ser lentos por la cantidad de plugins), seguridad (WordPress es el CMS más atacado del mundo), SEO técnico real (no dependes de plugins como Yoast que hacen SEO superficial), y diseño sin limitaciones (no estás restringido a lo que permite un tema). Además, nuestros precios de desarrollo a medida parten desde $50.000 CLP, que es comparable o incluso más barato que muchas soluciones WordPress cuando sumas hosting, tema premium, plugins y mantenimiento. La diferencia es que con nosotros obtienes un sitio que es tuyo, rápido, seguro y que no depende de actualizaciones de terceros para seguir funcionando."
                       }
                     }
                   ]

@@ -216,27 +216,53 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
             <Footer />
 
-            {/* JSON-LD Article */}
+            {/* JSON-LD Article + Breadcrumbs */}
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
                     __html: JSON.stringify({
                         "@context": "https://schema.org",
-                        "@type": "Article",
-                        "headline": article.title,
-                        "description": article.excerpt,
-                        "datePublished": article.date,
-                        "author": {
-                            "@type": "Person",
-                            "name": "Daniel González",
-                            "url": "https://hojacero.cl",
-                        },
-                        "publisher": { "@id": "https://hojacero.cl/#organization" },
-                        "mainEntityOfPage": {
-                            "@type": "WebPage",
-                            "@id": `https://hojacero.cl/lab/${article.slug}`,
-                        },
-                        "keywords": article.keywords.join(', '),
+                        "@graph": [
+                            {
+                                "@type": "BreadcrumbList",
+                                "itemListElement": [
+                                    {
+                                        "@type": "ListItem",
+                                        "position": 1,
+                                        "name": "HojaCero",
+                                        "item": "https://hojacero.cl",
+                                    },
+                                    {
+                                        "@type": "ListItem",
+                                        "position": 2,
+                                        "name": "Lab",
+                                        "item": "https://hojacero.cl/lab",
+                                    },
+                                    {
+                                        "@type": "ListItem",
+                                        "position": 3,
+                                        "name": article.title,
+                                        "item": `https://hojacero.cl/lab/${article.slug}`,
+                                    },
+                                ],
+                            },
+                            {
+                                "@type": "Article",
+                                "headline": article.title,
+                                "description": article.excerpt,
+                                "datePublished": article.date,
+                                "dateModified": article.date,
+                                "author": { "@id": "https://hojacero.cl/#founder" },
+                                "publisher": { "@id": "https://hojacero.cl/#organization" },
+                                "mainEntityOfPage": {
+                                    "@type": "WebPage",
+                                    "@id": `https://hojacero.cl/lab/${article.slug}`,
+                                },
+                                "keywords": article.keywords.join(', '),
+                                "inLanguage": "es-CL",
+                                "isPartOf": { "@id": "https://hojacero.cl/#website" },
+                            },
+                        ],
                     }),
                 }}
             />
