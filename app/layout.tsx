@@ -154,12 +154,19 @@ export default function RootLayout({
                   "name": "HojaCero",
                   "url": "https://hojacero.cl",
                   "logo": "https://hojacero.cl/logo.png",
+                  "image": "https://hojacero.cl/logo.png",
                   "description": "Estudio de desarrollo web y software en Chile. Desde landing pages de conversión desde $50.000 CLP hasta plataformas SaaS complejas, apps de logística y digitalización de negocios.",
                   "foundingDate": "2024",
                   "founder": { "@id": "https://hojacero.cl/#founder" },
                   "email": "contacto@hojacero.cl",
                   "telephone": "+56958946617",
                   "slogan": "Architects of Digital Experiences",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Santiago",
+                    "addressRegion": "Región Metropolitana",
+                    "addressCountry": "CL"
+                  },
                   "areaServed": {
                     "@type": "Country",
                     "name": "Chile"
@@ -210,6 +217,15 @@ export default function RootLayout({
                   "@type": "ProfessionalService",
                   "@id": "https://hojacero.cl/#service",
                   "name": "HojaCero — Desarrollo Web y Software",
+                  "image": "https://hojacero.cl/logo.png",
+                  "telephone": "+56958946617",
+                  "priceRange": "$50.000 - $500.000 CLP",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Santiago",
+                    "addressRegion": "Región Metropolitana",
+                    "addressCountry": "CL"
+                  },
                   "provider": { "@id": "https://hojacero.cl/#organization" },
                   "areaServed": { "@type": "Country", "name": "Chile" },
                   "serviceType": "Desarrollo Web y Software a Medida",
