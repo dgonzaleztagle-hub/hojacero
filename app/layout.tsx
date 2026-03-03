@@ -40,7 +40,9 @@ export const metadata: Metadata = {
   publisher: "HojaCero",
   other: {
     "designer": "HojaCero.cl",
-    "author": "HojaCero.cl"
+    "author": "HojaCero.cl",
+    "theme-color": "#000000",
+    "msapplication-TileColor": "#000000",
   },
   openGraph: {
     type: "website",
@@ -82,6 +84,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://hojacero.cl',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/site.webmanifest',
 };
 
 import Script from "next/script";
