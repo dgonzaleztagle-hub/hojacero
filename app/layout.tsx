@@ -153,7 +153,7 @@ export default function RootLayout({
                   "name": "HojaCero",
                   "url": "https://hojacero.cl",
                   "logo": "https://hojacero.cl/logo.png",
-                  "description": "Ingeniería de Software y Artesanía Digital en Chile. Expertos en SaaS, Logística y Digitalización Premium.",
+                  "description": "Estudio de desarrollo web y software en Chile. Desde landing pages de conversión desde $50.000 CLP hasta plataformas SaaS complejas, apps de logística y digitalización de negocios.",
                   "foundingDate": "2024",
                   "founder": {
                     "@type": "Person",
@@ -186,6 +186,35 @@ export default function RootLayout({
                   "url": "https://hojacero.cl",
                   "name": "HojaCero | Ingeniería de Software",
                   "publisher": { "@id": "https://hojacero.cl/#organization" }
+                },
+                {
+                  "@type": "FAQPage",
+                  "mainEntity": [
+                    {
+                      "@type": "Question",
+                      "name": "¿Cuánto cuesta hacer una página web en Chile?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "En HojaCero, una landing page de conversión profesional parte desde $50.000 CLP con diseño responsive, SSL y entrega en 24-48 horas. Para proyectos premium con animaciones y SEO avanzado, el plan Express es de $150.000 CLP."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "¿Quién es HojaCero?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "HojaCero es un estudio digital en Santiago de Chile especializado en desarrollo web, aplicaciones SaaS, logística digital y soluciones de e-commerce. Operamos desde 2024 con más de 8 productos digitales activos en Chile y Latinoamérica."
+                      }
+                    },
+                    {
+                      "@type": "Question",
+                      "name": "¿Dónde puedo hacer una página web barata y profesional en Chile?",
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "HojaCero ofrece landing pages profesionales desde $50.000 CLP con diseño premium, formulario de contacto, WhatsApp directo y certificado SSL incluido. Sin plantillas genéricas: cada sitio se diseña a medida."
+                      }
+                    }
+                  ]
                 }
               ]
             })
