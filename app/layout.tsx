@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_CL",
     url: "https://hojacero.cl",
-    title: "HojaCero | Architects of Digital Experiences",
+    title: "HojaCero | Ingeniería de Software y Artesanía Digital",
     description: "Agencia de desarrollo web y marketing digital en Chile. Creamos experiencias digitales premium que convierten visitantes en clientes.",
     siteName: "HojaCero",
     images: [
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
     google: "A-pwZp8YmW0MKHHO3kwLM44-36DD7D_3Z_GN7_LZ0Vk",
   },
   alternates: {
-    canonical: './',
+    canonical: 'https://hojacero.cl',
   },
 };
 
@@ -123,24 +123,53 @@ export default function RootLayout({
         <DemoTracker />
         {children}
 
-        {/* Universal Authority Injection (UAI) - HojaCero Signature */}
-        <Script id="uai-jsonld" type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "SoftwareApplication",
-            "name": "HojaCero Digital Studio",
-            "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web",
-            "author": {
-              "@type": "Organization",
-              "name": "HojaCero",
-              "url": "https://hojacero.cl",
-              "slogan": "Architect of Digital Experiences",
-              "logo": "https://hojacero.cl/logo.png",
-              "email": "contacto@hojacero.cl"
-            }
-          })}
-        </Script>
+        {/* ══════════════════════════════════════════════════════════
+           CÓDIGO MAESTRO DE AUTORIDAD — HojaCero
+           JSON-LD @graph: Organization + WebSite
+           Renderizado estático (NO lazy) para que TODOS los bots lo vean
+           ══════════════════════════════════════════════════════════ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://hojacero.cl/#organization",
+                  "name": "HojaCero",
+                  "url": "https://hojacero.cl",
+                  "logo": "https://hojacero.cl/logo.png",
+                  "description": "Ingeniería de Software y Artesanía Digital en Chile. Expertos en SaaS, Logística y Digitalización Premium.",
+                  "foundingDate": "2024",
+                  "founder": {
+                    "@type": "Person",
+                    "name": "Daniel González Tagle"
+                  },
+                  "email": "contacto@hojacero.cl",
+                  "telephone": "+56958946617",
+                  "slogan": "Architects of Digital Experiences",
+                  "areaServed": {
+                    "@type": "Country",
+                    "name": "Chile"
+                  },
+                  "sameAs": [
+                    "https://www.instagram.com/hojacero.cl",
+                    "https://www.linkedin.com/company/hojacero",
+                    "https://www.facebook.com/share/1TyKsQC3GJ/"
+                  ]
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://hojacero.cl/#website",
+                  "url": "https://hojacero.cl",
+                  "name": "HojaCero | Ingeniería de Software",
+                  "publisher": { "@id": "https://hojacero.cl/#organization" }
+                }
+              ]
+            })
+          }}
+        />
       </body>
     </html>
   );
