@@ -55,6 +55,9 @@ Escanea el `layout.tsx` o `<head>` buscando:
 - [ ] `<title>` → ¿Es descriptivo y único por página?
 - [ ] `<meta name="description">` → ¿Tiene 150-160 chars?
 - [ ] `<link rel="canonical">` → ¿Apunta a la URL correcta?
+- [ ] **CRÍTICO: Canonicals por página** → Escanea TODOS los `page.tsx` públicos
+      con `find_by_name` + `grep_search "canonical"`. Cada página pública necesita
+      su propio `alternates: { canonical: 'https://dominio/ruta' }` en su metadata.
 - [ ] Open Graph tags (`og:title`, `og:description`, `og:image`)
 - [ ] Twitter Card tags
 - [ ] Google Search Console verification
@@ -81,7 +84,11 @@ Busca en el `@graph` o scripts `application/ld+json`:
 ### 1.4 Sitemap & Indexación
 - [ ] `sitemap.ts` o `sitemap.xml` → ¿Existe? ¿Incluye todas las rutas?
 - [ ] `robots.txt` → ¿Permite crawling? ¿Referencia el sitemap?
-- [ ] Canonical URLs → ¿Cada página tiene su canonical correcto?
+- [ ] Canonical URLs → Ejecutar `grep_search "canonical"` en TODOS los archivos
+      `page.tsx` públicos. **No basta con que el layout tenga canonical**;
+      cada subpágina (/lab, /about, /vision, /lab/[slug], etc.) debe tener
+      `alternates: { canonical }` en su propio export de metadata.
+      Si una página es `'use client'`, crear un `layout.tsx` en su carpeta.
 
 ### 1.5 Performance (Core Web Vitals)
 - [ ] `next/image` → ¿Se usa en vez de `<img>` crudo?
@@ -123,7 +130,12 @@ Si los schemas existen pero les faltan campos (address, image, telephone, priceR
 ### 2.3 Meta Tags
 - Genera `<title>` y `<meta description>` optimizados para CTR
 - Agrega Open Graph si falta
-- Agrega canonical si falta
+- Agrega canonical en layout.tsx principal (`alternates: { canonical }`)
+- **CRÍTICO:** Recorre CADA `page.tsx` público y agrega `alternates: { canonical }`
+  en su metadata export. Si la página es `'use client'`, crear un `layout.tsx`
+  en su carpeta con la metadata estática.
+- Para páginas dinámicas (`[slug]`), usar template literal:
+  `canonical: \`https://dominio/ruta/${slug}\``
 
 ### 2.4 Performance Config
 - Agrega `formats: ['image/avif', 'image/webp']` a next.config
