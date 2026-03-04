@@ -4,6 +4,9 @@ import { SalesAgentView } from '@/components/sales-agent/SalesAgentView';
 export const metadata: Metadata = {
     title: 'Diagnóstico Táctico | HojaCero',
     description: 'Auditoría avanzada de infraestructura digital para negocios de alto impacto.',
+    alternates: {
+        canonical: 'https://hojacero.cl/diagnostico',
+    },
 };
 
 export default function DiagnosticoPage() {

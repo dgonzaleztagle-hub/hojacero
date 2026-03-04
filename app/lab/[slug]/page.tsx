@@ -22,6 +22,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: `${article.title} | HojaCero Lab`,
         description: article.excerpt,
         keywords: article.keywords,
+        alternates: {
+            canonical: `https://hojacero.cl/lab/${article.slug}`,
+        },
         openGraph: {
             title: article.title,
             description: article.excerpt,

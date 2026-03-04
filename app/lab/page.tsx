@@ -7,6 +7,9 @@ import Footer from '@/components/layout/Footer';
 export const metadata: Metadata = {
     title: 'Lab | HojaCero — Historias Reales de Desarrollo en Chile',
     description: 'Casos de estudio, lecciones técnicas y artículos sobre desarrollo web, inteligencia artificial y emprendimiento tecnológico en Chile. Sin humo, solo resultados.',
+    alternates: {
+        canonical: 'https://hojacero.cl/lab',
+    },
     openGraph: {
         title: 'Lab | HojaCero',
         description: 'Historias reales de desarrollo web y software en Chile.',
