@@ -344,10 +344,11 @@ export default function RootLayout({
                 },
                 {
                   "@type": "Review",
-                  "author": { "@type": "Person", "name": "Cliente Acargoo" },
-                  "reviewBody": "Pasamos de un proceso 100% manual a un sistema digital completo en 3 semanas. Cotizaciones automáticas, tracking en mapa, panel de administración. Exactamente lo que necesitábamos.",
+                  "author": { "@type": "Person", "name": "Gabriel Vergara" },
+                  "reviewBody": "Estuve meses buscando desarrollar mi página web sin encontrar lo que quería. Cuando conocí a HojaCero, todo fue distinto: respondieron de inmediato y en solo 30 minutos ya tenía un prototipo que reflejaba exactamente la idea de mi proyecto. Hoy tengo mi web funcionando, con panel de administrador, app instalable y servicios integrados que funcionan como quiero.",
                   "reviewRating": { "@type": "Rating", "ratingValue": 5, "bestRating": 5 },
-                  "itemReviewed": { "@id": "https://hojacero.cl/#service" }
+                  "itemReviewed": { "@id": "https://hojacero.cl/#service" },
+                  "publisher": { "@type": "Organization", "name": "Google" }
                 },
                 {
                   "@type": "LocalBusiness",
