@@ -381,6 +381,76 @@ git push origin main
 
 ---
 
+## MÓDULO 8 — INDEXACIÓN POST-DEPLOY 🔎
+
+Una vez que el deploy está live, el dueño/marketing debe:
+
+### 8.1 Google Search Console
+1. Ir a [search.google.com/search-console](https://search.google.com/search-console)
+2. Agregar propiedad del dominio si no existe
+3. Ir a "Sitemaps" → Enviar: `https://[dominio]/sitemap.xml`
+4. Ir a "Inspección de URLs" → Pedir indexación de las 3-5 páginas más importantes
+
+### 8.2 Bing Webmaster Tools
+1. Ir a [bing.com/webmasters](https://www.bing.com/webmasters)
+2. Importar desde Google Search Console (1 click) O agregar sitio manualmente
+3. Enviar sitemap: `https://[dominio]/sitemap.xml`
+
+> **¿Por qué Bing?** Bing alimenta a Copilot (Microsoft) y ChatGPT.
+> Con 5 minutos extra se cubren DOS motores + DOS IAs.
+
+### 8.3 Verificación de indexación (2-4 semanas después)
+Buscar en Google: `site:[dominio]` → debe mostrar todas las páginas nuevas.
+Si alguna no aparece, pedir indexación manual en Search Console.
+
+---
+
+## MÓDULO 9 — BACKLINKS & DIRECTORIOS 🔗
+
+### 9.1 Backlinks desde sitios propios/clientes
+Verifica que TODOS los sitios construidos tengan en el footer:
+```
+Desarrollado por [Nombre del Negocio] → link a [dominio]
+```
+Esto genera backlinks reales desde dominios verificables.
+Si faltan, agregarlos como parte del fix.
+
+### 9.2 Lista de directorios para registrarse
+Incluir en el reporte del dueño/marketing:
+
+**Alta prioridad (backlinks de calidad):**
+- [Clutch.co](https://clutch.co) → Perfil de agencia + reviews
+- [GoodFirms.co](https://goodfirms.co) → Perfil + portafolio
+- [DesignRush.com](https://designrush.com) → Directorio agencias
+- [TheManifest.com](https://themanifest.com) → Listados por rubro
+
+**Media prioridad (visibilidad + portfolio):**
+- [Behance.net](https://behance.net) → Portfolio visual de proyectos
+- [Dribbble.com](https://dribbble.com) → Shots de UI/UX
+- [LinkedIn](https://linkedin.com) → Company page + posts semanales
+- GitHub → Bio con link al sitio
+
+**Baja prioridad (volumen de menciones):**
+- [Crunchbase.com](https://crunchbase.com) → Perfil startup
+- [Medium.com](https://medium.com) → Republicar artículos del blog
+- [Dev.to](https://dev.to) → Artículos técnicos
+- [ProductHunt.com](https://producthunt.com) → Para lanzar productos propios
+
+**Directorios locales Chile:**
+- Google Business Profile (verificado)
+- Páginas Amarillas Chile
+- Directorios gremiales del rubro
+
+### 9.3 Google Business Profile
+Si no existe, el dueño debe:
+1. Crear perfil en [business.google.com](https://business.google.com)
+2. Configurar como "Negocio que atiende en ubicación del cliente" (sin mostrar dirección)
+3. Área de servicio: ciudad/región donde opera
+4. Subir logo, fotos, horario, servicios
+5. Pedir reviews a clientes desde la plataforma
+
+---
+
 ## Flujo Resumido
 
 ```
@@ -392,7 +462,9 @@ MÓDULO 3 → Auto-Fix + Auto-Growth + Auto-Content (arreglar + crear)
 MÓDULO 4 → Double Check (build + schemas + PageSpeed)
 MÓDULO 5 → Cuestionario al dueño (info que solo el humano tiene)
 MÓDULO 6 → Reporte final (técnico + ejecutivo para el dueño)
-MÓDULO 7 → Deploy
+MÓDULO 7 → Deploy (commit + push)
+MÓDULO 8 → Indexación (Search Console + Bing Webmaster)
+MÓDULO 9 → Backlinks & Directorios (links + registros externos)
 ```
 
 ---
