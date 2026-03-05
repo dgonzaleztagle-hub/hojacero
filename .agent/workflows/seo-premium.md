@@ -2,27 +2,26 @@
 description: Motor SEO/AEO/GEO Premium — Auditoría completa, auto-fix y checklist para cualquier sitio
 ---
 
-# 🏆 HojaCero SEO Premium Engine — Auditoría + Auto-Fix + Reporte
+# 🏆 HojaCero SEO Premium Engine v2.0
 
-Este workflow ejecuta una auditoría **SEO/AEO/GEO completa** sobre cualquier sitio,
-arregla automáticamente lo que puede, y genera un checklist con lo que queda pendiente.
+Motor unificado de posicionamiento digital. Cubre **TODO el ciclo SEO** en un solo flujo:
+investigación → auditoría → creación → verificación → entrega.
 
-Aplicable a **sitios propios de HojaCero** y **sitios de clientes**.
-Es el servicio premium que ninguna agencia chilena ofrece.
+Aplicable a **sitios propios** y **sitios de clientes**.
 
-> **Diferencia con `/factory-seo`:** Factory-SEO inyecta SEO básico + kill switch en prospectos.
-> SEO Premium es una auditoría **de nivel enterprise** con AEO, GEO, schemas avanzados,
-> performance, accesibilidad y checklist de backlinks.
+> Este workflow reemplaza el anterior `/seo-premium` v1.
+> Ahora incluye deep research, análisis competitivo, creación de contenido AEO,
+> y cuestionario dirigido al dueño para cerrar el ciclo.
 
 // turbo-all
 
 ---
 
-## Fase 0: Contexto y Preparación
+## MÓDULO 0 — CONTEXTO Y PREPARACIÓN
 
 1. **Identifica el sitio objetivo:**
-   - ¿Es un sitio HojaCero (Next.js en `/prospectos/[cliente]`)? → Trabaja en el directorio local
-   - ¿Es un sitio externo? → Trabaja con la URL de producción
+   - ¿Es un sitio HojaCero (`/prospectos/[cliente]`)? → Directorio local
+   - ¿Es un sitio externo? → URL de producción
    - ¿Tiene dominio propio? → Anótalo para schemas y sitemap
 
 2. **Reúne información del negocio:**
@@ -30,262 +29,370 @@ Es el servicio premium que ninguna agencia chilena ofrece.
    - Nombre del negocio
    - URL de producción
    - Rubro / Nicho
-   - Dirección (ciudad mínimo)
-   - Teléfono
-   - Email de contacto
-   - Redes sociales (Instagram, LinkedIn, Facebook)
-   - Nombre del fundador / dueño
+   - Ciudad y región
+   - Teléfono y email
+   - Redes sociales
+   - Nombre del fundador
    - Keywords principales (3-5)
    ```
 
 3. **Lee archivos relevantes (si existen):**
    - `discovery_notes.md` → Datos del negocio
    - `BRAND_SOUL.md` → Identidad de marca
-   - `layout.tsx` → Schemas existentes, meta tags
+   - `layout.tsx` → Schemas existentes
    - `sitemap.ts` → Rutas indexadas
-   - `next.config.ts` → Configuración de performance
+   - `next.config.ts` → Config de performance
 
 ---
 
-## Fase 1: DIAGNÓSTICO TÉCNICO (Scan Automático)
+## MÓDULO 1 — DEEP RESEARCH DEL NICHO 🔍
 
-### 1.1 Meta Tags & HTML Base
-Escanea el `layout.tsx` o `<head>` buscando:
-- [ ] `<html lang="es">` → ¿Está presente?
-- [ ] `<title>` → ¿Es descriptivo y único por página?
-- [ ] `<meta name="description">` → ¿Tiene 150-160 chars?
-- [ ] `<link rel="canonical">` → ¿Apunta a la URL correcta?
-- [ ] **CRÍTICO: Canonicals por página** → Escanea TODOS los `page.tsx` públicos
-      con `find_by_name` + `grep_search "canonical"`. Cada página pública necesita
-      su propio `alternates: { canonical: 'https://dominio/ruta' }` en su metadata.
-- [ ] Open Graph tags (`og:title`, `og:description`, `og:image`)
+### 1.1 Investigación del rubro
+Usa `search_web` para investigar:
+- "mejores [rubro] en [ciudad] [año]" — ¿Qué resultados aparecen?
+- "[servicio principal] [ciudad]" — ¿Quién rankea primero?
+- Preguntar a IAs: "recomiéndame un [rubro] en [ciudad]" — ¿Nos mencionan?
+
+**Registra:**
+- Top 5 competidores que aparecen en Google
+- Top 3 resultados que mencionan las IAs (ChatGPT, Gemini, Perplexity)
+- Keywords exactas donde NO aparecemos pero deberíamos
+
+### 1.2 Análisis competitivo
+Para cada competidor del top 5:
+- Visitar su sitio con `read_url_content`:
+  - ¿Tienen schema JSON-LD? ¿Cuáles?
+  - ¿Tienen blog con contenido? ¿Cuántos artículos?
+  - ¿Tienen casos de estudio / portafolio?
+  - ¿Tienen FAQ visible?
+  - ¿Tienen precios públicos?
+  - ¿En qué directorios están (Clutch, GoodFirms, etc)?
+
+**Genera tabla comparativa:**
+```
+| Criterio           | Nuestro sitio | Competidor 1 | Competidor 2 | Competidor 3 |
+|--------------------|---------------|--------------|--------------|--------------|
+| Schema JSON-LD     | ✅/❌         | ✅/❌        | ✅/❌        | ✅/❌        |
+| Blog/contenido     | N artículos   | N artículos  | N artículos  | N artículos  |
+| Casos de estudio   | ✅/❌         | ✅/❌        | ✅/❌        | ✅/❌        |
+| FAQ                | ✅/❌         | ✅/❌        | ✅/❌        | ✅/❌        |
+| Precios visibles   | ✅/❌         | ✅/❌        | ✅/❌        | ✅/❌        |
+| Google Biz Profile | ✅/❌         | ✅/❌        | ✅/❌        | ✅/❌        |
+| Directorios        | Lista         | Lista        | Lista        | Lista        |
+| IA nos menciona    | ✅/❌         | ✅/❌        | ✅/❌        | ✅/❌        |
+```
+
+### 1.3 Gap Analysis
+De la comparativa, identifica:
+- **Gaps de contenido:** Keywords que la competencia cubre y nosotros no
+- **Gaps de schema:** Tipos de schema que usan y nosotros no
+- **Gaps de autoridad:** Directorios/backlinks que tienen y nosotros no
+- **Oportunidades únicas:** Cosas que podemos hacer que ellos no
+
+---
+
+## MÓDULO 2 — AUDITORÍA INTERNA COMPLETA 🏥
+
+### 2.1 Meta Tags & HTML Base
+Escanea `layout.tsx` y TODOS los `page.tsx` públicos:
+- [ ] `<html lang="es">` presente
+- [ ] `<title>` descriptivo y único por página
+- [ ] `<meta name="description">` con 150-160 chars
+- [ ] `<link rel="canonical">` en CADA página pública
+- [ ] Open Graph tags (og:title, og:description, og:image)
 - [ ] Twitter Card tags
-- [ ] Google Search Console verification
-- [ ] Favicon completo (16x16, 32x32, 180x180 apple-touch)
+- [ ] Favicon completo (16x16, 32x32, 180x180)
 
-### 1.2 Schemas JSON-LD (El Corazón del AEO/GEO)
-Busca en el `@graph` o scripts `application/ld+json`:
-- [ ] **Organization** → nombre, logo, url, email, teléfono, sameAs, address, image, knowsAbout
-- [ ] **Person** (fundador) → nombre, jobTitle, worksFor, sameAs (LinkedIn), knowsAbout
-- [ ] **WebSite** → url, name, publisher, SearchAction (sitelinks)
-- [ ] **ProfessionalService** → serviceType, priceRange, telephone, address, image, hasOfferCatalog
-- [ ] **FAQPage** → mínimo 4 preguntas, respuestas de 200+ palabras
-- [ ] **BreadcrumbList** → en páginas internas (blog, artículos, subpáginas)
-- [ ] **Article** → en artículos del blog/lab (author, datePublished, dateModified)
-- [ ] **LocalBusiness** → si aplica (restaurantes, tiendas físicas)
+**CRÍTICO:** Ejecutar `grep_search "canonical"` en TODOS los `page.tsx`.
+Cada página pública necesita `alternates: { canonical }` en su metadata.
 
-### 1.3 Contenido & E-E-A-T
-- [ ] **Página /about** → ¿Existe? ¿Tiene bio del fundador? ¿Menciona experiencia real?
-- [ ] **Blog/Lab** → ¿Tiene artículos? ¿Más de 1000 palabras por artículo?
-- [ ] **Heading Hierarchy** → H1 único por página, H2-H3 en orden
-- [ ] **Alt text** → Todas las imágenes con alt descriptivo
-- [ ] **Internal linking** → ¿Las páginas se enlazan entre sí?
+### 2.2 Schemas JSON-LD
+Busca en scripts `application/ld+json`:
+- [ ] **Organization** → nombre, logo, url, email, teléfono, sameAs, knowsAbout
+- [ ] **Person** (fundador) → nombre, jobTitle, worksFor, sameAs, knowsAbout
+- [ ] **WebSite** → url, name, publisher, SearchAction
+- [ ] **ProfessionalService** → serviceType, priceRange, hasOfferCatalog
+- [ ] **FAQPage** → mínimo 4 preguntas con respuestas 200+ palabras
+- [ ] **BreadcrumbList** → en TODAS las páginas internas
+- [ ] **Article/BlogPosting** → en artículos del blog
+- [ ] **Review** → testimonios con rating
+- [ ] **HowTo** → en guías paso a paso
+- [ ] **LocalBusiness** → si tiene ubicación física
 
-### 1.4 Sitemap & Indexación
-- [ ] `sitemap.ts` o `sitemap.xml` → ¿Existe? ¿Incluye todas las rutas?
-- [ ] `robots.txt` → ¿Permite crawling? ¿Referencia el sitemap?
-- [ ] Canonical URLs → Ejecutar `grep_search "canonical"` en TODOS los archivos
-      `page.tsx` públicos. **No basta con que el layout tenga canonical**;
-      cada subpágina (/lab, /about, /vision, /lab/[slug], etc.) debe tener
-      `alternates: { canonical }` en su propio export de metadata.
-      Si una página es `'use client'`, crear un `layout.tsx` en su carpeta.
+### 2.3 Contenido & E-E-A-T
+- [ ] Página /about → ¿Bio del fundador? ¿Experiencia real?
+- [ ] Blog → ¿Artículos 1000+ palabras? ¿Keywords transaccionales?
+- [ ] Casos de estudio → ¿Proyectos verificables?
+- [ ] Heading Hierarchy → H1 único, H2-H3 en orden
+- [ ] Alt text → Imágenes con alt descriptivo
+- [ ] Internal linking → Páginas enlazadas entre sí
 
-### 1.5 Performance (Core Web Vitals)
-- [ ] `next/image` → ¿Se usa en vez de `<img>` crudo?
-- [ ] `priority` → ¿El hero image tiene priority={true}?
-- [ ] Formatos modernos → ¿AVIF/WebP configurados en next.config?
-- [ ] Cache headers → ¿Assets estáticos con cache inmutable?
-- [ ] `optimizePackageImports` → ¿framer-motion, gsap, three optimizados?
-- [ ] Lazy loading → ¿Componentes below-the-fold con `dynamic()`?
-- [ ] GSAP → ¿Importado lazy (dynamic import) o estático?
+### 2.4 Sitemap & Indexación
+- [ ] `sitemap.ts` incluye TODAS las rutas públicas
+- [ ] `robots.txt` permite crawling + referencia sitemap
+- [ ] `robots.txt` permite bots IA (GPTBot, ClaudeBot, PerplexityBot, etc.)
+- [ ] Canonical URLs en cada página
 
-### 1.6 Accesibilidad
-- [ ] `aria-label` → ¿Links de iconos tienen label descriptivo?
-- [ ] `aria-hidden` → ¿SVGs decorativos marcados como hidden?
-- [ ] `role="navigation"` → ¿Navs y social docks tienen role?
-- [ ] `title` → ¿Iframes tienen title?
-- [ ] Contraste → ¿Texto legible sobre fondo? (ratio mínimo 4.5:1)
-- [ ] Focus indicators → ¿Elementos interactivos tienen :focus visible?
+### 2.5 Performance
+- [ ] `next/image` en vez de `<img>`
+- [ ] Hero image con `priority={true}`
+- [ ] Formatos AVIF/WebP en next.config
+- [ ] Cache headers para assets estáticos
+- [ ] `optimizePackageImports` configurado
+- [ ] Lazy loading en componentes below-the-fold
+- [ ] GSAP importado dinámicamente
 
----
+### 2.6 Accesibilidad
+- [ ] `aria-label` en links de iconos
+- [ ] `aria-hidden="true"` en SVGs decorativos
+- [ ] `role="navigation"` en navs
+- [ ] Contraste mínimo 4.5:1
+- [ ] Focus indicators visibles
 
-## Fase 2: AUTO-FIX (Corrección Automática)
-
-Para cada item que falló en Fase 1, intenta corregir automáticamente:
-
-### 2.1 Schemas Faltantes
-Si falta Organization, Person, WebSite, FAQ, etc:
-- **Genera el JSON-LD** con los datos del negocio (Fase 0)
-- **Inyecta en layout.tsx** dentro de un `<script type="application/ld+json">`
-- Usa `@graph` para combinar múltiples schemas en un solo bloque
-- Cada schema debe tener `@id` para referencias cruzadas
-
-### 2.2 Campos Opcionales de Schemas
-Si los schemas existen pero les faltan campos (address, image, telephone, priceRange):
-- **Agrega los campos** directamente al JSON-LD existente
-- Para `address`: usar PostalAddress con ciudad + región + país
-- Para `image`: usar la URL del logo
-- Para `priceRange`: usar formato "$X - $Y CLP"
-
-### 2.3 Meta Tags
-- Genera `<title>` y `<meta description>` optimizados para CTR
-- Agrega Open Graph si falta
-- Agrega canonical en layout.tsx principal (`alternates: { canonical }`)
-- **CRÍTICO:** Recorre CADA `page.tsx` público y agrega `alternates: { canonical }`
-  en su metadata export. Si la página es `'use client'`, crear un `layout.tsx`
-  en su carpeta con la metadata estática.
-- Para páginas dinámicas (`[slug]`), usar template literal:
-  `canonical: \`https://dominio/ruta/${slug}\``
-
-### 2.4 Performance Config
-- Agrega `formats: ['image/avif', 'image/webp']` a next.config
-- Agrega `optimizePackageImports` si aplica
-- Agrega cache headers para assets estáticos
-- Convierte imports GSAP estáticos a lazy imports en componentes Hero
-
-### 2.5 Accesibilidad
-- Agrega `aria-label` a links de iconos/redes sociales
-- Agrega `aria-hidden="true"` a SVGs decorativos
-- Agrega `role="navigation"` a contenedores de nav
-- Agrega `title` a iframes (GTM, etc)
-
-### 2.6 Sitemap & Robots
-- Genera/actualiza `sitemap.ts` con todas las rutas del sitio
-- Genera `robots.txt` si no existe
-- Agrega página `/about` al sitemap si existe
+### 2.7 Genera Reporte "LO QUE ES vs LO QUE DEBERÍA SER"
+Crea un artifact `seo_audit_report.md` con tabla:
+```
+| Área              | Estado actual        | Estado ideal         | Gap    |
+|-------------------|----------------------|----------------------|--------|
+| Schemas           | Organization, FAQ    | +Person, Review, etc | ⚠️     |
+| Landing pages     | 0                    | 4 por servicio       | ❌     |
+| Blog              | 0 artículos          | 4+ artículos AEO     | ❌     |
+| Casos de estudio  | 0                    | 3-4 casos reales     | ❌     |
+| Directorios       | 0                    | Clutch, GoodFirms    | ❌     |
+```
 
 ---
 
-## Fase 3: VALIDACIÓN EXTERNA
+## MÓDULO 3 — AUTO-FIX + AUTO-GROWTH + AUTO-CONTENT 🚀
 
-### 3.1 PageSpeed Insights
-Navega a `https://pagespeed.web.dev/` y testea la URL de producción.
-Registra los 4 scores:
-- Rendimiento (target: >80 mobile, >90 desktop)
-- Accesibilidad (target: >90)
-- Recomendaciones (target: 100)
-- SEO (target: 100)
+### 3.1 Auto-Fix (lo que ya existe pero está mal)
+Para cada item que falló en Módulo 2:
+- **Schemas faltantes** → Genera e inyecta JSON-LD en layout.tsx
+- **Campos incompletos** → Agrega address, image, telephone, priceRange
+- **Meta tags** → Genera title + description optimizados para CTR
+- **Canonicals** → Agrega a cada page.tsx público
+- **Performance** → AVIF/WebP, cache headers, optimizePackageImports
+- **Accesibilidad** → aria-labels, roles, contraste
+- **Sitemap** → Actualiza con todas las rutas
 
-### 3.2 Rich Results Test
-Navega a `https://search.google.com/test/rich-results` y testea la URL.
-Registra:
-- Elementos válidos detectados
-- Warnings/problemas no críticos
-- Errores (si hay)
+### 3.2 Auto-Growth (crear lo que falta — estructura)
 
-### 3.3 AEO Check (Manual)
-Pregunta a ChatGPT/Gemini/Perplexity:
-- "¿Qué es [nombre del negocio]?"
-- "¿Quién es [nombre del fundador]?"
-- Si las IAs devuelven info correcta → ✅
-- Si no saben → Falta autoridad externa (backlinks)
+#### Landing Pages Satélite
+Si el sitio no tiene landing pages por servicio:
+- Crear layout compartido (`/servicios/layout.tsx`) con:
+  - Navbar mínimo (logo + CTA WhatsApp)
+  - Sticky WhatsApp en móvil
+  - Footer ligero
+- Crear 1 landing page por servicio principal (máximo 4)
+- Cada landing con schema Service + FAQPage + BreadcrumbList
+- Todas indexadas pero NO en la navbar principal
+- CTAs → WhatsApp con mensaje pre-llenado por servicio
+
+#### Casos de Estudio
+Si el sitio tiene proyectos/clientes verificables:
+- Crear layout compartido (`/casos/layout.tsx`)
+- Crear 1 página por caso/proyecto real (máximo 4)
+- Estructura: Desafío → Solución → Stack → Resultado → CTA
+- Schema Article + SoftwareApplication + BreadcrumbList por caso
+
+### 3.3 Auto-Content (crear contenido AEO)
+
+#### Blog Transaccional
+Si el sitio no tiene blog optimizado:
+- Crear layout (`/blog/layout.tsx`) + hub (`/blog/page.tsx`)
+- Crear 4 artículos AEO basados en los gaps del Módulo 1:
+  - 1 artículo tipo "Mejores [rubro] en [ciudad] [año]" — para captar tráfico comparativo
+  - 1 artículo tipo "[Alternativa A] vs [Alternativa B]: qué conviene" — comparativa
+  - 1 artículo tipo "Cómo elegir [servicio] en [ciudad]" — guía de compra
+  - 1 artículo tipo "Guía para [problema del cliente]" — tutorial con schema HowTo
+- Cada artículo con schema BlogPosting + FAQPage + BreadcrumbList
+- Contenido mínimo 1500 palabras por artículo
+- CTAs contextuales a WhatsApp
+
+**IMPORTANTE:** Los artículos deben incluir datos específicos del negocio,
+precios reales, y referencias a proyectos/casos de estudio propios.
+El contenido no debe ser genérico — debe posicionar al negocio como autoridad.
+
+#### Actualizar Sitemap
+Agregar TODAS las rutas nuevas al sitemap con prioridades correctas:
+- Landing pages: prioridad 0.9, weekly
+- Casos de estudio: prioridad 0.8, monthly
+- Blog hub: prioridad 0.8, weekly
+- Artículos de blog: prioridad 0.7, weekly
 
 ---
 
-## Fase 4: REPORTE FINAL
+## MÓDULO 4 — DOUBLE CHECK Y VERIFICACIÓN ✅
 
-Genera un artifact `seo_premium_report.md` con el siguiente formato:
+### 4.1 Build Test
+```bash
+npx next build
+```
+- Exit code debe ser 0
+- Verificar que TODAS las páginas nuevas aparecen como static (○ o ●)
+- Registrar cualquier warning
+
+### 4.2 Schema Validation
+Para 2-3 páginas clave, verificar con Rich Results Test:
+- `https://search.google.com/test/rich-results`
+- Registrar elementos válidos, warnings y errores
+
+### 4.3 PageSpeed Check
+Si el sitio está en producción, testear:
+- `https://pagespeed.web.dev/`
+- Targets: Performance >80 (mobile), Accesibilidad >90, SEO 100
+
+### 4.4 Inventario de Schemas por Página
+Genera tabla final de schemas implementados:
+```
+| Página                 | Schemas                                |
+|------------------------|----------------------------------------|
+| / (home)               | Organization, Person, WebSite, FAQ...  |
+| /servicios/[servicio]  | Service, FAQPage, BreadcrumbList       |
+| /casos/[caso]          | Article, SoftwareApplication, Breadc.  |
+| /blog/[articulo]       | BlogPosting, FAQPage, BreadcrumbList   |
+```
+
+---
+
+## MÓDULO 5 — CUESTIONARIO PARA EL DUEÑO 📋
+
+Genera un cuestionario dirigido al dueño/marketing del sitio.
+El objetivo es obtener información que solo el humano puede dar,
+y que es NECESARIA para completar el ciclo SEO.
+
+### Cuestionario SEO — Para el dueño del sitio
+
+```markdown
+# 📋 Cuestionario SEO — [Nombre del Negocio]
+
+Necesitamos esta información para completar el posicionamiento de tu sitio.
+Por favor responde lo más detallado posible.
+
+## 1. Autoridad y credenciales
+- ¿Tienes certificaciones o premios relevantes?
+- ¿Has dado charlas, talleres o participado en eventos?
+- ¿Tienes publicaciones en medios, entrevistas o menciones de prensa?
+- ¿Tu LinkedIn personal está actualizado con tu rol actual?
+
+## 2. Testimonios y reseñas
+- ¿Puedes pedir a 3 clientes que dejen una reseña en Google/Clutch?
+  (Podemos redactar un mensaje plantilla para que les envíes)
+- ¿Tienes testimonios escritos que podamos usar con nombre y empresa?
+
+## 3. Google Business Profile
+- ¿Ya tienes perfil de Google My Business? (Sí/No)
+- Si no: ¿cuál es la dirección exacta del negocio?
+- ¿Horarios de atención?
+
+## 4. Directorios del rubro
+- ¿Estás registrado en algún directorio de tu industria?
+- ¿Hay asociaciones gremiales a las que pertenezcas?
+
+## 5. Contenido adicional
+- ¿Hay proyectos o clientes que NO hemos incluido y deberíamos?
+- ¿Hay datos específicos que quieras destacar? (años de experiencia,
+  cantidad de clientes, facturación, etc.)
+- ¿Hay preguntas que tus clientes siempre hacen y podemos responder
+  en el sitio?
+
+## 6. Competencia
+- ¿Quiénes consideras tus competidores principales?
+- ¿Hay algo específico que ellos hacen bien y quieres igualar o superar?
+```
+
+**Este cuestionario se entrega al dueño/marketing.**
+Las respuestas alimentan una segunda iteración de:
+- Actualización de schemas (Review con testimonios reales)
+- Creación de Google Business Profile
+- Registro en directorios del rubro
+- Contenido adicional en el blog
+
+---
+
+## MÓDULO 6 — REPORTE FINAL Y ENTREGABLES 📊
+
+### 6.1 Reporte técnico (para el equipo)
+Genera `seo_premium_report.md`:
 
 ```markdown
 # 🏆 Reporte SEO Premium — [Nombre del Sitio]
 
 **Fecha:** [fecha]
-**URL:** [url de producción]
-**Ejecutado por:** HojaCero SEO Premium Engine
+**URL:** [url]
+**Motor:** HojaCero SEO Premium v2.0
 
----
+## Estado Antes vs Después
 
-## 📊 Scores PageSpeed
+| Métrica              | Antes | Después |
+|----------------------|-------|---------|
+| Páginas indexadas    | N     | N       |
+| Schemas activos      | N     | N       |
+| Landing pages        | N     | N       |
+| Blog artículos       | N     | N       |
+| Casos de estudio     | N     | N       |
+| FAQ implementadas    | N     | N       |
 
-| Métrica | Móvil | Escritorio |
-|---------|-------|------------|
-| Rendimiento | [X] | [X] |
-| Accesibilidad | [X] | [X] |
-| Recomendaciones | [X] | [X] |
-| SEO | [X] | [X] |
+## Acciones Ejecutadas Automáticamente
+- [x] [Lista de todo lo que se hizo]
 
-## ✅ Rich Results Test
-- Elementos válidos: [N]
-- Warnings: [N]
-- Errores: [N]
+## Acciones Pendientes (Manual)
+- [ ] [Lista con responsable y deadline sugerido]
 
----
-
-## ✅ Resuelto Automáticamente
-- [x] [Descripción de cada fix aplicado]
-
-## ❌ Requiere Acción Manual
-- [ ] **Backlinks:** Registrar en [N] directorios del rubro
-- [ ] **Google Business Profile:** Crear/actualizar perfil
-- [ ] **LinkedIn del fundador:** Actualizar headline y "Acerca de"
-- [ ] **Contenido:** Agregar [N] artículos de autoridad al blog/lab
-- [ ] [Cualquier otro pendiente]
-
-## ⚠️ Mejoras Opcionales (Para Score Perfecto)
-- [ ] [Mejoras de contraste de accesibilidad]
-- [ ] [Optimización de imágenes específicas]
-- [ ] [hreflang si aplica LATAM]
-
----
-
-## 📋 Checklist de Backlinks Recomendados
-1. [ ] Directorio [nombre] — [URL de registro]
-2. [ ] Publicar artículo en Medium/Dev.to con link de vuelta
-3. [ ] Solicitar link desde sitio de cliente [nombre]
-4. [ ] Perfil en Google Business Profile
-
----
+## Cuestionario Enviado
+- [ ] Esperando respuestas del dueño/marketing
 
 ## Estado Final: [APROBADO ✅ / NECESITA TRABAJO ⚠️]
+```
 
-Criterio:
-- APROBADO: SEO ≥ 95, Rendimiento ≥ 80, Accesibilidad ≥ 90, Rich Results sin errores
-- NECESITA TRABAJO: Cualquier métrica bajo el umbral
+### 6.2 Reporte para el dueño (no técnico)
+Genera un resumen ejecutivo simple:
+
+```markdown
+# Tu Sitio Web ahora tiene SEO Premium 🚀
+
+Hicimos [N] mejoras en tu sitio para que aparezcas en Google
+y en las IAs (ChatGPT, Gemini, etc.) cuando busquen [tu servicio].
+
+## Lo que logramos:
+- Tu sitio ahora tiene [N] páginas optimizadas para Google
+- Creamos [N] artículos que responden las preguntas más comunes
+- Tu sitio ahora le "habla" a Google y a las IAs en su idioma
+
+## Lo que necesitamos de ti:
+(Adjunto el cuestionario SEO)
+
+## Próximos pasos:
+1. Responde el cuestionario (10 min)
+2. Nosotros aplicamos las mejoras finales
+3. En 3-6 meses empezarás a ver resultados orgánicos
 ```
 
 ---
 
-## Fase 5: Commit & Push
+## MÓDULO 7 — COMMIT & PUSH
 
 Si se hicieron cambios al código:
-```
+```bash
 git add -A
-git commit -m "seo-premium: auditoría completa + auto-fix [nombre sitio]"
+git commit -m "seo-premium-v2: ciclo completo [nombre sitio]"
 git push origin main
 ```
 
 ---
 
-## Ejemplo de Ejecución
+## Flujo Resumido
 
 ```
-Usuario: /seo-premium para hojacero.cl
-
-AI:
-1. FASE 0: Contexto — HojaCero, Next.js, hojacero.cl, Santiago
-2. FASE 1: Diagnóstico — 42 checks ejecutados
-   - 35 ✅ pasaron
-   - 4 ⚠️ auto-fixeables
-   - 3 ❌ requieren acción manual
-3. FASE 2: Auto-Fix — Aplicados 4 fixes (schemas, aria, cache, AVIF)
-4. FASE 3: Validación — PageSpeed 99/92/100/100, Rich Results 5 válidos
-5. FASE 4: Reporte generado → seo_premium_report.md
-6. FASE 5: Push → Commit a8f88b3
-```
-
-```
-Usuario: /seo-premium para caprex.cl
-
-AI:
-1. FASE 0: Contexto — Caprex (contabilidad), Next.js, caprex.cl, Santiago
-2. FASE 1: Diagnóstico — 42 checks
-   - Falta schema Person, FAQ, ProfessionalService
-   - Falta página /about
-   - Sin aria-labels en redes sociales
-3. FASE 2: Auto-Fix — Inyecta schemas, agrega aria-labels, optimiza config
-4. FASE 3: Validación — Corre PageSpeed + Rich Results
-5. FASE 4: Reporte con pendientes manuales
-6. FASE 5: Push
+MÓDULO 0 → Contexto
+MÓDULO 1 → Deep Research + Competencia (¿cómo está el mercado?)
+MÓDULO 2 → Auditoría interna (¿cómo estamos nosotros?)
+         → Reporte: "lo que es" vs "lo que debería ser"
+MÓDULO 3 → Auto-Fix + Auto-Growth + Auto-Content (arreglar + crear)
+MÓDULO 4 → Double Check (build + schemas + PageSpeed)
+MÓDULO 5 → Cuestionario al dueño (info que solo el humano tiene)
+MÓDULO 6 → Reporte final (técnico + ejecutivo para el dueño)
+MÓDULO 7 → Deploy
 ```
 
 ---
@@ -294,18 +401,14 @@ AI:
 
 > **AEO (AI Engine Optimization):** Los schemas JSON-LD son el lenguaje que entienden
 > ChatGPT, Gemini, Perplexity y Claude para citar tu sitio como fuente autoritativa.
-> Sin schemas, las IAs no saben qué eres. Con schemas, te citan textualmente.
 
-> **GEO (Generative Engine Optimization):** El contenido largo (artículos 1500+ palabras)
-> con estructura clara (H2/H3) y datos originales es lo que las IAs usan para generar
-> respuestas. Sin contenido propio, dependes de que otros hablen de ti.
+> **GEO (Generative Engine Optimization):** Contenido largo (1500+ palabras)
+> con estructura clara y datos originales es lo que las IAs usan para generar respuestas.
 
-> **E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness):**
-> Google evalúa si el autor tiene experiencia real, si el sitio demuestra expertise,
-> si hay señales de autoridad (backlinks, menciones) y si es confiable (SSL, reviews).
-> La página /about y el schema Person son la base de E-E-A-T.
+> **E-E-A-T:** Google evalúa Experience, Expertise, Authoritativeness, Trustworthiness.
+> La página /about, el schema Person, y los testimonios reales son la base.
 
 > **Precio sugerido como servicio:**
-> - Auditoría SEO Premium (una vez): $100.000 CLP
+> - SEO Premium v2 (ciclo completo): $200.000 CLP
 > - Mantención SEO mensual: $30.000 CLP
-> - SEO Premium + AEO/GEO completo: $200.000 CLP
+> - Solo auditoría (sin creación): $100.000 CLP

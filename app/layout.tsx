@@ -184,6 +184,7 @@ export default function RootLayout({
                     "https://www.instagram.com/hojacero.cl",
                     "https://www.linkedin.com/company/hojacero",
                     "https://www.facebook.com/share/1TyKsQC3GJ/",
+                    "https://clutch.co/profile/hojacero",
                     "https://vuelve.vip",
                     "https://pluscontable.cl",
                     "https://apimiel.cl",
@@ -332,6 +333,52 @@ export default function RootLayout({
                         "text": "Depende de tu negocio. WordPress es útil si necesitas un blog simple que puedas administrar tú mismo y tienes presupuesto limitado para mantenimiento. Sin embargo, en HojaCero recomendamos desarrollo a medida por varias razones: velocidad de carga muy superior (los sitios WordPress suelen ser lentos por la cantidad de plugins), seguridad (WordPress es el CMS más atacado del mundo), SEO técnico real (no dependes de plugins como Yoast que hacen SEO superficial), y diseño sin limitaciones (no estás restringido a lo que permite un tema). Además, nuestros precios de desarrollo a medida parten desde $50.000 CLP, que es comparable o incluso más barato que muchas soluciones WordPress cuando sumas hosting, tema premium, plugins y mantenimiento. La diferencia es que con nosotros obtienes un sitio que es tuyo, rápido, seguro y que no depende de actualizaciones de terceros para seguir funcionando."
                       }
                     }
+                  ]
+                },
+                {
+                  "@type": "Review",
+                  "author": { "@type": "Person", "name": "Cliente Caprex" },
+                  "reviewBody": "El sitio superó completamente nuestras expectativas. La gente nos felicita constantemente por lo profesional que se ve. Entrega en 48 horas, 7 páginas completas.",
+                  "reviewRating": { "@type": "Rating", "ratingValue": 5, "bestRating": 5 },
+                  "itemReviewed": { "@id": "https://hojacero.cl/#service" }
+                },
+                {
+                  "@type": "Review",
+                  "author": { "@type": "Person", "name": "Cliente Acargoo" },
+                  "reviewBody": "Pasamos de un proceso 100% manual a un sistema digital completo en 3 semanas. Cotizaciones automáticas, tracking en mapa, panel de administración. Exactamente lo que necesitábamos.",
+                  "reviewRating": { "@type": "Rating", "ratingValue": 5, "bestRating": 5 },
+                  "itemReviewed": { "@id": "https://hojacero.cl/#service" }
+                },
+                {
+                  "@type": "LocalBusiness",
+                  "@id": "https://hojacero.cl/#localbusiness",
+                  "name": "HojaCero — Estudio de Desarrollo Web",
+                  "image": "https://hojacero.cl/logo.png",
+                  "telephone": "+56958946617",
+                  "email": "contacto@hojacero.cl",
+                  "url": "https://hojacero.cl",
+                  "priceRange": "$50.000 - $500.000 CLP",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Santiago",
+                    "addressRegion": "Región Metropolitana",
+                    "addressCountry": "CL"
+                  },
+                  "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": -33.4489,
+                    "longitude": -70.6693
+                  },
+                  "openingHoursSpecification": {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                    "opens": "09:00",
+                    "closes": "19:00"
+                  },
+                  "sameAs": [
+                    "https://www.instagram.com/hojacero.cl",
+                    "https://www.linkedin.com/company/hojacero",
+                    "https://clutch.co/profile/hojacero"
                   ]
                 }
               ]
