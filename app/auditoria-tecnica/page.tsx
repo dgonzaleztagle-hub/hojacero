@@ -96,17 +96,17 @@ export default function AuditoriaTecnicaFunnel() {
   const getBudgetOptions = () => {
     if (branch === "app") {
       return [
-        "Software MVP (Hasta $350.000)",
-        "Aplicación Robusta ($350.000 a $500.000)",
-        "Proyecto a Medida (Sobre $1.000.000)",
-        "Aún estoy definiendo presupuesto"
+        "Inversión inicial (Hasta $350.000)",
+        "Proyecto Escala Media ($350.000 - $500.000)",
+        "Desarrollo Corporativo (Sobre $1.000.000)",
+        "Necesito que ustedes levanten el presupuesto"
       ];
     }
     return [
-      "Landing Básica Conversora (~$50.000)",
-      "Sitio Web Completo / Tienda (Desde $150.000)",
-      "Presupuesto de Agencia Corporativo",
-      "Aún estoy cotizando/definiendo"
+      "Inversión inicial básica (~$50.000)",
+      "Presupuesto estándar (Desde $150.000)",
+      "Proyecto Corporativo/A medida",
+      "Necesito que ustedes levanten el presupuesto"
     ];
   };
 
