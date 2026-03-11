@@ -19,7 +19,7 @@ export default async function DashboardPage() {
         { data: wonLeads },
         { data: pagos }
     ] = await Promise.all([
-        supabase.from('leads').select('id, estado, pipeline_stage, next_action_date, next_action_note, nombre, created_at, last_activity_at'),
+        supabase.from('leads').select('id, estado, pipeline_stage, next_action_date, next_action_note, nombre, email, whatsapp, created_at, last_activity_at'),
         supabase.from('monitored_sites').select('id, status, monto_mensual, site_status(is_active)'),
         supabase.from('leads').select('deal_type, deal_amount, partner_split').eq('estado', 'won'),
         supabase.from('pagos').select('monto, fecha_pago, tipo')

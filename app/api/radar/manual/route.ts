@@ -19,6 +19,7 @@ export async function POST(req: Request) {
         const sitio_web = formData.get('sitio_web') as string;
         const nombre_contacto = formData.get('nombre_contacto') as string;
         const telefono = formData.get('telefono') as string;
+        const email = formData.get('email') as string;
         const categoria = formData.get('categoria') as string;
         const lead_type = formData.get('lead_type') as string;
         const concept = formData.get('concept') as string;
@@ -78,6 +79,7 @@ export async function POST(req: Request) {
             nombre,
             sitio_web: sitio_web || null,
             nombre_contacto: nombre_contacto || null,
+            email: email || null,
             telefono: telefono || null,
             categoria: categoria || null,
             estado: 'ready_to_contact',
@@ -126,11 +128,11 @@ export async function POST(req: Request) {
 
                 // Update Lead
                 const updatePayload = {
-                    email: scraped.emails[0] || null,
+                    email: email || scraped.emails[0] || null,
                     telefono: telefono || scraped.whatsapp || null,
                     puntaje_oportunidad: analysis.score,
                     source_data: {
-                        ...savedLead.source_data,
+                        ...newLead.source_data,
                         scraped,
                         analysis,
                         enriched_at: new Date().toISOString()
@@ -144,9 +146,6 @@ export async function POST(req: Request) {
                 console.error("Manual enrichment failed:", enrichError);
             }
         }
-
-        // TODO: If logoUrl exists, trigger async palette extraction (future implementation)
-        // This would call a separate API route that uses AI Vision to extract colors
 
         return NextResponse.json({
             success: true,

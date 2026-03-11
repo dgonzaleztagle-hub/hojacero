@@ -656,7 +656,7 @@ async function executeTool(name: string, args: any, sessionId: string | null): P
                     return { result: JSON.stringify({ success: false, error: 'NEED_PHONE', message: 'Falta WhatsApp válido.' }) };
                 }
 
-                const recipient = args.type === 'development' ? 'dgonzalez.tagle@gmail.com' : 'gaston.jofre@gmail.com';
+                const recipient = args.type === 'development' ? 'dgonzalez.tagle@gmail.com' : 'gaston.jofre1995@gmail.com';
                 const subject = `🔥 LEADS: ${args.client_name} quiere hablar con ${args.type}`;
 
                 const RESEND_API_KEY = process.env.RESEND_API_KEY;

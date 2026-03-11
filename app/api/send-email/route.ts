@@ -66,7 +66,7 @@ export async function POST(request: Request) {
             from: 'Hojacero <contacto@hojacero.cl>',
             to: [toValue],
             // 🚨 ALERTA TÁCTICA: Copia oculta a los fundadores
-            bcc: ['dgonzaleztagle@gmail.com', 'Gaston.jofre1995@gmail.com'],
+            bcc: ['dgonzalez.tagle@gmail.com', 'gaston.jofre1995@gmail.com'],
             subject: subjectValue,
             html: html,
             text: text,

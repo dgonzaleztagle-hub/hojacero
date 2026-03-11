@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
         const { data, error } = await resend.emails.send({
             from: 'Inbox Bot <contacto@hojacero.cl>',
-            to: ['dgonzalez.tagle@gmail.com', 'Gaston.jofre1995@gmail.com'],
+            to: ['dgonzalez.tagle@gmail.com', 'gaston.jofre1995@gmail.com'],
             subject: `[INBOX] Nuevo Mensaje de: ${sender}`,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">

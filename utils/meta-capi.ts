@@ -23,11 +23,11 @@ interface LeadMetaCAPI {
  * ⚠️ IMPORTANTE: test_event_code se usa solo para ver los eventos en el 'Events Manager' -> 'Test Events'
  */
 export async function sendLeadToMetaCAPI(leadData: LeadMetaCAPI) {
-    const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '4426441037637014';
-    const ACCESS_TOKEN = process.env.META_CAPI_TOKEN || 'EAAzhDwbvLVYBQ0UURgOkER8G2O9yazFUxQibo4Wun2zfdRZB0g3JlRZBHSqICvEkSuxjGudk5tu4VSOYHZC2M0enSYS2XGD2q00aqEekCsOJIsgR8ZCUWnvZAwpZAVsuxSsHwGpdg13hGDUy5jKehX5kAVN7qq2q1FxTZCroJdwdAgXsLCOTbWIlHJ7DheEGgZDZD';
+    const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '1138883614275038';
+    const ACCESS_TOKEN = process.env.META_CAPI_TOKEN || '';
     
-    // Cambiar esto a undefined o "" cuando se pase a producción real fuera de pruebas
-    const TEST_CODE = 'TEST99448'; 
+    // El Test Code permite ver el evento en tiempo real en el configurador de Meta
+    const TEST_CODE = process.env.META_TEST_EVENT_CODE || ''; 
 
     const payload = {
         data: [

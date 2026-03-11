@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Save, Loader2, Building, Globe, Phone, User, Construction, ShieldCheck, Upload, Palette } from 'lucide-react';
+import { X, Save, Loader2, Building, Globe, Phone, User, Construction, ShieldCheck, Upload, Palette, Mail } from 'lucide-react';
 
 interface ManualEntryModalProps {
     isOpen: boolean;
@@ -14,6 +14,7 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
     const [formData, setFormData] = useState({
         nombre: '',
         sitio_web: '',
+        email: '',
         telefono: '',
         nombre_contacto: '',
         categoria: '',
@@ -36,6 +37,7 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
             const submitData = new FormData();
             submitData.append('nombre', formData.nombre);
             submitData.append('sitio_web', formData.sitio_web);
+            submitData.append('email', formData.email);
             submitData.append('telefono', formData.telefono);
             submitData.append('nombre_contacto', formData.nombre_contacto);
             submitData.append('categoria', formData.categoria);
@@ -61,6 +63,7 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
                 setFormData({
                     nombre: '',
                     sitio_web: '',
+                    email: '',
                     telefono: '',
                     nombre_contacto: '',
                     categoria: '',
@@ -232,6 +235,20 @@ export function ManualEntryModal({ isOpen, onClose, onSuccess }: ManualEntryModa
                             </div>
                         </div>
                     )}
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-zinc-500 uppercase">Correo Electrónico</label>
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
+                            <input
+                                type="email"
+                                value={formData.email}
+                                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="contacto@empresa.com"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
+                            />
+                        </div>
+                    </div>
 
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-zinc-500 uppercase">Rubro / Categoría</label>

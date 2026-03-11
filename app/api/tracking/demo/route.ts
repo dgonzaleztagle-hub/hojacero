@@ -48,7 +48,7 @@ async function sendVisitNotification(visit: DemoVisit) {
     try {
         await resend.emails.send({
             from: 'Demo Tracker <contacto@hojacero.cl>',
-            to: ['dgonzaleztagle@gmail.com', 'Gaston.jofre1995@gmail.com'],
+            to: ['dgonzalez.tagle@gmail.com', 'gaston.jofre1995@gmail.com'],
             subject: `👀 VISITA AL DEMO: ${prospectoName}`,
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">

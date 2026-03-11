@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         // 2. Determine who should receive the notification (Marketing vs Dev)
         const RESEND_API_KEY = process.env.RESEND_API_KEY;
         const DANIEL_EMAIL = 'dgonzalez.tagle@gmail.com'; // Dev/Technical
-        const GASTON_EMAIL = 'gaston.jofre@gmail.com'; // Marketing/Sales
+        const GASTON_EMAIL = 'gaston.jofre1995@gmail.com'; // Marketing/Sales
 
         // Detect if it's a marketing or dev question based on context
         const contextText = `${payload.message} ${JSON.stringify(payload.context || {})}`.toLowerCase();

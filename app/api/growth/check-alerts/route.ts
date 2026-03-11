@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 
 const ALERT_HOURS_BEFORE = 2; // Send alert when task is due in 2 hours
-const RECIPIENT_EMAIL = 'Gaston.jofre1995@gmail.com';
+const RECIPIENT_EMAIL = 'gaston.jofre1995@gmail.com';
 
 interface TaskAlert {
     id: string;
@@ -144,7 +144,7 @@ export async function GET(request: Request) {
         const { data: emailData, error: emailError } = await resend.emails.send({
             from: 'Growth Engine <growth@hojacero.cl>',
             to: [RECIPIENT_EMAIL],
-            bcc: ['dgonzaleztagle@gmail.com'],
+            bcc: ['dgonzalez.tagle@gmail.com'],
             subject: `⏰ ${tasksForEmail.length} tarea(s) por vencer - Growth Engine`,
             html: emailHtml
         });
