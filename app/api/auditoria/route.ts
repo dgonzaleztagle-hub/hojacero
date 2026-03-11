@@ -24,9 +24,9 @@ export async function POST(req: Request) {
         nombre: nombre || 'Prospecto Web',
         email: email,
         whatsapp: whatsapp,
-        estado: 'ready_to_contact',  // Aparecerá automáticamente en el Pipeline del Dashboard
-        pipeline_stage: 'new',
-        puntaje_oportunidad: 85, // Score alto por venir Inbound
+        estado: 'ready_to_contact',
+        pipeline_stage: 'radar',
+        puntaje_oportunidad: 85,
         source_data: {
           source: 'auditoria_funnel',
           presupuesto,
