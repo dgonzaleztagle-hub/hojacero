@@ -97,6 +97,7 @@ export default function InboxPage() {
                 return html
                     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
                     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                    .replace(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, '$2 ($1)')
                     .replace(/<br\s*\/?>/gi, '\n')
                     .replace(/<\/p>/gi, '\n\n')
                     .replace(/<div[^>]*>/gi, '\n')
@@ -172,7 +173,7 @@ export default function InboxPage() {
                     if (isHtml) bestHtml = stripHtml(bodyPart);
                     else if (isText) bestText = bodyPart;
                 }
-                return bestText || bestHtml || "[Cuerpo multipart vacío]";
+                return bestHtml || bestText || "[Cuerpo multipart vacío]";
             }
 
             // Fallback para correos simples
