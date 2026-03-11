@@ -124,7 +124,7 @@ export default function InboxPage() {
                     .replace(/&amp;/g, '&')
                     .replace(/&lt;/g, '<')
                     .replace(/&gt;/g, '>')
-                    .replace(/\s+/g, ' ')
+                    .replace(/[ \t]+/g, ' ')
                     .trim();
                 return cleaned;
             };
@@ -153,7 +153,6 @@ export default function InboxPage() {
                 }
             };
 
-            // Detect boundary (either explicitly via header or heuristically)
             let boundaryStr = "";
             const boundaryMatch = rawText.match(/boundary="?([^"\r\n\s;]+)"?/i);
             if (boundaryMatch) {
@@ -164,7 +163,6 @@ export default function InboxPage() {
             }
 
             if (boundaryStr) {
-                // Split sequence robustly ignoring standard line breaks
                 const parts = rawText.split(new RegExp(`--${boundaryStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'));
                 let bestText = "";
                 let bestHtml = "";
@@ -182,12 +180,10 @@ export default function InboxPage() {
 
                     let content = part;
                     
-                    // Separate headers from body (if proper double newlines exist)
                     const doubleNewline = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
                     if (doubleNewline !== -1 && doubleNewline < 500) {
                         content = part.substring(doubleNewline).trim();
                     } else {
-                        // Flat text parsed by Regex heuristics
                         content = content.replace(/Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)?[ \t]*/ig, '');
                         content = content.replace(/Content-Transfer-Encoding:\s*[a-zA-Z0-9-]+\s*(?:\(\))?[ \t]*/ig, '');
                         content = content.replace(/charset=[a-zA-Z0-9-]+\s*/ig, '');
@@ -212,15 +208,14 @@ export default function InboxPage() {
                 }
             }
 
-            // Fallback for non-multipart emails or completely malformed ones
             let fallbackDesc = rawText;
-            
-            // If legitimate double newlines exist, extract body directly
             const doubleNewlineFallback = fallbackDesc.indexOf('\r\n\r\n') !== -1 ? fallbackDesc.indexOf('\r\n\r\n') : fallbackDesc.indexOf('\n\n');
+            let headerBoundaryFound = false;
+
             if (doubleNewlineFallback !== -1 && doubleNewlineFallback < 1500) {
                 fallbackDesc = fallbackDesc.substring(doubleNewlineFallback).trim();
+                headerBoundaryFound = true;
             } else {
-                // Otherwise aggresively remove common headers that polluted text
                 fallbackDesc = fallbackDesc.replace(/^(?:DKIM-Signature|Received|Authentication-Results|Date|From|To|Subject|Message-Id|MIME-Version|Content-Type|Content-Transfer-Encoding|X-[a-zA-Z0-9-]+)[^:]+?:.*?(?=DKIM-Signature|Received|Date|From|To|Subject|Message-Id|MIME-Version|Content-Type|Content-Transfer-Encoding|X-[a-zA-Z0-9-]+|$)/ig, '');
                 fallbackDesc = fallbackDesc.replace(/Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)*[ \t]*/ig, '');
                 fallbackDesc = fallbackDesc.replace(/Content-Transfer-Encoding:\s*[a-zA-Z0-9-]+\s*(?:\(\))?[ \t]*/ig, '');
@@ -230,17 +225,28 @@ export default function InboxPage() {
             let charset = "utf-8";
             if (lowerRaw.includes('charset="iso-8859-1"') || lowerRaw.includes('charset=iso-8859-1')) charset = "iso-8859-1";
             
-            if (lowerRaw.includes('base64')) {
-                fallbackDesc = decodeBase64(fallbackDesc, charset);
-            } else if (lowerRaw.includes('quoted-printable')) {
-                fallbackDesc = decodeQuotedPrintable(fallbackDesc);
+            if (!headerBoundaryFound) {
+                if (lowerRaw.includes('base64')) {
+                    fallbackDesc = decodeBase64(fallbackDesc, charset);
+                } else if (lowerRaw.includes('quoted-printable')) {
+                    fallbackDesc = decodeQuotedPrintable(fallbackDesc);
+                }
+            } else {
+                const allHeadersRaw = rawText.substring(0, doubleNewlineFallback).toLowerCase();
+                if (allHeadersRaw.includes('content-transfer-encoding: base64')) {
+                   fallbackDesc = decodeBase64(fallbackDesc, charset);
+                } else if (allHeadersRaw.includes('content-transfer-encoding: quoted-printable')) {
+                   fallbackDesc = decodeQuotedPrintable(fallbackDesc);
+                }
             }
 
             fallbackDesc = fallbackDesc.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
             fallbackDesc = fallbackDesc.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-            fallbackDesc = fallbackDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            fallbackDesc = fallbackDesc.replace(/<[^>]+>/g, ' ');
+
+            // SOLO QUITAR ESPACIOS MÚLTIPLES (NO SALTOS DE LÍNEA)
+            fallbackDesc = fallbackDesc.replace(/[ \t]+/g, ' ').trim();
             
-            // Clean weird CSS artifacts like .email-footer { width: 100% ...}
             fallbackDesc = fallbackDesc.replace(/@[a-z-]+\s+[^{]+\{[\s\S]*?\}/gi, '');
             fallbackDesc = fallbackDesc.replace(/\.[a-z0-9_-]+\s*\{[\s\S]*?\}/gi, '');
 
