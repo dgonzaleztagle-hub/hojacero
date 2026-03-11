@@ -86,180 +86,120 @@ export default function InboxPage() {
         return () => { supabase.removeChannel(channel); };
     }, [fetchEmails, fetchOutbox, supabase]);
 
-    const decodeQuotedPrintable = (str: string) => {
-        try {
-            // Remove "=" at the end of lines (soft line breaks)
-            let cleanStr = str.replace(/=\r\n/g, '').replace(/=\n/g, '');
 
-            // Replace =XX with escaped URI format %XX
-            cleanStr = cleanStr.replace(/=([0-9A-F]{2})/ig, '%$1');
-
-            // Replace HTML entities for common symbols if any got left behind
-            cleanStr = cleanStr.replace(/&#39;/g, "'").replace(/&quot;/g, '"');
-
-            return decodeURIComponent(cleanStr);
-        } catch (e) {
-            // Fallback: replace just the visible =XX if URI decoding fails
-            let fallbackStr = str.replace(/=\r\n/g, '').replace(/=\n/g, '');
-            return fallbackStr.replace(/=([0-9A-F]{2})/ig, (m, hex) => String.fromCharCode(parseInt(hex, 16)));
-        }
-    };
 
     const getCleanBody = (rawText: string) => {
         if (!rawText) return "";
 
         try {
-    const getCleanBody = (rawText: string) => {
-        if (!rawText) return "";
-
-        try {
-            const stripUnwanted = (html: string) => {
-                let cleaned = html
+            // Helpers
+            const stripHtml = (html: string) => {
+                return html
                     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
                     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
                     .replace(/<br\s*\/?>/gi, '\n')
                     .replace(/<\/p>/gi, '\n\n')
-                    .replace(/<[^>]+>/g, ' ') 
+                    .replace(/<div[^>]*>/gi, '\n')
+                    .replace(/<\/div>/gi, '')
+                    .replace(/<[^>]+>/g, ' ')
                     .replace(/&nbsp;/g, ' ')
                     .replace(/&amp;/g, '&')
                     .replace(/&lt;/g, '<')
                     .replace(/&gt;/g, '>')
                     .replace(/[ \t]+/g, ' ')
+                    .split('\n')
+                    .map(line => line.trim())
+                    .join('\n')
+                    .replace(/\n{3,}/g, '\n\n')
                     .trim();
-                return cleaned;
             };
 
-            const decodeQuotedPrintable = (text: string) => {
+            const decodeQP = (text: string) => {
                 try {
-                    let cleanStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
+                    let cleanStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '');
                     cleanStr = cleanStr.replace(/=([0-9A-F]{2})/ig, '%$1');
                     return decodeURIComponent(cleanStr);
                 } catch {
-                    let fallbackStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
-                    return fallbackStr.replace(/=([0-9A-F]{2})/ig, (m, hex) => String.fromCharCode(parseInt(hex, 16)));
+                    return text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=([0-9A-F]{2})/ig, 
+                        (m, hex) => String.fromCharCode(parseInt(hex, 16)));
                 }
             };
 
-            const decodeBase64 = (text: string, charset: string) => {
+            const decodeB64 = (text: string, charset: string) => {
                 try {
                     const b64 = text.replace(/\s/g, '');
+                    const binString = atob(b64);
                     if (charset.toLowerCase().includes('utf-8')) {
-                        const decodedArray = atob(b64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('');
-                        return decodeURIComponent(decodedArray);
+                        const bytes = new Uint8Array(binString.length);
+                        for (let i = 0; i < binString.length; i++) bytes[i] = binString.charCodeAt(i);
+                        return new TextDecoder().decode(bytes);
                     }
-                    return decodeURIComponent(escape(atob(b64)));
+                    return binString;
                 } catch {
-                    return text; // Fallback to raw
+                    return text;
                 }
             };
 
-            let boundaryStr = "";
-            const boundaryMatch = rawText.match(/boundary="?([^"\r\n\s;]+)"?/i);
-            if (boundaryMatch) {
-                boundaryStr = boundaryMatch[1];
-            } else if (rawText.trim().startsWith('--')) {
-                const firstLineMatch = rawText.trim().match(/^--([a-zA-Z0-9_.-]+)/);
-                if (firstLineMatch) boundaryStr = firstLineMatch[1];
-            }
+            // Multipares
+            let boundary = "";
+            const bMatch = rawText.match(/boundary="?([^"\r\n\s;]+)"?/i);
+            if (bMatch) boundary = bMatch[1];
 
-            if (boundaryStr) {
-                const parts = rawText.split(new RegExp(`--${boundaryStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'));
+            if (boundary) {
+                const parts = rawText.split(new RegExp(`--${boundary.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'));
                 let bestText = "";
                 let bestHtml = "";
 
                 for (let part of parts) {
-                    if (part.includes('--') && part.trim() === '--') continue;
-
                     const lowerPart = part.toLowerCase();
                     const isHtml = lowerPart.includes('content-type: text/html');
                     const isText = lowerPart.includes('content-type: text/plain');
                     if (!isHtml && !isText) continue;
 
                     let charset = "utf-8";
-                    if (lowerPart.includes('charset="iso-8859-1"') || lowerPart.includes('charset=iso-8859-1')) charset = "iso-8859-1";
+                    if (lowerPart.includes('charset=iso-8859-1')) charset = "iso-8859-1";
 
-                    let content = part;
-                    
-                    const doubleNewline = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
-                    if (doubleNewline !== -1 && doubleNewline < 500) {
-                        content = part.substring(doubleNewline).trim();
-                    } else {
-                        content = content.replace(/Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)?[ \t]*/ig, '');
-                        content = content.replace(/Content-Transfer-Encoding:\s*[a-zA-Z0-9-]+\s*(?:\(\))?[ \t]*/ig, '');
-                        content = content.replace(/charset=[a-zA-Z0-9-]+\s*/ig, '');
-                        content = content.trim();
+                    let bodyPart = part;
+                    const splitIdx = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
+                    if (splitIdx !== -1) bodyPart = part.substring(splitIdx).trim();
+
+                    if (lowerPart.includes('base64')) {
+                        bodyPart = decodeB64(bodyPart, charset);
+                    } else if (lowerPart.includes('quoted-printable')) {
+                        bodyPart = decodeQP(bodyPart);
                     }
 
-                    if (lowerPart.includes('content-transfer-encoding: base64') || lowerPart.includes('base64')) {
-                        content = decodeBase64(content, charset);
-                    } else if (lowerPart.includes('content-transfer-encoding: quoted-printable') || lowerPart.includes('quoted-printable')) {
-                        content = decodeQuotedPrintable(content);
-                    }
-
-                    if (isHtml) {
-                        bestHtml = stripUnwanted(content);
-                    } else if (isText) {
-                        bestText = content;
-                    }
+                    if (isHtml) bestHtml = stripHtml(bodyPart);
+                    else if (isText) bestText = bodyPart;
                 }
-
-                if (bestText || bestHtml) {
-                    return bestText || bestHtml;
-                }
+                return bestText || bestHtml || "[Cuerpo multipart vacío]";
             }
 
-            let fallbackDesc = rawText;
-            const doubleNewlineFallback = fallbackDesc.indexOf('\r\n\r\n') !== -1 ? fallbackDesc.indexOf('\r\n\r\n') : fallbackDesc.indexOf('\n\n');
-            let headerBoundaryFound = false;
-
-            if (doubleNewlineFallback !== -1 && doubleNewlineFallback < 1500) {
-                fallbackDesc = fallbackDesc.substring(doubleNewlineFallback).trim();
-                headerBoundaryFound = true;
-            } else {
-                fallbackDesc = fallbackDesc.replace(/^(?:DKIM-Signature|Received|Authentication-Results|Date|From|To|Subject|Message-Id|MIME-Version|Content-Type|Content-Transfer-Encoding|X-[a-zA-Z0-9-]+)[^:]+?:.*?(?=DKIM-Signature|Received|Date|From|To|Subject|Message-Id|MIME-Version|Content-Type|Content-Transfer-Encoding|X-[a-zA-Z0-9-]+|$)/ig, '');
-                fallbackDesc = fallbackDesc.replace(/Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)*[ \t]*/ig, '');
-                fallbackDesc = fallbackDesc.replace(/Content-Transfer-Encoding:\s*[a-zA-Z0-9-]+\s*(?:\(\))?[ \t]*/ig, '');
-            }
-
-            const lowerRaw = fallbackDesc.toLowerCase();
-            let charset = "utf-8";
-            if (lowerRaw.includes('charset="iso-8859-1"') || lowerRaw.includes('charset=iso-8859-1')) charset = "iso-8859-1";
+            // Fallback para correos simples
+            let content = rawText;
+            const splitIdx = content.indexOf('\r\n\r\n') !== -1 ? content.indexOf('\r\n\r\n') : content.indexOf('\n\n');
             
-            if (!headerBoundaryFound) {
-                if (lowerRaw.includes('base64')) {
-                    fallbackDesc = decodeBase64(fallbackDesc, charset);
-                } else if (lowerRaw.includes('quoted-printable')) {
-                    fallbackDesc = decodeQuotedPrintable(fallbackDesc);
-                }
-            } else {
-                const allHeadersRaw = rawText.substring(0, doubleNewlineFallback).toLowerCase();
-                if (allHeadersRaw.includes('content-transfer-encoding: base64')) {
-                   fallbackDesc = decodeBase64(fallbackDesc, charset);
-                } else if (allHeadersRaw.includes('content-transfer-encoding: quoted-printable')) {
-                   fallbackDesc = decodeQuotedPrintable(fallbackDesc);
-                }
+            const headers = splitIdx !== -1 ? content.substring(0, splitIdx).toLowerCase() : "";
+            if (splitIdx !== -1) content = content.substring(splitIdx).trim();
+
+            if (headers.includes('base64')) {
+                content = decodeB64(content, "utf-8");
+            } else if (headers.includes('quoted-printable')) {
+                content = decodeQP(content);
             }
 
-            fallbackDesc = fallbackDesc.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-            fallbackDesc = fallbackDesc.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-            fallbackDesc = fallbackDesc.replace(/<[^>]+>/g, ' ');
+            if (headers.includes('text/html')) {
+                return stripHtml(content);
+            }
 
-            // SOLO QUITAR ESPACIOS MÚLTIPLES (NO SALTOS DE LÍNEA)
-            fallbackDesc = fallbackDesc.replace(/[ \t]+/g, ' ').trim();
-            
-            fallbackDesc = fallbackDesc.replace(/@[a-z-]+\s+[^{]+\{[\s\S]*?\}/gi, '');
-            fallbackDesc = fallbackDesc.replace(/\.[a-z0-9_-]+\s*\{[\s\S]*?\}/gi, '');
+            return content.trim() || "[Cuerpo vacío]";
 
-            return fallbackDesc;
-
-        } catch (e: unknown) {
-            return `[Error decodificando el correo]\n\n${rawText.substring(0, 500)}...`;
+        } catch (e) {
+            console.error("Error decoding email:", e);
+            return rawText.substring(0, 1000); // Failback al crudo si todo falla
         }
     };
-        } catch (e: unknown) {
-            return `[Error decodificando el correo]\n\n${rawText.substring(0, 500)}...`;
-        }
-    };
+
 
     const handleSendReply = async () => {
         if (!selectedEmail || !replyBody.trim()) return;
