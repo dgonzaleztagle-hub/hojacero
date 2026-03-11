@@ -71,6 +71,17 @@ const projects = [
         image: '/projects/icebuin.png',
         link: 'https://icebuin.cl',
         status: 'live'
+    },
+    {
+        id: '07',
+        title: 'MIKURSO',
+        category: 'EDTECH / FINTECH',
+        description: 'Gestión financiera transparente para colegios y centros de padres. Automatización de tesorería diseñada por expertos contables.',
+        image: '/projects/kurso.png',
+        link: 'https://mikurso.cl',
+        status: 'live',
+        isNew: true,
+        launchDate: 'MAR 2026'
     }
 ];
 

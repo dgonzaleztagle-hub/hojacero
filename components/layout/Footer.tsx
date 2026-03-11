@@ -31,6 +31,7 @@ const ecosystem = [
     { label: 'Apimiel', href: 'https://apimiel.cl' },
     { label: 'ReparaPads', href: 'https://reparpads.cl' },
     { label: 'Caprex', href: 'https://caprex.cl' },
+    { label: 'MiKurso.cl', href: 'https://mikurso.cl' },
 ];
 
 const socials = [

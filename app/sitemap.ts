@@ -40,6 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         '/casos/vuelve-fidelizacion',
         '/casos/pluscontable',
         '/casos/caprex',
+        '/casos/mikurso',
     ].map((route) => ({
         url: `${baseUrl}${route}`,
         lastModified: new Date(),
