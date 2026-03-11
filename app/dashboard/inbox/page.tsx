@@ -289,6 +289,32 @@ export default function InboxPage() {
         }
     };
 
+    const LinkifyText = ({ text }: { text: string }) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const parts = text.split(urlRegex);
+
+        return (
+            <>
+                {parts.map((part, i) => {
+                    if (part.match(urlRegex)) {
+                        return (
+                            <a 
+                                key={i} 
+                                href={part} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-indigo-400 hover:text-indigo-300 underline break-all"
+                            >
+                                {part}
+                            </a>
+                        );
+                    }
+                    return part;
+                })}
+            </>
+        );
+    };
+
     const { theme } = useDashboard();
     const isDark = theme === 'dark';
 
@@ -440,8 +466,8 @@ export default function InboxPage() {
 
                         {/* Body */}
                         <div className={`flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden font-sans leading-relaxed min-w-0 w-full max-w-full ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>
-                            <div className="whitespace-pre-wrap break-all overflow-hidden max-w-full">
-                                {getCleanBody(selectedEmail.body_text)}
+                            <div className="whitespace-pre-wrap break-words overflow-hidden max-w-full text-sm md:text-base">
+                                <LinkifyText text={getCleanBody(selectedEmail.body_text)} />
                             </div>
                         </div>
 
