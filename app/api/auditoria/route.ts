@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { sendLeadToMetaCAPI } from '@/utils/meta-capi';
 
 // Verifica si existe la API Key de Resend (para no romper en local si no está)
 const resendToken = process.env.RESEND_API_KEY;
@@ -42,7 +44,21 @@ export async function POST(req: Request) {
       throw new Error("No se pudo guardar el lead en la base de datos.");
     }
 
-    // 2. Enviamos alerta por Correo a los administradores si Resend está configurado
+    // 2. INYECCIÓN A META (CAPI)
+    // Extraemos headers para telemetría de Meta
+    const headersList = await headers();
+    
+    // No usamos await aquí para no bloquear la respuesta al usuario (como pediste)
+    sendLeadToMetaCAPI({
+      email: email,
+      phone: whatsapp,
+      firstName: nombre,
+      presupuesto: 0, // Podríamos parsear el presupuesto si fuera numérico
+      userAgent: headersList.get('user-agent') || '',
+      ipAddress: headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || '127.0.0.1'
+    });
+
+    // 3. Enviamos alerta por Correo a los administradores si Resend está configurado
     if (resend) {
       try {
         await resend.emails.send({
