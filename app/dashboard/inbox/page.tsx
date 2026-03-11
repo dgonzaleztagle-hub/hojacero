@@ -109,128 +109,145 @@ export default function InboxPage() {
         if (!rawText) return "";
 
         try {
-            const decodeContent = (text: string, headers: string) => {
-                const headerStr = headers.toLowerCase();
-                if (headerStr.includes('content-transfer-encoding: quoted-printable')) {
-                    return decodeQuotedPrintable(text);
-                }
-                if (headerStr.includes('content-transfer-encoding: base64')) {
+            // Check if it's already a clean string that doesn't need parsing
+            if (!rawText.includes('Content-Type:') && !rawText.trim().startsWith('--')) {
+                return rawText.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            }
+
+            const decodeContent = (text: string, charset: string, encoding: string) => {
+                let decoded = text;
+                const enc = encoding.toLowerCase();
+                if (enc.includes('base64')) {
                     try {
                         const b64 = text.replace(/\s/g, '');
-                        if (headerStr.includes('charset="utf-8"') || headerStr.includes('charset=utf-8')) {
+                        if (charset.toLowerCase().includes('utf-8')) {
                             const decodedArray = atob(b64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('');
-                            return decodeURIComponent(decodedArray);
+                            decoded = decodeURIComponent(decodedArray);
+                        } else {
+                            decoded = decodeURIComponent(escape(atob(b64)));
                         }
-                        return decodeURIComponent(escape(atob(b64)));
                     } catch (e) {}
+                } else if (enc.includes('quoted-printable')) {
+                    try {
+                        let cleanStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
+                        cleanStr = cleanStr.replace(/=([0-9A-F]{2})/ig, '%$1');
+                        decoded = decodeURIComponent(cleanStr);
+                    } catch (e) {
+                        let fallbackStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
+                        decoded = fallbackStr.replace(/=([0-9A-F]{2})/ig, (m, hex) => String.fromCharCode(parseInt(hex, 16)));
+                    }
                 }
-                return text;
+                return decoded;
             };
 
-            const extractFromMultipart = (text: string, boundary: string): string => {
-                const parts = text.split(`--${boundary}`);
-                let bestText = "";
-                let bestHtml = "";
+            const stripUnwanted = (html: string) => {
+                return html
+                    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<\/p>/gi, '\n\n')
+                    .replace(/<[^>]+>/g, '') 
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            };
 
+            let boundaryStr = null;
+            const boundaryMatch = rawText.match(/boundary="?([^"\r\n\s]+)"?/i);
+            if (boundaryMatch) {
+                boundaryStr = boundaryMatch[1];
+            } else if (rawText.trim().startsWith('--')) {
+                // If the text is completely flat, the boundary is the first word after '--'
+                const firstLineMatch = rawText.trim().match(/^--([^\s]+)/);
+                if (firstLineMatch) {
+                    boundaryStr = firstLineMatch[1];
+                }
+            }
+
+            let bestText = "";
+            let bestHtml = "";
+
+            if (boundaryStr) {
+                const parts = rawText.split(`--${boundaryStr}`);
                 for (let i = 1; i < parts.length - 1; i++) {
                     const part = parts[i].trim();
                     if (!part) continue;
 
-                    const splitIdx = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
-                    let headers = "";
-                    let body = part;
+                    let bodyStart = 0;
+                    let contentType = "";
+                    let encoding = "";
+                    let charset = "utf-8";
 
-                    if (splitIdx !== -1) {
-                        headers = part.substring(0, splitIdx);
-                        body = part.substring(splitIdx).trim();
-                    } else {
-                        // Sometimes emails look like continuous text with no clear double newline
-                        // Just search for content-type
-                        const ctMatch = part.match(/(Content-Type:[^\r\n]+)/i);
-                        if (ctMatch) headers = ctMatch[1];
+                    // The header section might be merged inline
+                    const headerEndIdxMatch = part.match(/(Content-Transfer-Encoding:\s*[^\s()]+(?:[ \t]*\(\))?[ \t]*|Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)?[ \t]*)/ig);
+                    
+                    if (headerEndIdxMatch) {
+                        const allHeaders = headerEndIdxMatch.join(" ").toLowerCase();
+                        if (allHeaders.includes("content-type: text/html")) contentType = "text/html";
+                        else if (allHeaders.includes("content-type: text/plain")) contentType = "text/plain";
+                        
+                        if (allHeaders.includes("base64")) encoding = "base64";
+                        else if (allHeaders.includes("quoted-printable")) encoding = "quoted-printable";
+
+                        const lastMatch = headerEndIdxMatch[headerEndIdxMatch.length - 1];
+                        bodyStart = part.lastIndexOf(lastMatch) + lastMatch.length;
                     }
 
-                    const headersLower = headers.toLowerCase();
-
-                    if (headersLower.includes('content-type: multipart/')) {
-                        const nestedBoundaryMatch = headers.match(/boundary="?([^"\r\n]+)"?/i);
-                        if (nestedBoundaryMatch) {
-                            const nestedContent = extractFromMultipart(body, nestedBoundaryMatch[1]);
-                            if (nestedContent) return nestedContent;
-                        }
+                    const doubleNewline = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
+                    if (doubleNewline !== -1 && doubleNewline < 500) {
+                        bodyStart = Math.max(bodyStart, doubleNewline + 2);
+                        const headerStr = part.substring(0, doubleNewline).toLowerCase();
+                        if (headerStr.includes("content-type: text/html")) contentType = "text/html";
+                        else if (headerStr.includes("content-type: text/plain")) contentType = "text/plain";
+                        if (headerStr.includes("base64")) encoding = "base64";
+                        else if (headerStr.includes("quoted-printable")) encoding = "quoted-printable";
                     }
 
-                    if (headersLower.includes("content-type: text/plain")) {
-                        bestText = decodeContent(body, headers);
-                    } else if (headersLower.includes("content-type: text/html")) {
-                        let htmlContent = decodeContent(body, headers);
-                        bestHtml = htmlContent
-                            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-                            .replace(/<br\s*\/?>/gi, '\n')
-                            .replace(/<\/p>/gi, '\n\n')
-                            .replace(/<[^>]+>/g, '')
-                            .replace(/&nbsp;/g, ' ')
-                            .replace(/&amp;/g, '&')
-                            .replace(/&lt;/g, '<')
-                            .replace(/&gt;/g, '>')
-                            .replace(/\s+/g, ' ')
-                            .trim();
-                    }
-                }
-                return bestText || bestHtml || "";
-            };
+                    let bodyContent = part.substring(bodyStart).trim();
 
-            let boundaryStr = null;
-            const mainBoundaryMatch = rawText.match(/boundary="?([^"\r\n]+)"?/i);
-            
-            if (mainBoundaryMatch) {
-                boundaryStr = mainBoundaryMatch[1];
-            } else if (rawText.trim().startsWith('--')) {
-                const firstLineMatch = rawText.trim().match(/^--([^\r\n]+)/);
-                if (firstLineMatch) {
-                    boundaryStr = firstLineMatch[1].trim();
+                    // Remove empty parentheses left from parser anomalies
+                    if (bodyContent.startsWith('()')) {
+                        bodyContent = bodyContent.substring(2).trim();
+                    }
+
+                    const decodedStr = decodeContent(bodyContent, charset, encoding);
+
+                    if (contentType === "text/html") {
+                        const textHtml = stripUnwanted(decodedStr);
+                        bestHtml = textHtml;
+                    } else if (contentType === "text/plain") {
+                        bestText = decodedStr;
+                    }
                 }
             }
 
-            if (boundaryStr) {
-                const extracted = extractFromMultipart(rawText, boundaryStr);
-                if (extracted) return extracted;
+            if (!bestText && !bestHtml) {
+                let fallbackDesc = rawText;
+                
+                fallbackDesc = fallbackDesc.replace(/Content-Type:.*?(?=Content-Transfer-Encoding|\n\n|\r\n\r\n|\w{5,})/i, '');
+                fallbackDesc = fallbackDesc.replace(/Content-Transfer-Encoding:\s*[\w-]+\s*(?:\(\))?/i, '');
+                fallbackDesc = fallbackDesc.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+                
+                // Decode assuming it's Q-P text
+                fallbackDesc = fallbackDesc.replace(/=([0-9A-F]{2})/ig, (m, hex) => {
+                    try { return String.fromCharCode(parseInt(hex, 16)); } catch(e){ return m; }
+                }).replace(/=\n/g, '').replace(/=\s/g, '');
+
+                fallbackDesc = fallbackDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                return fallbackDesc;
             }
 
-            if (!rawText.includes("Content-Type: multipart") && !boundaryStr) {
-                let headers = "";
-                let body = rawText;
-                if (rawText.toLowerCase().includes('content-type: text/') || rawText.toLowerCase().includes('content-transfer-encoding:')) {
-                    const splitIdx = rawText.indexOf('\r\n\r\n') !== -1 ? rawText.indexOf('\r\n\r\n') : rawText.indexOf('\n\n');
-                    if (splitIdx !== -1) {
-                        headers = rawText.substring(0, splitIdx);
-                        body = rawText.substring(splitIdx).trim();
-                    }
-                }
-                const decoded = decodeContent(body, headers);
-                if (headers.toLowerCase().includes('text/html')) {
-                    return decoded.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-                }
-                return decoded;
+            if (bestText) {
+                return bestText;
             }
-
-            const lowerRaw = rawText.toLowerCase();
-            if (lowerRaw.includes('content-transfer-encoding: base64')) {
-                const parts = rawText.split(/\r\n\r\n|\n\n/);
-                if (parts.length > 1) {
-                    try {
-                        const b64 = parts.slice(1).join('').replace(/\s/g, '');
-                        const decoded = decodeURIComponent(escape(atob(b64)));
-                        return decoded.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-                    } catch (e) { }
-                }
-            }
-            if (lowerRaw.includes('content-transfer-encoding: quoted-printable')) {
-                const parts = rawText.split(/\r\n\r\n|\n\n/);
-                if (parts.length > 1) {
-                    return decodeQuotedPrintable(parts.slice(1).join('\n\n')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-                }
+            if (bestHtml) {
+                // If CSS leaked (because HTML tags were lost before), strip raw CSS rules
+                let cleanHtml = bestHtml.replace(/@[a-z-]+\s+[^{]+\{[\s\S]*?\}/gi, '');
+                cleanHtml = cleanHtml.replace(/\.[a-z0-9_-]+\s*\{[\s\S]*?\}/gi, '');
+                return cleanHtml.trim();
             }
 
             return rawText;
