@@ -365,7 +365,7 @@ export default function AuditoriaTecnicaFunnel() {
               <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 mt-8">
                 <p className="text-sm text-gray-400 mb-4">¿Estás apurado o con una urgencia de negocio?</p>
                 <a 
-                  href={`https://wa.me/56912345678?text=Hola,%20acabo%20de%20dejar%20mis%20datos%20en%20el%20Quiz%20(Soy%20${leadData.nombre || 'un prospecto'}).%20Quería%20acelerar%20mi%20diagnóstico.`}
+                  href={`https://wa.me/56958946617?text=Hola,%20acabo%20de%20dejar%20mis%20datos%20en%20el%20Quiz%20(Soy%20${leadData.nombre || 'un prospecto'}).%20Quería%20acelerar%20mi%20diagnóstico.`}
                   target="_blank" 
                   rel="noreferrer"
                   className="w-full py-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl active:scale-95 transition-all flex items-center justify-center"

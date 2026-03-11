@@ -109,148 +109,147 @@ export default function InboxPage() {
         if (!rawText) return "";
 
         try {
-            // Check if it's already a clean string that doesn't need parsing
-            if (!rawText.includes('Content-Type:') && !rawText.trim().startsWith('--')) {
-                return rawText.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-            }
+    const getCleanBody = (rawText: string) => {
+        if (!rawText) return "";
 
-            const decodeContent = (text: string, charset: string, encoding: string) => {
-                let decoded = text;
-                const enc = encoding.toLowerCase();
-                if (enc.includes('base64')) {
-                    try {
-                        const b64 = text.replace(/\s/g, '');
-                        if (charset.toLowerCase().includes('utf-8')) {
-                            const decodedArray = atob(b64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('');
-                            decoded = decodeURIComponent(decodedArray);
-                        } else {
-                            decoded = decodeURIComponent(escape(atob(b64)));
-                        }
-                    } catch (e) {}
-                } else if (enc.includes('quoted-printable')) {
-                    try {
-                        let cleanStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
-                        cleanStr = cleanStr.replace(/=([0-9A-F]{2})/ig, '%$1');
-                        decoded = decodeURIComponent(cleanStr);
-                    } catch (e) {
-                        let fallbackStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
-                        decoded = fallbackStr.replace(/=([0-9A-F]{2})/ig, (m, hex) => String.fromCharCode(parseInt(hex, 16)));
-                    }
-                }
-                return decoded;
-            };
-
+        try {
             const stripUnwanted = (html: string) => {
-                return html
+                let cleaned = html
                     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
                     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
                     .replace(/<br\s*\/?>/gi, '\n')
                     .replace(/<\/p>/gi, '\n\n')
-                    .replace(/<[^>]+>/g, '') 
+                    .replace(/<[^>]+>/g, ' ') 
                     .replace(/&nbsp;/g, ' ')
                     .replace(/&amp;/g, '&')
                     .replace(/&lt;/g, '<')
                     .replace(/&gt;/g, '>')
                     .replace(/\s+/g, ' ')
                     .trim();
+                return cleaned;
             };
 
-            let boundaryStr = null;
-            const boundaryMatch = rawText.match(/boundary="?([^"\r\n\s]+)"?/i);
+            const decodeQuotedPrintable = (text: string) => {
+                try {
+                    let cleanStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
+                    cleanStr = cleanStr.replace(/=([0-9A-F]{2})/ig, '%$1');
+                    return decodeURIComponent(cleanStr);
+                } catch {
+                    let fallbackStr = text.replace(/=\r\n/g, '').replace(/=\n/g, '').replace(/=\s/g, '');
+                    return fallbackStr.replace(/=([0-9A-F]{2})/ig, (m, hex) => String.fromCharCode(parseInt(hex, 16)));
+                }
+            };
+
+            const decodeBase64 = (text: string, charset: string) => {
+                try {
+                    const b64 = text.replace(/\s/g, '');
+                    if (charset.toLowerCase().includes('utf-8')) {
+                        const decodedArray = atob(b64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('');
+                        return decodeURIComponent(decodedArray);
+                    }
+                    return decodeURIComponent(escape(atob(b64)));
+                } catch {
+                    return text; // Fallback to raw
+                }
+            };
+
+            // Detect boundary (either explicitly via header or heuristically)
+            let boundaryStr = "";
+            const boundaryMatch = rawText.match(/boundary="?([^"\r\n\s;]+)"?/i);
             if (boundaryMatch) {
                 boundaryStr = boundaryMatch[1];
             } else if (rawText.trim().startsWith('--')) {
-                // If the text is completely flat, the boundary is the first word after '--'
-                const firstLineMatch = rawText.trim().match(/^--([^\s]+)/);
-                if (firstLineMatch) {
-                    boundaryStr = firstLineMatch[1];
-                }
+                const firstLineMatch = rawText.trim().match(/^--([a-zA-Z0-9_.-]+)/);
+                if (firstLineMatch) boundaryStr = firstLineMatch[1];
             }
-
-            let bestText = "";
-            let bestHtml = "";
 
             if (boundaryStr) {
-                const parts = rawText.split(`--${boundaryStr}`);
-                for (let i = 1; i < parts.length - 1; i++) {
-                    const part = parts[i].trim();
-                    if (!part) continue;
+                // Split sequence robustly ignoring standard line breaks
+                const parts = rawText.split(new RegExp(`--${boundaryStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'));
+                let bestText = "";
+                let bestHtml = "";
 
-                    let bodyStart = 0;
-                    let contentType = "";
-                    let encoding = "";
+                for (let part of parts) {
+                    if (part.includes('--') && part.trim() === '--') continue;
+
+                    const lowerPart = part.toLowerCase();
+                    const isHtml = lowerPart.includes('content-type: text/html');
+                    const isText = lowerPart.includes('content-type: text/plain');
+                    if (!isHtml && !isText) continue;
+
                     let charset = "utf-8";
+                    if (lowerPart.includes('charset="iso-8859-1"') || lowerPart.includes('charset=iso-8859-1')) charset = "iso-8859-1";
 
-                    // The header section might be merged inline
-                    const headerEndIdxMatch = part.match(/(Content-Transfer-Encoding:\s*[^\s()]+(?:[ \t]*\(\))?[ \t]*|Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)?[ \t]*)/ig);
+                    let content = part;
                     
-                    if (headerEndIdxMatch) {
-                        const allHeaders = headerEndIdxMatch.join(" ").toLowerCase();
-                        if (allHeaders.includes("content-type: text/html")) contentType = "text/html";
-                        else if (allHeaders.includes("content-type: text/plain")) contentType = "text/plain";
-                        
-                        if (allHeaders.includes("base64")) encoding = "base64";
-                        else if (allHeaders.includes("quoted-printable")) encoding = "quoted-printable";
-
-                        const lastMatch = headerEndIdxMatch[headerEndIdxMatch.length - 1];
-                        bodyStart = part.lastIndexOf(lastMatch) + lastMatch.length;
-                    }
-
+                    // Separate headers from body (if proper double newlines exist)
                     const doubleNewline = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
                     if (doubleNewline !== -1 && doubleNewline < 500) {
-                        bodyStart = Math.max(bodyStart, doubleNewline + 2);
-                        const headerStr = part.substring(0, doubleNewline).toLowerCase();
-                        if (headerStr.includes("content-type: text/html")) contentType = "text/html";
-                        else if (headerStr.includes("content-type: text/plain")) contentType = "text/plain";
-                        if (headerStr.includes("base64")) encoding = "base64";
-                        else if (headerStr.includes("quoted-printable")) encoding = "quoted-printable";
+                        content = part.substring(doubleNewline).trim();
+                    } else {
+                        // Flat text parsed by Regex heuristics
+                        content = content.replace(/Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)?[ \t]*/ig, '');
+                        content = content.replace(/Content-Transfer-Encoding:\s*[a-zA-Z0-9-]+\s*(?:\(\))?[ \t]*/ig, '');
+                        content = content.replace(/charset=[a-zA-Z0-9-]+\s*/ig, '');
+                        content = content.trim();
                     }
 
-                    let bodyContent = part.substring(bodyStart).trim();
-
-                    // Remove empty parentheses left from parser anomalies
-                    if (bodyContent.startsWith('()')) {
-                        bodyContent = bodyContent.substring(2).trim();
+                    if (lowerPart.includes('content-transfer-encoding: base64') || lowerPart.includes('base64')) {
+                        content = decodeBase64(content, charset);
+                    } else if (lowerPart.includes('content-transfer-encoding: quoted-printable') || lowerPart.includes('quoted-printable')) {
+                        content = decodeQuotedPrintable(content);
                     }
 
-                    const decodedStr = decodeContent(bodyContent, charset, encoding);
-
-                    if (contentType === "text/html") {
-                        const textHtml = stripUnwanted(decodedStr);
-                        bestHtml = textHtml;
-                    } else if (contentType === "text/plain") {
-                        bestText = decodedStr;
+                    if (isHtml) {
+                        bestHtml = stripUnwanted(content);
+                    } else if (isText) {
+                        bestText = content;
                     }
+                }
+
+                if (bestText || bestHtml) {
+                    return bestText || bestHtml;
                 }
             }
 
-            if (!bestText && !bestHtml) {
-                let fallbackDesc = rawText;
-                
-                fallbackDesc = fallbackDesc.replace(/Content-Type:.*?(?=Content-Transfer-Encoding|\n\n|\r\n\r\n|\w{5,})/i, '');
-                fallbackDesc = fallbackDesc.replace(/Content-Transfer-Encoding:\s*[\w-]+\s*(?:\(\))?/i, '');
-                fallbackDesc = fallbackDesc.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-                
-                // Decode assuming it's Q-P text
-                fallbackDesc = fallbackDesc.replace(/=([0-9A-F]{2})/ig, (m, hex) => {
-                    try { return String.fromCharCode(parseInt(hex, 16)); } catch(e){ return m; }
-                }).replace(/=\n/g, '').replace(/=\s/g, '');
-
-                fallbackDesc = fallbackDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-                return fallbackDesc;
+            // Fallback for non-multipart emails or completely malformed ones
+            let fallbackDesc = rawText;
+            
+            // If legitimate double newlines exist, extract body directly
+            const doubleNewlineFallback = fallbackDesc.indexOf('\r\n\r\n') !== -1 ? fallbackDesc.indexOf('\r\n\r\n') : fallbackDesc.indexOf('\n\n');
+            if (doubleNewlineFallback !== -1 && doubleNewlineFallback < 1500) {
+                fallbackDesc = fallbackDesc.substring(doubleNewlineFallback).trim();
+            } else {
+                // Otherwise aggresively remove common headers that polluted text
+                fallbackDesc = fallbackDesc.replace(/^(?:DKIM-Signature|Received|Authentication-Results|Date|From|To|Subject|Message-Id|MIME-Version|Content-Type|Content-Transfer-Encoding|X-[a-zA-Z0-9-]+)[^:]+?:.*?(?=DKIM-Signature|Received|Date|From|To|Subject|Message-Id|MIME-Version|Content-Type|Content-Transfer-Encoding|X-[a-zA-Z0-9-]+|$)/ig, '');
+                fallbackDesc = fallbackDesc.replace(/Content-Type:\s*[^\s;]+(?:;\s*charset=[^\s]+)*[ \t]*/ig, '');
+                fallbackDesc = fallbackDesc.replace(/Content-Transfer-Encoding:\s*[a-zA-Z0-9-]+\s*(?:\(\))?[ \t]*/ig, '');
             }
 
-            if (bestText) {
-                return bestText;
-            }
-            if (bestHtml) {
-                // If CSS leaked (because HTML tags were lost before), strip raw CSS rules
-                let cleanHtml = bestHtml.replace(/@[a-z-]+\s+[^{]+\{[\s\S]*?\}/gi, '');
-                cleanHtml = cleanHtml.replace(/\.[a-z0-9_-]+\s*\{[\s\S]*?\}/gi, '');
-                return cleanHtml.trim();
+            const lowerRaw = fallbackDesc.toLowerCase();
+            let charset = "utf-8";
+            if (lowerRaw.includes('charset="iso-8859-1"') || lowerRaw.includes('charset=iso-8859-1')) charset = "iso-8859-1";
+            
+            if (lowerRaw.includes('base64')) {
+                fallbackDesc = decodeBase64(fallbackDesc, charset);
+            } else if (lowerRaw.includes('quoted-printable')) {
+                fallbackDesc = decodeQuotedPrintable(fallbackDesc);
             }
 
-            return rawText;
+            fallbackDesc = fallbackDesc.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+            fallbackDesc = fallbackDesc.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+            fallbackDesc = fallbackDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            
+            // Clean weird CSS artifacts like .email-footer { width: 100% ...}
+            fallbackDesc = fallbackDesc.replace(/@[a-z-]+\s+[^{]+\{[\s\S]*?\}/gi, '');
+            fallbackDesc = fallbackDesc.replace(/\.[a-z0-9_-]+\s*\{[\s\S]*?\}/gi, '');
+
+            return fallbackDesc;
+
+        } catch (e: unknown) {
+            return `[Error decodificando el correo]\n\n${rawText.substring(0, 500)}...`;
+        }
+    };
         } catch (e: unknown) {
             return `[Error decodificando el correo]\n\n${rawText.substring(0, 500)}...`;
         }
