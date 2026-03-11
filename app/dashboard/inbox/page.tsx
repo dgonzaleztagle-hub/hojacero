@@ -117,16 +117,12 @@ export default function InboxPage() {
                 if (headerStr.includes('content-transfer-encoding: base64')) {
                     try {
                         const b64 = text.replace(/\s/g, '');
-                        // Check if UTF-8 encoded
                         if (headerStr.includes('charset="utf-8"') || headerStr.includes('charset=utf-8')) {
-                            const decodedArray = atob(b64).split('').map(function (c) {
-                                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                            }).join('');
+                            const decodedArray = atob(b64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('');
                             return decodeURIComponent(decodedArray);
                         }
                         return decodeURIComponent(escape(atob(b64)));
-                    } catch (e) {
-                    }
+                    } catch (e) {}
                 }
                 return text;
             };
@@ -136,19 +132,26 @@ export default function InboxPage() {
                 let bestText = "";
                 let bestHtml = "";
 
-                for (let i = 1; i < parts.length - 1; i++) { // Skip prolog and epilog
+                for (let i = 1; i < parts.length - 1; i++) {
                     const part = parts[i].trim();
                     if (!part) continue;
 
                     const splitIdx = part.indexOf('\r\n\r\n') !== -1 ? part.indexOf('\r\n\r\n') : part.indexOf('\n\n');
-                    if (splitIdx === -1) continue;
+                    let headers = "";
+                    let body = part;
 
-                    const headers = part.substring(0, splitIdx);
-                    let body = part.substring(splitIdx).trim();
+                    if (splitIdx !== -1) {
+                        headers = part.substring(0, splitIdx);
+                        body = part.substring(splitIdx).trim();
+                    } else {
+                        // Sometimes emails look like continuous text with no clear double newline
+                        // Just search for content-type
+                        const ctMatch = part.match(/(Content-Type:[^\r\n]+)/i);
+                        if (ctMatch) headers = ctMatch[1];
+                    }
 
                     const headersLower = headers.toLowerCase();
 
-                    // Handle nested multipart
                     if (headersLower.includes('content-type: multipart/')) {
                         const nestedBoundaryMatch = headers.match(/boundary="?([^"\r\n]+)"?/i);
                         if (nestedBoundaryMatch) {
@@ -161,7 +164,6 @@ export default function InboxPage() {
                         bestText = decodeContent(body, headers);
                     } else if (headersLower.includes("content-type: text/html")) {
                         let htmlContent = decodeContent(body, headers);
-                        // Very basic HTML to Text
                         bestHtml = htmlContent
                             .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
                             .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
@@ -179,8 +181,24 @@ export default function InboxPage() {
                 return bestText || bestHtml || "";
             };
 
+            let boundaryStr = null;
+            const mainBoundaryMatch = rawText.match(/boundary="?([^"\r\n]+)"?/i);
+            
+            if (mainBoundaryMatch) {
+                boundaryStr = mainBoundaryMatch[1];
+            } else if (rawText.trim().startsWith('--')) {
+                const firstLineMatch = rawText.trim().match(/^--([^\r\n]+)/);
+                if (firstLineMatch) {
+                    boundaryStr = firstLineMatch[1].trim();
+                }
+            }
 
-            if (!rawText.includes("Content-Type: multipart")) {
+            if (boundaryStr) {
+                const extracted = extractFromMultipart(rawText, boundaryStr);
+                if (extracted) return extracted;
+            }
+
+            if (!rawText.includes("Content-Type: multipart") && !boundaryStr) {
                 let headers = "";
                 let body = rawText;
                 if (rawText.toLowerCase().includes('content-type: text/') || rawText.toLowerCase().includes('content-transfer-encoding:')) {
@@ -197,13 +215,6 @@ export default function InboxPage() {
                 return decoded;
             }
 
-            const mainBoundaryMatch = rawText.match(/boundary="?([^"\r\n]+)"?/i);
-            if (mainBoundaryMatch) {
-                const extracted = extractFromMultipart(rawText, mainBoundaryMatch[1]);
-                if (extracted) return extracted;
-            }
-
-            // Fallbacks for Base64 or Quoted Printable without proper boundaries
             const lowerRaw = rawText.toLowerCase();
             if (lowerRaw.includes('content-transfer-encoding: base64')) {
                 const parts = rawText.split(/\r\n\r\n|\n\n/);
@@ -465,8 +476,8 @@ export default function InboxPage() {
                         </div>
 
                         {/* Body */}
-                        <div className={`flex-1 p-4 md:p-8 overflow-y-auto font-sans leading-relaxed min-w-0 ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>
-                            <div className="whitespace-pre-wrap break-all overflow-hidden">
+                        <div className={`flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden font-sans leading-relaxed min-w-0 w-full max-w-full ${isDark ? 'text-zinc-300' : 'text-gray-700'}`}>
+                            <div className="whitespace-pre-wrap break-all overflow-hidden max-w-full">
                                 {getCleanBody(selectedEmail.body_text)}
                             </div>
                         </div>
