@@ -35,6 +35,15 @@ export const GSE_DATA: Record<string, GSEInfo> = {
     'estación central': { gse: 'C3', ingreso: '$750.000', descripcion: 'Transporte, comercio' },
     'quinta normal': { gse: 'C3', ingreso: '$700.000', descripcion: 'Zona tradicional' },
     'lampa': { gse: 'C3', ingreso: '$750.000', descripcion: 'Residencial emergente' },
+    'buin': { gse: 'C2', ingreso: '$1.400.000', descripcion: 'Residencial consolidado, agro-urbano' },
+    'paine': { gse: 'C2/C3', ingreso: '$1.200.000', descripcion: 'Zona agrícola y residencial parcelas' },
+    'colina': { gse: 'ABC1/C2', ingreso: '$2.500.000', descripcion: 'Desarrollo residencial premium y medio' },
+    'pudahuel': { gse: 'C3/D', ingreso: '$850.000', descripcion: 'Mixto, logística y residencial' },
+    'talagante': { gse: 'C2/C3', ingreso: '$1.100.000', descripcion: 'Centro urbano regional' },
+    'peñaflor': { gse: 'C3', ingreso: '$950.000', descripcion: 'Residencial tradicional' },
+    'melipilla': { gse: 'C2/C3', ingreso: '$1.050.000', descripcion: 'Centro agro-industrial' },
+    'pirque': { gse: 'ABC1/C2', ingreso: '$2.800.000', descripcion: 'Residencial rural de alto valor' },
+    'san josé de maipo': { gse: 'C2/C3', ingreso: '$1.100.000', descripcion: 'Turismo y residencial de montaña' },
 };
 
 /**

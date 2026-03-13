@@ -640,7 +640,8 @@ export async function getTerritorialData(
     const restaurants = await searchSerperMaps(lat, lng, address, apiKey, specificQueries, maxRadius);
 
     // Obtener anclas comerciales (colegios, supermercados, etc.)
-    const anchors = await searchAnchorPoints(lat, lng, address, apiKey, 2); // Radio más pequeño para anclas
+    console.log(`🏢 Buscando anclas en radio de ${maxRadius}km...`);
+    const anchors = await searchAnchorPoints(lat, lng, address, apiKey, maxRadius);
 
     // Analizar saturación con clasificación dinámica según business_type
     const saturation = analyzeSaturation(restaurants, businessType);

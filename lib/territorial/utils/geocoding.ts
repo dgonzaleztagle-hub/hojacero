@@ -14,42 +14,116 @@ export interface GeocodeResult {
 }
 
 /**
- * Geocodifica una dirección usando Nominatim
+ * Geocodifica una dirección usando Mapbox (Más robusto que Nominatim)
  * @param address Dirección completa a geocodificar
  * @returns Coordenadas, comuna y nombre completo, o null si no se encuentra
  */
 export async function geocode(address: string): Promise<GeocodeResult | null> {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=cl&limit=1`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'HojaCero/3.0' } });
-    const data = await res.json();
+    let lat = 0, lng = 0, display_name = '', comuna = 'Santiago';
 
-    if (!data.length) return null;
+    // --- Google Geocoding Attempt ---
+    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!googleApiKey) {
+        console.error('❌ Error: GOOGLE_MAPS_API_KEY no configurado para Google Geocoding.');
+        // Do not return here, proceed to Mapbox fallback
+    } else {
+        try {
+            console.log(`🌍 Geocodificando con Google: ${address}`);
+            const encodedAddress = encodeURIComponent(address);
+            const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&region=cl&key=${googleApiKey}`;
+            
+            const res = await fetch(googleUrl);
+            const data = await res.json();
+            
+            if (data.status === 'OK' && data.results?.length > 0) {
+                const result = data.results[0];
+                lat = result.geometry.location.lat;
+                lng = result.geometry.location.lng;
+                display_name = result.formatted_address;
 
-    const { lat, lon, display_name } = data[0];
-    const parts = display_name.split(',').map((p: string) => p.trim().toLowerCase());
+                // Detectar comuna de Google
+                let foundInGSE = false;
+                const addressComponents = result.address_components || [];
+                for (const component of addressComponents) {
+                    const types = component.types;
+                    if (types.includes('locality') || types.includes('administrative_area_level_3')) {
+                        const text = component.long_name.toLowerCase();
+                        if (GSE_DATA[text]) {
+                            comuna = component.long_name;
+                            foundInGSE = true;
+                            break;
+                        }
+                    }
+                }
+                // Backup: si no está en GSE_DATA, usar el componente de nivel 3 como nombre de comuna
+                if (!foundInGSE) {
+                    const adminLevel3 = addressComponents.find((c: any) => c.types.includes('administrative_area_level_3'));
+                    if (adminLevel3) {
+                        comuna = adminLevel3.long_name;
+                    }
+                }
 
-    // Detectar comuna de forma más precisa
-    let comuna = 'Santiago';
-
-    // Priorizar partes de la dirección que coincidan exactamente con GSE_DATA
-    for (const part of parts) {
-        const cleanPart = part.toLowerCase().replace('comuna de ', '').trim();
-        if (GSE_DATA[cleanPart]) {
-            comuna = cleanPart.charAt(0).toUpperCase() + cleanPart.slice(1);
-            break;
-        }
-    }
-
-    // Backup: si no se encontró en GSE_DATA, intentar buscar específicamente comunas conocidas
-    if (comuna === 'Santiago') {
-        const knownComunas = ['lampa', 'colina', 'til til', 'pudahuel'];
-        for (const known of knownComunas) {
-            if (display_name.toLowerCase().includes(known)) {
-                comuna = known.charAt(0).toUpperCase() + known.slice(1);
-                break;
+                console.log(`✅ Google éxito: ${comuna} (${lat}, ${lng})`);
+                return { lat, lng, comuna, display: display_name };
             }
+            console.warn(`⚠️ Google Geocode falló (Status: ${data.status || 'UNKNOWN'}). Usando fallback Mapbox...`);
+        } catch (e) {
+            console.error('❌ Error en Google Geocode:', e);
+            console.warn('⚠️ Error en Google Geocode. Usando fallback Mapbox...');
         }
     }
 
-    return { lat: parseFloat(lat), lng: parseFloat(lon), comuna, display: display_name };
+    // --- FALLBACK: Mapbox ---
+    try {
+        const mapboxToken = process.env.MAPBOX_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+        if (!mapboxToken) {
+            console.error('❌ Error: MAPBOX_TOKEN no configurado para Mapbox Geocoding.');
+            return null; // If Mapbox token is also missing, we can't proceed
+        }
+
+        console.log(`🌍 Geocodificando con Mapbox (Fallback): ${address}`);
+        const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?country=cl&access_token=${mapboxToken}&limit=1`;
+        
+        const res = await fetch(mapboxUrl);
+        if (!res.ok) {
+            console.error(`❌ Mapbox API request failed with status: ${res.status}`);
+            return null;
+        }
+        const data = await res.json();
+        
+        if (data.features?.length > 0) {
+            const feature = data.features[0];
+            [lng, lat] = feature.center;
+            display_name = feature.place_name;
+
+            // Detectar comuna de Mapbox context
+            let foundInGSE = false;
+            const context = feature.context || [];
+            for (const ctx of context) {
+                // Mapbox context items have id, text, wikidata, short_code, etc.
+                // We are interested in the 'text' property for comparison.
+                if (ctx.text && GSE_DATA[ctx.text.toLowerCase()]) {
+                    comuna = ctx.text;
+                    foundInGSE = true;
+                    break;
+                }
+            }
+            // If not found in GSE_DATA, try to find a 'place' type context item
+            if (!foundInGSE) {
+                const placeContext = context.find((ctx: any) => ctx.id?.startsWith('place.'));
+                if (placeContext) {
+                    comuna = placeContext.text;
+                }
+            }
+
+            console.log(`✅ Mapbox éxito: ${comuna} (${lat}, ${lng})`);
+            return { lat, lng, comuna, display: display_name };
+        } else {
+            console.warn('⚠️ Mapbox Geocode no encontró resultados.');
+        }
+    } catch (e) {
+        console.error('❌ Error en Mapbox Fallback:', e);
+    }
+
+    return null;
 }
