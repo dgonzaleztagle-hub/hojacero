@@ -24,15 +24,58 @@ export default function HousingIntelligenceDashboard() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [isDeepScanning, setIsDeepScanning] = useState(false);
+  const [detailCache, setDetailCache] = useState<Record<string, any>>({});
   const [error, setError] = useState<string | null>(null);
 
-  const handleAnalyze = async (e: React.FormEvent) => {
+  const handlePropertyClick = async (property: any) => {
+    // 1. Revisar caché primero
+    if (detailCache[property.url]) {
+        setSelectedProperty(detailCache[property.url]);
+        return;
+    }
+
+    setSelectedProperty(property);
+    setIsDeepScanning(true);
+
+    try {
+        const response = await fetch('/aplicaciones/housing-intel/api/detail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                url: property.url,
+                lat: property.lat,
+                lng: property.lng
+            })
+        });
+        
+        const result = await response.json();
+        if (result.success && result.detail) {
+            const enrichedProperty = {
+                ...property,
+                ...result.detail
+            };
+            setSelectedProperty(enrichedProperty);
+            // 2. Guardar en caché
+            setDetailCache(prev => ({
+                ...prev,
+                [property.url]: enrichedProperty
+            }));
+        }
+    } catch (error) {
+        console.error("Error en escaneo forense:", error);
+    } finally {
+        setIsDeepScanning(false);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setData(null);
     try {
-      const res = await fetch('/api/housing-intel/analyze', {
+      const res = await fetch('/aplicaciones/housing-intel/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, radius_m: radius })
@@ -68,7 +111,7 @@ export default function HousingIntelligenceDashboard() {
 
       {/* Main Search */}
       <div className="max-w-4xl mx-auto mb-16">
-        <form onSubmit={handleAnalyze} className="relative group">
+        <form onSubmit={(e) => handleSearch(e)} className="relative group">
           <input
             type="text"
             placeholder="Ingrese dirección para tasar (Ej: Brasil 121, Santiago)..."
@@ -233,7 +276,7 @@ export default function HousingIntelligenceDashboard() {
                           (data.market || []).map((p: any, i: number) => (
                           <div 
                               key={i} 
-                              onClick={() => setSelectedProperty(p)}
+                              onClick={() => handlePropertyClick(p)}
                               className="flex flex-col p-5 bg-black/40 rounded-2xl border border-zinc-800/50 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group cursor-pointer"
                           >
                               <div className="flex justify-between items-start mb-4">
@@ -271,55 +314,99 @@ export default function HousingIntelligenceDashboard() {
                     
                     <div className="flex flex-col md:flex-row gap-8">
                         <div className="w-full md:w-1/2">
-                            {/* STREET VIEW / FOTO (EL WOW FACTOR) */}
+                            {/* MAPA / VISTA SATELITAL (SOLUCIÓN FALLO GOOGLE) */}
                             <div className="aspect-video bg-zinc-800 rounded-2xl overflow-hidden border border-zinc-700 shadow-2xl group relative">
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    style={{ border: 0 }}
-                                    loading="lazy"
-                                    allowFullScreen
-                                    src={`https://www.google.com/maps/embed/v1/streetview?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&location=${selectedProperty.lat},${selectedProperty.lng}&heading=210&pitch=10&fov=80`}
-                                ></iframe>
+                                {selectedProperty.static_map_url ? (
+                                    <img 
+                                        src={selectedProperty.static_map_url} 
+                                        alt="Vista Satelital de la Propiedad" 
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    />
+                                ) : (
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        style={{ border: 0 }}
+                                        loading="lazy"
+                                        allowFullScreen
+                                        src={`https://www.google.com/maps/embed/v1/streetview?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&location=${selectedProperty.lat},${selectedProperty.lng}&heading=210&pitch=10&fov=80`}
+                                    ></iframe>
+                                )}
                                 <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                                    Live Street View
+                                    <div className={`w-2 h-2 ${selectedProperty.static_map_url ? 'bg-blue-500' : 'bg-red-500 animate-pulse'} rounded-full`}></div>
+                                    {selectedProperty.static_map_url ? 'Vista Satelital H0' : 'Live Street View'}
                                 </div>
                             </div>
                         </div>
                         <div className="w-full md:w-1/2 space-y-6">
-                            <div>
-                                <h2 className="text-3xl font-black text-white mb-2">{selectedProperty.price_uf.toLocaleString()} UF</h2>
-                                <p className="text-zinc-500 text-lg">${(selectedProperty.price_uf * 37500).toLocaleString()}</p>
-                            </div>
-                            
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="bg-zinc-800/50 p-4 rounded-xl text-center border border-zinc-700/50">
-                                    <p className="text-zinc-500 text-[10px] uppercase font-bold mb-1">M² Total</p>
-                                    <p className="text-white font-bold">{selectedProperty.m2_total}</p>
+                            {isDeepScanning ? (
+                                <div className="space-y-6 animate-pulse">
+                                    <div className="h-10 bg-zinc-800 rounded-lg w-3/4"></div>
+                                    <div className="h-4 bg-zinc-800 rounded-lg w-1/2"></div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="h-16 bg-zinc-800 rounded-xl"></div>
+                                        <div className="h-16 bg-zinc-800 rounded-xl"></div>
+                                        <div className="h-16 bg-zinc-800 rounded-xl"></div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="h-3 bg-zinc-800 rounded w-1/4"></div>
+                                        <div className="h-20 bg-zinc-800 rounded-xl"></div>
+                                    </div>
+                                    <div className="p-4 border border-blue-500/30 bg-blue-500/5 rounded-2xl">
+                                        <p className="text-blue-400 text-xs font-bold animate-bounce text-center">EJECUTANDO ANÁLISIS FORENSE...</p>
+                                    </div>
                                 </div>
-                                <div className="bg-zinc-800/50 p-4 rounded-xl text-center border border-zinc-700/50">
-                                    <p className="text-zinc-500 text-[10px] uppercase font-bold mb-1">Dorm.</p>
-                                    <p className="text-white font-bold">{selectedProperty.bedrooms}</p>
-                                </div>
-                                <div className="bg-zinc-800/50 p-4 rounded-xl text-center border border-zinc-700/50">
-                                    <p className="text-zinc-500 text-[10px] uppercase font-bold mb-1">Baños</p>
-                                    <p className="text-white font-bold">{selectedProperty.bathrooms}</p>
-                                </div>
-                            </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <h2 className="text-3xl font-black text-white mb-2">{selectedProperty.price_display || `${selectedProperty.price_uf.toLocaleString()} UF`}</h2>
+                                        <p className="text-zinc-500 text-lg">${(selectedProperty.price_uf * 37500).toLocaleString()}</p>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="bg-zinc-800/50 p-4 rounded-xl text-center border border-zinc-700/50 text-ellipsis overflow-hidden">
+                                            <p className="text-zinc-500 text-[10px] uppercase font-bold mb-1">M² Total</p>
+                                            <p className="text-white font-bold text-xs truncate">
+                                                {selectedProperty.m2_display || selectedProperty.m2_total || selectedProperty.m2_built || '---'}
+                                            </p>
+                                        </div>
+                                        <div className="bg-zinc-800/50 p-4 rounded-xl text-center border border-zinc-700/50">
+                                            <p className="text-zinc-500 text-[10px] uppercase font-bold mb-1">Dorm.</p>
+                                            <p className="text-white font-bold text-xs">
+                                                {selectedProperty.bedrooms_display || selectedProperty.bedrooms || '---'}
+                                            </p>
+                                        </div>
+                                        <div className="bg-zinc-800/50 p-4 rounded-xl text-center border border-zinc-700/50">
+                                            <p className="text-zinc-500 text-[10px] uppercase font-bold mb-1">Baños</p>
+                                            <p className="text-white font-bold text-xs">
+                                                {selectedProperty.bathrooms_display || selectedProperty.bathrooms || '---'}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Dirección Estimada</h4>
-                                <p className="text-zinc-100">{selectedProperty.title}</p>
-                            </div>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Dirección/Título</h4>
+                                            <p className="text-zinc-100">{selectedProperty.title}</p>
+                                        </div>
 
-                            <a 
-                                href={selectedProperty.url} 
-                                target="_blank"
-                                className="block w-full bg-blue-600 hover:bg-blue-500 text-white text-center py-4 rounded-2xl font-bold transition-all mt-8"
-                            >
-                                Ver Publicación Original
-                            </a>
+                                        {selectedProperty.description && (
+                                            <div className="space-y-2">
+                                                <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-wider">Descripción del Activo</h4>
+                                                <p className="text-zinc-300 text-xs leading-relaxed line-clamp-6">{selectedProperty.description}</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <a 
+                                        href={selectedProperty.url} 
+                                        target="_blank"
+                                        className="block w-full bg-blue-600 hover:bg-blue-500 text-white text-center py-4 rounded-2xl font-bold transition-all mt-8"
+                                    >
+                                        Ver Publicación Original
+                                    </a>
+                                </>
+                            )}
                         </div>
                     </div>
                   </div>

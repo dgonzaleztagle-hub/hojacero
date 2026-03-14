@@ -5,6 +5,7 @@ export interface HousingProperty {
   price_clp?: number;
   m2_total: number;
   m2_built?: number;
+  m2_terreno?: number;
   bedrooms?: number;
   bathrooms?: number;
   parking?: number;
@@ -12,6 +13,12 @@ export interface HousingProperty {
   lat?: number;
   lng?: number;
   url: string;
+  description?: string;
+  price_display?: string;
+  m2_display?: string;
+  bedrooms_display?: string;
+  bathrooms_display?: string;
+  m2_terreno_display?: string;
   source: 'toctoc' | 'portal_inmobiliario' | 'sii';
   type: 'casa' | 'departamento' | 'terreno';
   last_seen?: Date;

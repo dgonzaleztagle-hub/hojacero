@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { geocode } from '@/lib/territorial/utils/geocoding';
-import { calculateBoundingBox } from '@/lib/housing-intel/geo-utils';
-import { getTocTocProperties } from '@/lib/housing-intel/toctoc-scraper';
+import { calculateBoundingBox } from '../../_lib/geo-utils';
+import { getTocTocProperties } from '../../_lib/toctoc-scraper';
 import { getTerritorialData } from '@/lib/scrapers/serper-scraper';
 import { generateTerritorialMap } from '@/lib/mapbox-static';
 import { synthesizeWithGroq, synthesizeWithGemini } from '@/lib/territorial/synthesis';
@@ -45,17 +45,31 @@ export async function POST(req: NextRequest) {
     console.log('🚀 Iniciando motores de inteligencia paralelos (Modo Resiliente)...');
     console.time('intel-engines-duration');
 
-    // A. Extracción Quirúrgica en Tiempo Real Puro (Live Scraping)
-    console.log('📡 [TRACE 1] Iniciando Scraping de TOCTOC...');
-    const residentialData = await getTocTocProperties({
-      centerLat: geo.lat, 
-      centerLng: geo.lng, 
-      radiusInMeters: radius_m, 
-      bbox, 
-      type: property_type as any,
-      addressHint: address
-    });
-    console.log(`✅ [TRACE 2] Scraping finalizado. Encontradas: ${residentialData.length} propiedades.`);
+    // A. Extracción Quirúrgica en Tiempo Real Puro (Dual Scan: Casas + Deptos)
+    console.log('📡 [TRACE 1] Iniciando Scraping Dual de TOCTOC...');
+    
+    // Ejecutamos ambas búsquedas en paralelo para máxima eficiencia
+    const [houses, apartments] = await Promise.all([
+      getTocTocProperties({
+        centerLat: geo.lat, 
+        centerLng: geo.lng, 
+        radiusInMeters: radius_m, 
+        bbox, 
+        type: 'casa',
+        addressHint: address
+      }),
+      getTocTocProperties({
+        centerLat: geo.lat, 
+        centerLng: geo.lng, 
+        radiusInMeters: radius_m, 
+        bbox, 
+        type: 'departamento',
+        addressHint: address
+      })
+    ]);
+
+    const residentialData = [...houses, ...apartments];
+    console.log(`✅ [TRACE 2] Scraping dual finalizado. Casas: ${houses.length}, Deptos: ${apartments.length}. Total: ${residentialData.length}`);
 
     // B. Inteligencia de Entorno (H0 Territorial Engine)
     console.log('📡 [TRACE 3] Iniciando Inteligencia Territorial...');
