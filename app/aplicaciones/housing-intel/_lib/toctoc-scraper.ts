@@ -199,6 +199,16 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
         return m ? parseInt(m[1]) : 0;
       };
 
+      // Selectores robustos basados en Selenium Reference (XPATH)
+      const getTocTocText = (xpath: string) => {
+          const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+          return result.singleNodeValue?.textContent?.trim() || "";
+      };
+
+      const seleniumPrice = getTocTocText("//div[contains(@class, 'precio-b') or contains(@class, 'precio-ficha')]");
+      const seleniumHeader = getTocTocText("//h1[contains(@class, 'tt-ficha')]");
+      const seleniumSpecs = getTocTocText("//ul[contains(@class, 'info_ficha')]");
+
       // Descripción con selectores más amplios y precisos tras click
       const descSelectors = [
           '.txt-descripcion',

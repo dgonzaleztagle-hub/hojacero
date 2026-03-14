@@ -15,6 +15,8 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY!;
 const GOOGLE_AI_KEY = process.env.GOOGLE_AI_KEY!;
 const MAPBOX_TOKEN = process.env.MAPBOX_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
+export const maxDuration = 60; // Aumentar a 60s para soportar scraping lineal en Vercel
+
 /**
  * API Route: Housing Intelligence Analyzer
  * Combina datos residenciales con inteligencia territorial comercial.
@@ -41,35 +43,33 @@ export async function POST(req: NextRequest) {
     const bbox = calculateBoundingBox(geo.lat, geo.lng, radius_m);
     const gse = getGSEByComuna(geo.comuna) || getDefaultGSE();
 
-    // 3. Ejecutar Scrapers en paralelo (Sinergia)
-    console.log('🚀 Iniciando motores de inteligencia paralelos (Modo Resiliente)...');
+    // 3. Ejecutar Scrapers de forma LINEAL (Modo Seguro para Vercel)
+    console.log('🚀 Iniciando motores de inteligencia secuenciales (Resiliencia Cloud)...');
     console.time('intel-engines-duration');
 
-    // A. Extracción Quirúrgica en Tiempo Real Puro (Dual Scan: Casas + Deptos)
-    console.log('📡 [TRACE 1] Iniciando Scraping Dual de TOCTOC...');
-    
-    // Ejecutamos ambas búsquedas en paralelo para máxima eficiencia
-    const [houses, apartments] = await Promise.all([
-      getTocTocProperties({
+    // A. Extracción Quirúrgica Línea a Línea
+    console.log('📡 [TRACE 1.1] Buscando CASAS...');
+    const houses = await getTocTocProperties({
         centerLat: geo.lat, 
         centerLng: geo.lng, 
         radiusInMeters: radius_m, 
         bbox, 
         type: 'casa',
         addressHint: address
-      }),
-      getTocTocProperties({
+    });
+
+    console.log('📡 [TRACE 1.2] Buscando DEPARTAMENTOS...');
+    const apartments = await getTocTocProperties({
         centerLat: geo.lat, 
         centerLng: geo.lng, 
         radiusInMeters: radius_m, 
         bbox, 
         type: 'departamento',
         addressHint: address
-      })
-    ]);
+    });
 
     const residentialData = [...houses, ...apartments];
-    console.log(`✅ [TRACE 2] Scraping dual finalizado. Casas: ${houses.length}, Deptos: ${apartments.length}. Total: ${residentialData.length}`);
+    console.log(`✅ [TRACE 2] Scraping secuencial finalizado. Total: ${residentialData.length}`);
 
     // B. Inteligencia de Entorno (H0 Territorial Engine)
     console.log('📡 [TRACE 3] Iniciando Inteligencia Territorial...');
