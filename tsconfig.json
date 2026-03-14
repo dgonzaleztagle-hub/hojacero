@@ -39,6 +39,7 @@
   "exclude": [
     "node_modules",
     "exports",
-    "temp_apimiel_fix"
+    "temp_apimiel_fix",
+    "scripts"
   ]
 }

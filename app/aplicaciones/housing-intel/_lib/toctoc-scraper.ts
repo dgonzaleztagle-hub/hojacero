@@ -28,9 +28,9 @@ async function getBrowser() {
         console.log(`🚀 [SCRAPER] Iniciando Motor Serverless (Vercel Mode)`);
         return await puppeteerCore.launch({
             args: chromium.args,
-            defaultViewport: chromium.defaultViewport as any,
+            defaultViewport: { width: 1280, height: 800 },
             executablePath: await chromium.executablePath(),
-            headless: chromium.headless as any,
+            headless: true as any,
         });
     }
 
