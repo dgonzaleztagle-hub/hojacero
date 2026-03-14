@@ -48,13 +48,17 @@ async function getBrowser() {
 export async function getTocTocPropertiesList(options: TocTocOptions): Promise<HousingProperty[]> {
   const { 
     centerLat, centerLng, bbox, 
-    type = 'casa', operation = 'compra', ufValue = 37500 
+    type = 'casa', operation = 'compra', ufValue = 37500,
+    addressHint
   } = options;
   
   const viewportStr = getTocTocViewportString(bbox);
-  const url = `https://www.toctoc.com/resultados/lista/${operation}/${type}/?viewport=${viewportStr}`;
+  // Agregamos texto de búsqueda para mayor precisión (Search Grounding)
+  const queryText = addressHint ? encodeURIComponent(addressHint) : "";
+  const url = `https://www.toctoc.com/resultados/lista/${operation}/${type}/?texto=${queryText}&viewport=${viewportStr}`;
   
-  console.log(`📡 [LISTA] Iniciando escaneo rápido de ${type.toUpperCase()}`);
+  console.log(`📡 [LISTA] Iniciando escaneo quirúrgico de ${type.toUpperCase()}`);
+  console.log(`🔗 URL: ${url}`);
   
   const browser = await getBrowser();
 
@@ -63,8 +67,25 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
     await page.setViewport({ width: 1280, height: 800 });
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
 
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await new Promise(r => setTimeout(r, 4000)); // Espera para carga de tarjetas
+    // Bloqueo de recursos pesados para optimizar memoria en Vercel
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+        if (['image', 'font', 'media'].includes(req.resourceType())) {
+            req.abort();
+        } else {
+            req.continue();
+        }
+    });
+
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+    
+    // Esperar al contenedor de resultados identificado en la inspección
+    try {
+        await page.waitForSelector('div#resul', { timeout: 10000 });
+    } catch (e) {
+        console.log("⚠️ No se encontró div#resul, intentando fallback de tiempo...");
+        await new Promise(r => setTimeout(r, 5000));
+    }
 
     // @ts-ignore - Evitar choque de tipos entre puppeteer y puppeteer-core
     const properties = await page.evaluate((pType: string, currentUF: number, cLat: number, cLng: number) => {
