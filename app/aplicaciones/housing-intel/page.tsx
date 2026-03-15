@@ -83,6 +83,8 @@ export default function HousingIntelligenceDashboard() {
       const result = await res.json();
       if (result.error) {
         setError(result.error);
+      } else if (!result.market || result.market.length === 0) {
+        setError(`Sin propiedades en un radio de ${radius >= 1000 ? radius/1000 + 'km' : radius + 'm'} para "${address}". Intenta ampliar el radio o revisa la dirección.`);
       } else {
         setData(result);
       }
