@@ -44,7 +44,7 @@ next-env.d.ts
 # exports (se suben a repos independientes por cliente)
 /exports/
 /playgroundn8n/
-
+/tmp/
 
 .vercel
 .env*.local
