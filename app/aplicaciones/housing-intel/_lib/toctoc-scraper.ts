@@ -217,6 +217,85 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
       return null;
     }
 
+    // Identidades ficticias rotativas para el formulario de invitado
+    const GUESTS = [
+      { nombre: 'Carlos',    apellido: 'Mendez',    email: 'c.mendez.prop@outlook.com', rut: '123456785', telefono: '912348765' },
+      { nombre: 'Valentina', apellido: 'Rojas',     email: 'v.rojas.inmueble@gmail.com', rut: '156789003', telefono: '987651234' },
+      { nombre: 'Andres',   apellido: 'Fuentes',   email: 'afuentes.depto@yahoo.com',   rut: '182345679', telefono: '934562109' },
+    ];
+    const guest = GUESTS[Math.floor(Math.random() * GUESTS.length)];
+
+    // FLUJO INVITADO: Click "Ver datos de contacto"
+    try {
+      // @ts-ignore
+      await page.evaluate(`
+        (function() {
+          var btns = document.querySelectorAll('button, a, div, span');
+          for (var i = 0; i < btns.length; i++) {
+            var t = (btns[i].textContent || '').trim();
+            if (t.indexOf('Ver datos') !== -1) { btns[i].click(); return; }
+          }
+        })()
+      `);
+      await new Promise(r => setTimeout(r, 2500));
+
+      // Click "Continuar como invitado"
+      // @ts-ignore
+      await page.evaluate(`
+        (function() {
+          var btns = document.querySelectorAll('button, a, p, span, div');
+          for (var i = 0; i < btns.length; i++) {
+            var t = (btns[i].textContent || '').trim();
+            if (t === 'Continuar como invitado' || t.indexOf('como invitado') !== -1) {
+              btns[i].click(); return;
+            }
+          }
+        })()
+      `);
+      await new Promise(r => setTimeout(r, 2000));
+
+      // Llenar campos del formulario (con los placeholders reales de TocToc)
+      const fillField = async (placeholders: string[], value: string) => {
+        for (const ph of placeholders) {
+          try {
+            // @ts-ignore
+            const el = await (page as any).$(`input[placeholder="${ph}"]`);
+            if (el) { await (el as any).type(value); return true; }
+          } catch (_e) { /* seguir */ }
+        }
+        return false;
+      };
+
+      await fillField(['Nombre'], guest.nombre);
+      await fillField(['Apellido'], guest.apellido);
+      await fillField(['Email', 'Ingresa tu e-mail', 'E-mail'], guest.email);
+      await fillField(['RUT', 'Ingresa tu RUT sin puntos y sin guión'], guest.rut);
+      await fillField(['Teléfono', 'Ingresa tu teléfono', '+56'], guest.telefono);
+
+      // Checkbox de términos
+      // @ts-ignore
+      await page.evaluate(`
+        document.querySelectorAll('input[type="checkbox"]').forEach(function(c) {
+          if (!c.checked) c.click();
+        });
+      `);
+      await new Promise(r => setTimeout(r, 500));
+
+      // Click "Continuar"
+      // @ts-ignore
+      await page.evaluate(`
+        (function() {
+          var btns = document.querySelectorAll('button');
+          for (var i = 0; i < btns.length; i++) {
+            if ((btns[i].textContent || '').trim() === 'Continuar') {
+              btns[i].click(); return;
+            }
+          }
+        })()
+      `);
+      await new Promise(r => setTimeout(r, 4000));
+    } catch (_e) { /* Si falla el flujo invitado, continuar con lo que haya */ }
+
     // Click "Leer más" si existe
     try {
       // @ts-ignore
@@ -312,7 +391,8 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
         }
 
         // === DORMITORIOS y BAÑOS (navegando el DOM real) ===
-        // TocToc escribe: <h4>Dormitorios:</h4><strong>5</strong> dentro de ul.info_ficha o ul.f-programa
+        // TocToc escribe: <h4>Dormitorios:</h4><strong> 1 a 3 </strong> dentro de ul.f-programa
+        // IMPORTANTE: el strong puede tener un rango "1 a 3" — tomamos solo el PRIMER número
         var dorms = 0, baths = 0;
         var fichaEl = document.querySelector('ul.info_ficha, ul.f-programa');
         if (fichaEl) {
@@ -322,7 +402,10 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
             var fValue = fichaItems[fi].querySelector('strong, .f-programa-text strong');
             if (!fTitle || !fValue) continue;
             var fTitleText = (fTitle.textContent || '').toLowerCase();
-            var fValueNum = parseInt((fValue.textContent || '').replace(/[^0-9]/g, '')) || 0;
+            var fValueText = (fValue.textContent || '').trim();
+            // Extraer el PRIMER número del texto (respeta "1 a 3" tomando solo el 1)
+            var firstNum = fValueText.match(/([0-9]+)/);
+            var fValueNum = firstNum ? parseInt(firstNum[1]) : 0;
             if (fTitleText.indexOf('dorm') !== -1 || fTitleText.indexOf('hab') !== -1) {
               dorms = fValueNum;
             } else if (fTitleText.indexOf('ba') !== -1) {
@@ -348,39 +431,63 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
         var m2U = m2UM ? m2UM[1] : "";
         var m2T = m2TM ? m2TM[1] : "";
 
-        // === CONTACTO (textContent — no depende de renderizado CSS) ===
+        // === CONTACTO — post flujo invitado, los datos reales ya están en el DOM ===
         var contactName = "", contactPhone = "", contactEmail = "", contactCompany = "", contactWhatsapp = "";
         var contactBox = document.querySelector('.cf-contacto');
         if (contactBox) {
+          // Empresa
           var anuncItems = contactBox.querySelectorAll('ul.info-anunciante li');
           for (var ai = 0; ai < anuncItems.length; ai++) {
             var aiStrong = anuncItems[ai].querySelector('strong');
             if (aiStrong) {
               contactCompany = (aiStrong.textContent || '').trim();
-            } else {
-              var aiText = (anuncItems[ai].textContent || '').trim();
-              if (aiText && aiText.length > 2 && contactCompany && !contactCompany.includes(aiText)) {
-                contactCompany += ' ' + aiText;
-              }
             }
           }
-          contactCompany = contactCompany.trim();
-
-          var cUl = contactBox.querySelectorAll('ul > li');
-          for (var ci = 0; ci < cUl.length; ci++) {
-            var liText = (cUl[ci].textContent || '').trim();
-            var eM = liText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/);
-            if (eM && !contactEmail) contactEmail = eM[0];
-            var pM = liText.match(/\\+?56\\s*\\d[\\s\\d]{7,11}/) || liText.match(/\\d{4}\\s?\\d{4}/);
-            if (pM && !contactPhone) contactPhone = pM[0].replace(/\\s+/g, ' ').trim();
+          // Fallback empresa: texto con "Anunciante"
+          if (!contactCompany) {
+            var allText = contactBox.textContent || '';
+            var anuncIdx = allText.indexOf('Anunciante');
+            if (anuncIdx >= 0) {
+              contactCompany = allText.substring(anuncIdx + 10, anuncIdx + 60).trim().split('\\n')[0].trim();
+            }
           }
 
-          var waEl = contactBox.querySelector('a[href*="whatsapp"], a[href*="wa.me"]');
-          if (waEl) contactWhatsapp = waEl.href;
-        }
-        if (!contactWhatsapp) {
-          var waGlobal = document.querySelector('a[href*="wa.me"], a[href*="whatsapp.com/send"]');
-          if (waGlobal) contactWhatsapp = waGlobal.href;
+          // TELÉFONO REAL: buscar links tel: (aparecen después del login invitado)
+          var telLinks = contactBox.querySelectorAll('a[href^="tel:"]');
+          for (var ti = 0; ti < telLinks.length; ti++) {
+            var tel = telLinks[ti].href.replace('tel:', '').trim();
+            if (tel && !contactPhone) contactPhone = tel;
+            else if (tel && contactPhone && !contactPhone.includes(tel)) contactPhone += ' / ' + tel;
+          }
+          // Fallback: texto del box
+          if (!contactPhone) {
+            var boxText = contactBox.textContent || '';
+            var phoneM = boxText.match(/9[-\\s]?\\d{4}[-\\s]?\\d{4}/) || boxText.match(/\\+?[0-9][\\d\\s/-]{7,14}/);
+            if (phoneM) contactPhone = phoneM[0].trim();
+          }
+
+          // EMAIL REAL: después del invitado ya no está ofuscado
+          var emailLinks = contactBox.querySelectorAll('a[href^="mailto:"]');
+          if (emailLinks.length > 0) {
+            contactEmail = emailLinks[0].href.replace('mailto:', '').trim();
+          }
+          if (!contactEmail) {
+            var boxText2 = contactBox.textContent || '';
+            var emailM = boxText2.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/);
+            // Filtrar emails ofuscados (conXXXXX@XXXX.com)
+            if (emailM && emailM[0].indexOf('XXXX') === -1) contactEmail = emailM[0];
+          }
+
+          // WHATSAPP REAL: solo wa.me/56XXXXXXXXX (no el link de compartir)
+          var waLinks = contactBox.querySelectorAll('a[href*="wa.me/"]');
+          for (var wi = 0; wi < waLinks.length; wi++) {
+            var waHref = waLinks[wi].href;
+            // Filtrar: el link de compartir tiene "?text=https" — el real tiene solo el número
+            if (waHref.indexOf('?text=https') === -1) {
+              contactWhatsapp = waHref;
+              break;
+            }
+          }
         }
 
         return {
