@@ -65,15 +65,8 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
     await page.setViewport({ width: 1280, height: 1000 });
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
 
-    await page.setRequestInterception(true);
-    page.on('request', (req) => {
-        if (['image', 'font', 'media'].includes(req.resourceType())) {
-            req.abort();
-        } else {
-            req.continue();
-        }
-    });
-
+    // Se retira la interrupción de requests (imágenes/fuentes) para evitar que Cloudflare 
+    // detecte el headless bot y bloquee la página de la lista.
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
     
     // Esperar a que carguen las tarjetas
@@ -87,20 +80,25 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
     // @ts-ignore
     const properties = await page.evaluate((pType: string, currentUF: number, cLat: number, cLng: number) => {
       const results: any[] = [];
-      // TocToc usa distintas clases según si es proyecto nuevo o usado
-      const cards = Array.from(document.querySelectorAll('div[class*="Card_container"], li[class*="item"], article'));
+      const links = document.querySelectorAll('a.lnk-info');
       const seenUrls = new Set();
 
-      cards.forEach((card: any) => {
-        const linkEl = card.querySelector('a[href*="/propiedades/"]') as HTMLAnchorElement;
-        const url = linkEl?.href;
-        if (!url || seenUrls.has(url)) return;
+      for (let i = 0; i < links.length; i++) {
+        const linkEl = links[i] as HTMLAnchorElement;
+        const url = linkEl.href;
+        if (!url || url.indexOf('/propiedades/') === -1 || seenUrls.has(url)) continue;
         seenUrls.add(url);
 
-        // EXTRACCIÓN DE PRECIO
+        // EXTRACCIÓN DE PRECIO (El a-tag anterior que contiene la foto y el precio)
         let pUF = 0;
-        const priceEl = card.querySelector('p[class*="txtPrecioA-ds"], .precio-uf, .price');
-        const priceText = priceEl?.innerText || card.innerText;
+        let priceText = "";
+        const prevA = linkEl.previousElementSibling as HTMLAnchorElement;
+        if (prevA && prevA.tagName === 'A') {
+            const priceEl = prevA.querySelector('h4, .precio-uf, [class*="precio"]');
+            priceText = priceEl ? priceEl.textContent || "" : prevA.textContent || "";
+        } else {
+            priceText = linkEl.parentElement?.textContent || "";
+        }
         
         const ufMatch = priceText.match(/UF\s*([\d.]+)/i);
         const clpMatch = priceText.match(/\$\s*([\d.]+)/);
@@ -112,21 +110,23 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
             pUF = Math.round(val / currentUF);
         }
 
-        if (pUF <= 0 || pUF > 1000000) return;
+        if (pUF <= 0 || pUF > 1000000) continue;
 
-        // EXTRACCIÓN DE CARACTERÍSTICAS (Priorizar limpieza de texto)
-        const innerText = card.innerText;
+        // EXTRACCIÓN DE CARACTERÍSTICAS (div siguiente)
+        let innerText = linkEl.textContent || "";
+        const nextDiv = linkEl.nextElementSibling;
+        if (nextDiv) {
+            innerText += " " + (nextDiv.textContent || "");
+        }
+
         const dormMatch = innerText.match(/(\d+)\s*(?:dorm|hab)/i);
         const bathMatch = innerText.match(/(\d+)\s*(?:baño|bath)/i);
         const m2Match = innerText.match(/(\d+(?:[.,]\d+)?)\s*m²/i);
 
-        // Limpieza de Título (Evitar duplicación de comuna)
-        let rawTitle = linkEl?.innerText?.trim() || card.querySelector('h3, h2, p[class*="address"]')?.innerText?.trim() || "Propiedad";
-        
-        // El 'tartamudeo' ocurre porque a veces el título ya trae la comuna
-        // Intentamos limpiar ruidos comunes
-        let cleanTitle = rawTitle.split('\n')[0].trim();
-        cleanTitle = cleanTitle.replace(/Nuevo en venta/i, '').replace(/\|/g, '').trim();
+        // Limpieza de Título
+        const h3 = linkEl.querySelector('h3, h2');
+        let rawTitle = h3 ? h3.textContent?.trim() || '' : linkEl.textContent?.trim() || "Propiedad";
+        let cleanTitle = rawTitle.split('\n')[0].replace(/Nuevo en venta/i, '').replace(/\|/g, '').trim();
 
         results.push({
           id: Math.random().toString(36).substring(7),
@@ -143,11 +143,11 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
           url,
           type: pType,
           source: 'market_intel',
-          // Coordenadas con menor dispersión para que el radar se vea más agrupado
+          // Coordenadas con menor dispersión
           lat: cLat + (Math.random() - 0.5) * 0.002, 
           lng: cLng + (Math.random() - 0.5) * 0.002
         });
-      });
+      }
       return results;
     }, type, ufValue, centerLat, centerLng);
 
