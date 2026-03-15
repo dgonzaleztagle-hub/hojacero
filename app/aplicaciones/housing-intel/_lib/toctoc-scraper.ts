@@ -43,7 +43,7 @@ async function getBrowser() {
 
 /**
  * FASE 1: Scraper de Lista (Rápido y Ligero)
- * Captura las tarjetas de la vista general.
+ * Captura las tarjetas de la vista general usando a.lnk-info
  */
 export async function getTocTocPropertiesList(options: TocTocOptions): Promise<HousingProperty[]> {
   const { 
@@ -65,15 +65,14 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
     await page.setViewport({ width: 1280, height: 1000 });
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36');
 
-    // Se retira la interrupción de requests (imágenes/fuentes) para evitar que Cloudflare 
-    // detecte el headless bot y bloquee la página de la lista.
+    // Se cargan imágenes para no activar el anti-bot de Cloudflare
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
     
-    // Esperar a que carguen las tarjetas
+    // Esperar a que carguen los links de propiedad
     try {
-        await page.waitForSelector('div[class*="Card_container"], a.lnk-info', { timeout: 15000 });
+        await page.waitForSelector('a.lnk-info', { timeout: 15000 });
     } catch (e) {
-        console.log("⚠️ No se encontraron selectores estándar, esperando 5s...");
+        console.log("⚠️ No se encontró a.lnk-info, esperando 5s...");
         await new Promise(r => setTimeout(r, 5000));
     }
 
@@ -89,7 +88,7 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
         if (!url || url.indexOf('/propiedades/') === -1 || seenUrls.has(url)) continue;
         seenUrls.add(url);
 
-        // EXTRACCIÓN DE PRECIO (El a-tag anterior que contiene la foto y el precio)
+        // PRECIO: está en el <a> anterior (el de la foto) o en el padre
         let pUF = 0;
         let priceText = "";
         const prevA = linkEl.previousElementSibling as HTMLAnchorElement;
@@ -112,7 +111,7 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
 
         if (pUF <= 0 || pUF > 1000000) continue;
 
-        // EXTRACCIÓN DE CARACTERÍSTICAS (div siguiente)
+        // CARACTERÍSTICAS: texto del link + el div siguiente
         let innerText = linkEl.textContent || "";
         const nextDiv = linkEl.nextElementSibling;
         if (nextDiv) {
@@ -123,7 +122,7 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
         const bathMatch = innerText.match(/(\d+)\s*(?:baño|bath)/i);
         const m2Match = innerText.match(/(\d+(?:[.,]\d+)?)\s*m²/i);
 
-        // Limpieza de Título
+        // TÍTULO
         const h3 = linkEl.querySelector('h3, h2');
         let rawTitle = h3 ? h3.textContent?.trim() || '' : linkEl.textContent?.trim() || "Propiedad";
         let cleanTitle = rawTitle.split('\n')[0].replace(/Nuevo en venta/i, '').replace(/\|/g, '').trim();
@@ -143,7 +142,6 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
           url,
           type: pType,
           source: 'market_intel',
-          // Coordenadas con menor dispersión
           lat: cLat + (Math.random() - 0.5) * 0.002, 
           lng: cLng + (Math.random() - 0.5) * 0.002
         });
@@ -163,10 +161,6 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
 /**
  * FASE 2: Scraper Forense (Profundo al Click)
  * Se activa tras el interés del usuario en una propiedad específica.
- * Selectores de referencia: goyanedelv/toctoc-scrapper (Selenium)
- *   - precio: //div[contains(@class, 'precio-b') or contains(@class, 'precio-ficha')]
- *   - header: //h1[contains(@class, 'tt-ficha')]
- *   - specs:  //ul[contains(@class, 'info_ficha')]
  */
 export async function getTocTocPropertyDetail(url: string, currentUF: number = 37500): Promise<Partial<HousingProperty> | null> {
   console.log(`🔍 [FORENSE] Análisis profundo: ${url}`);
@@ -181,9 +175,9 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
     await new Promise(r => setTimeout(r, 3000));
 
-    // Click "Leer más" si existe (antes de evaluate para que el DOM se actualice)
+    // Click "Leer más" si existe
     try {
-      // @ts-ignore - puppeteer vs puppeteer-core type conflict
+      // @ts-ignore
       await page.evaluate(`
         (function() {
           var btn = document.querySelector('.btn-leermas');
@@ -201,8 +195,7 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
       await new Promise(r => setTimeout(r, 1500));
     } catch (_e) { /* no pasa nada */ }
 
-    // Extracción principal — TODO en un string de función para evitar __name
-    // @ts-ignore - puppeteer vs puppeteer-core type conflict
+    // @ts-ignore
     const detail = await page.evaluate(`
       (function() {
         var text = document.body.innerText || "";
@@ -218,18 +211,15 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
             break;
           }
         }
-        // Fallback 1: buscar header "Información adicional" y tomar nextSibling o parent text
         if (!description) {
           var headers = document.querySelectorAll('h2, h3, h4');
           for (var h = 0; h < headers.length; h++) {
             var hText = headers[h].innerText || '';
             if (hText.indexOf('nformaci') !== -1 && hText.indexOf('Contacto') === -1) {
-              // Tomar el siguiente hermano del header (donde suele estar la desc)
               var next = headers[h].nextElementSibling;
               if (next && next.innerText && next.innerText.trim().length > 30) {
                 description = next.innerText.trim();
               }
-              // Si no hay hermano, tomar el texto del padre sin el header
               if (!description) {
                 var parent = headers[h].parentElement;
                 if (parent) {
@@ -240,12 +230,11 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
             }
           }
         }
-        // Fallback 2: buscar en texto completo entre "Información adicional" y el siguiente header conocido
         if (!description) {
           var idx = text.indexOf('nformaci');
           if (idx > 0) {
             var chunk = text.substring(idx + 22, idx + 1500);
-            var cutIdx = chunk.search(/Contacto|Compartir|Denunciar|\\n\\n\\n/);
+            var cutIdx = chunk.search(/Contacto|Compartir|Denunciar/);
             if (cutIdx > 30) {
               description = chunk.substring(0, cutIdx).trim();
             } else if (chunk.length > 30) {
@@ -256,7 +245,6 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
 
         // === COORDENADAS ===
         var lat = 0, lng = 0;
-        // A. Google Maps link
         var gmLink = document.querySelector('a[href*="google.com/maps"]');
         if (gmLink) {
           var href = gmLink.href || gmLink.getAttribute('href') || "";
@@ -267,7 +255,6 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
             lng = parseFloat(cMatch[2]);
           }
         }
-        // B. Scripts internos
         if (lat === 0) {
           var scripts = document.querySelectorAll('script');
           for (var s = 0; s < scripts.length; s++) {
@@ -282,13 +269,35 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
           }
         }
 
-        // === ATRIBUTOS (usando texto plano — robusto) ===
-        var dormM = text.match(/(\\d+)\\s*dorm/i) || text.match(/(\\d+)\\s*Dorm/);
-        var bathM = text.match(/(\\d+)\\s*ba[ñn]o/i);
-        var dorms = dormM ? parseInt(dormM[1]) : 0;
-        var baths = bathM ? parseInt(bathM[1]) : 0;
+        // === DORMITORIOS y BAÑOS (navegando el DOM real) ===
+        // TocToc escribe: <h4>Dormitorios:</h4><strong>5</strong> dentro de ul.info_ficha o ul.f-programa
+        var dorms = 0, baths = 0;
+        var fichaEl = document.querySelector('ul.info_ficha, ul.f-programa');
+        if (fichaEl) {
+          var fichaItems = fichaEl.querySelectorAll('li');
+          for (var fi = 0; fi < fichaItems.length; fi++) {
+            var fTitle = fichaItems[fi].querySelector('h4, .f-programa-text h4');
+            var fValue = fichaItems[fi].querySelector('strong, .f-programa-text strong');
+            if (!fTitle || !fValue) continue;
+            var fTitleText = (fTitle.textContent || '').toLowerCase();
+            var fValueNum = parseInt((fValue.textContent || '').replace(/[^0-9]/g, '')) || 0;
+            if (fTitleText.indexOf('dorm') !== -1 || fTitleText.indexOf('hab') !== -1) {
+              dorms = fValueNum;
+            } else if (fTitleText.indexOf('ba') !== -1) {
+              baths = fValueNum;
+            }
+          }
+        }
+        if (dorms === 0) {
+          var dM = text.match(/Dormitorios[^0-9]*([0-9]+)/) || text.match(/([0-9]+)[^0-9]*[Dd]orm/);
+          if (dM) dorms = parseInt(dM[1]);
+        }
+        if (baths === 0) {
+          var bM = text.match(/Ba[nñ]os[^0-9]*([0-9]+)/) || text.match(/([0-9]+)[^0-9]*[Bb]a[nñ]o/);
+          if (bM) baths = parseInt(bM[1]);
+        }
 
-        // m2: priorizar "útil" o "construida" sobre "total"
+        // === M2 ===
         var m2UM = text.match(/(\\d+(?:[.,]\\d+)?)\\s*m.\\s*[uú]til/i) ||
                    text.match(/[uú]til[^\\d]*(\\d+(?:[.,]\\d+)?)/i) ||
                    text.match(/(\\d+(?:[.,]\\d+)?)\\s*m.\\s*construid/i);
@@ -297,37 +306,40 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
         var m2U = m2UM ? m2UM[1] : "";
         var m2T = m2TM ? m2TM[1] : "";
 
-        // === CONTACTO ===
-        var contactName = "";
-        var contactPhone = "";
-        var contactEmail = "";
-        var contactCompany = "";
-        var contactWhatsapp = "";
-        
-        // Bloque de contacto (el box lateral que vimos en la imagen)
-        var contactBox = document.querySelector('.cf-contacto, .box-contacto, [class*="contacto"], [class*="contact"]');
+        // === CONTACTO (textContent — no depende de renderizado CSS) ===
+        var contactName = "", contactPhone = "", contactEmail = "", contactCompany = "", contactWhatsapp = "";
+        var contactBox = document.querySelector('.cf-contacto');
         if (contactBox) {
-          var cText = contactBox.innerText || "";
-          // Teléfono
-          var phoneM = cText.match(/\\+?56\\s*9?\\s*[\\d\\s]{8,12}/) || cText.match(/\\d{4}\\s*\\d{4}/);
-          if (phoneM) contactPhone = phoneM[0].trim();
-          // Email
-          var emailM = cText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/);
-          if (emailM) contactEmail = emailM[0];
-          // Nombre empresa/corredor
-          var nameEl = contactBox.querySelector('[class*="nombre"], [class*="name"], strong, b');
-          if (nameEl) contactName = nameEl.innerText.trim();
+          var anuncItems = contactBox.querySelectorAll('ul.info-anunciante li');
+          for (var ai = 0; ai < anuncItems.length; ai++) {
+            var aiStrong = anuncItems[ai].querySelector('strong');
+            if (aiStrong) {
+              contactCompany = (aiStrong.textContent || '').trim();
+            } else {
+              var aiText = (anuncItems[ai].textContent || '').trim();
+              if (aiText && aiText.length > 2 && contactCompany && !contactCompany.includes(aiText)) {
+                contactCompany += ' ' + aiText;
+              }
+            }
+          }
+          contactCompany = contactCompany.trim();
+
+          var cUl = contactBox.querySelectorAll('ul > li');
+          for (var ci = 0; ci < cUl.length; ci++) {
+            var liText = (cUl[ci].textContent || '').trim();
+            var eM = liText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/);
+            if (eM && !contactEmail) contactEmail = eM[0];
+            var pM = liText.match(/\\+?56\\s*\\d[\\s\\d]{7,11}/) || liText.match(/\\d{4}\\s?\\d{4}/);
+            if (pM && !contactPhone) contactPhone = pM[0].replace(/\\s+/g, ' ').trim();
+          }
+
+          var waEl = contactBox.querySelector('a[href*="whatsapp"], a[href*="wa.me"]');
+          if (waEl) contactWhatsapp = waEl.href;
         }
-        
-        // WhatsApp link
-        var waLink = document.querySelector('a[href*="wa.me"], a[href*="whatsapp"]');
-        if (waLink) {
-          contactWhatsapp = waLink.href || waLink.getAttribute('href') || "";
+        if (!contactWhatsapp) {
+          var waGlobal = document.querySelector('a[href*="wa.me"], a[href*="whatsapp.com/send"]');
+          if (waGlobal) contactWhatsapp = waGlobal.href;
         }
-        
-        // Inmobiliaria/Anunciante
-        var anuncEl = document.querySelector('[class*="anunciante"], [class*="broker"], [class*="inmobiliaria"]');
-        if (anuncEl) contactCompany = anuncEl.innerText.trim();
 
         return {
           description: description.substring(0, 1500),
@@ -357,8 +369,6 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
     await browser.close();
   }
 }
-
-
 
 // Mantener compatibilidad con la firma anterior
 export async function getTocTocProperties(options: TocTocOptions): Promise<HousingProperty[]> {
