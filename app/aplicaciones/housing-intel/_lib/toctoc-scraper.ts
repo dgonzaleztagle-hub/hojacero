@@ -111,16 +111,42 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
 
         if (pUF <= 0 || pUF > 1000000) continue;
 
-        // CARACTERÍSTICAS: texto del link + el div siguiente
-        let innerText = linkEl.textContent || "";
-        const nextDiv = linkEl.nextElementSibling;
-        if (nextDiv) {
-            innerText += " " + (nextDiv.textContent || "");
+        // CARACTERÍSTICAS: leer data-* del li padre (es la fuente más confiable de TocToc)
+        const liParent = linkEl.closest('li');
+        let dormVal = 0, bathVal = 0, m2Val = 0;
+        
+        if (liParent) {
+          // Los atributos data-dormitorios1 y data-banos1 son el valor mínimo del rango
+          const d1 = parseInt(liParent.getAttribute('data-dormitorios1') || '0');
+          const d2 = parseInt(liParent.getAttribute('data-dormitorios2') || '0');
+          const b1 = parseInt(liParent.getAttribute('data-banos1') || '0');
+          const b2 = parseInt(liParent.getAttribute('data-banos2') || '0');
+          const s1 = parseFloat(liParent.getAttribute('data-superficie1') || '0');
+          const s2 = parseFloat(liParent.getAttribute('data-superficie2') || '0');
+          dormVal = d1 || d2;
+          bathVal = b1 || b2;
+          m2Val = s1 || s2;
         }
-
-        const dormMatch = innerText.match(/(\d+)\s*(?:dorm|hab)/i);
-        const bathMatch = innerText.match(/(\d+)\s*(?:baño|bath)/i);
-        const m2Match = innerText.match(/(\d+(?:[.,]\d+)?)\s*m²/i);
+        
+        // Fallback: texto del link + el div siguiente
+        if (!dormVal || !bathVal) {
+          let innerText = linkEl.textContent || "";
+          const nextDiv = linkEl.nextElementSibling;
+          if (nextDiv) innerText += " " + (nextDiv.textContent || "");
+          if (!dormVal) {
+            const dormMatch = innerText.match(/(\d+)\s*(?:dorm|hab)/i);
+            if (dormMatch) dormVal = parseInt(dormMatch[1]);
+          }
+          if (!bathVal) {
+            const bathMatch = innerText.match(/(\d+)\s*(?:baño|bath)/i);
+            if (bathMatch) bathVal = parseInt(bathMatch[1]);
+          }
+        }
+        if (!m2Val) {
+          let innerText = linkEl.textContent || "";
+          const m2Match = innerText.match(/(\d+(?:[.,]\d+)?)\s*m²/i);
+          if (m2Match) m2Val = parseFloat(m2Match[1].replace(',', '.'));
+        }
 
         // TÍTULO
         const h3 = linkEl.querySelector('h3, h2');
@@ -133,12 +159,12 @@ export async function getTocTocPropertiesList(options: TocTocOptions): Promise<H
           location: cleanTitle,
           price_uf: pUF,
           price_display: `UF ${pUF.toLocaleString('es-CL')}`,
-          bedrooms: dormMatch ? parseInt(dormMatch[1]) : 0,
-          bedrooms_display: dormMatch ? dormMatch[0] : "---",
-          bathrooms: bathMatch ? parseInt(bathMatch[1]) : 0,
-          bathrooms_display: bathMatch ? bathMatch[0] : "---",
-          m2_total: m2Match ? parseFloat(m2Match[1].replace(',', '.')) : 0,
-          m2_display: m2Match ? m2Match[0] : "--- m²",
+          bedrooms: dormVal,
+          bedrooms_display: dormVal ? `${dormVal} Dorm.` : "---",
+          bathrooms: bathVal,
+          bathrooms_display: bathVal ? `${bathVal} Baños` : "---",
+          m2_total: m2Val,
+          m2_display: m2Val ? `${m2Val} m²` : "--- m²",
           url,
           type: pType,
           source: 'market_intel',
@@ -174,6 +200,22 @@ export async function getTocTocPropertyDetail(url: string, currentUF: number = 3
     
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
     await new Promise(r => setTimeout(r, 3000));
+
+    // Detectar si la propiedad ya no está disponible
+    // @ts-ignore
+    const isUnavailable = await page.evaluate(`
+      (function() {
+        var body = document.body.innerText || "";
+        return body.indexOf('ya no se encuentra disponible') !== -1 ||
+               body.indexOf('propiedad fue eliminada') !== -1 ||
+               body.indexOf('no existe') !== -1 ||
+               !document.querySelector('h1');
+      })()
+    `);
+    if (isUnavailable) {
+      console.log('⚠️ [FORENSE] Propiedad no disponible, saltando...');
+      return null;
+    }
 
     // Click "Leer más" si existe
     try {
