@@ -19,7 +19,14 @@ export interface HousingProperty {
   bedrooms_display?: string;
   bathrooms_display?: string;
   m2_terreno_display?: string;
-  source: 'toctoc' | 'portal_inmobiliario' | 'sii';
+  // Contacto del anunciante
+  contact_name?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  contact_company?: string;
+  contact_whatsapp?: string;
+  // Source genérico (no revelar fuente real)
+  source: 'market_intel' | 'valuation' | 'sii';
   type: 'casa' | 'departamento' | 'terreno';
   last_seen?: Date;
 }

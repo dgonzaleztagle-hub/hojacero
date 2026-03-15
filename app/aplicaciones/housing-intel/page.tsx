@@ -111,44 +111,46 @@ export default function HousingIntelligenceDashboard() {
 
       {/* Main Search */}
       <div className="max-w-4xl mx-auto mb-16">
-        <form onSubmit={(e) => handleSearch(e)} className="relative group">
-          <input
-            type="text"
-            placeholder="Ingrese dirección para tasar (Ej: Brasil 121, Santiago)..."
-            className="w-full bg-zinc-900/80 border border-zinc-800 rounded-2xl h-16 px-6 pl-14 pr-64 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors" />
+        <form onSubmit={(e) => handleSearch(e)} className="relative group flex flex-col md:block gap-3">
+          <div className="relative w-full">
+              <input
+                type="text"
+                placeholder="Ingrese dirección (Ej: Brasil 121, Santiago)..."
+                className="w-full bg-zinc-900/80 border border-zinc-800 rounded-2xl h-14 md:h-16 px-6 pl-12 md:pl-14 pr-4 md:pr-72 text-sm md:text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+              <Search className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-blue-400 transition-colors w-5 h-5 md:w-6 md:h-6" />
+          </div>
           
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <div className="flex md:absolute right-2 top-1/2 md:-translate-y-1/2 items-center justify-between md:justify-end gap-2 w-full md:w-auto mt-3 md:mt-0">
             <select 
                 value={radius} 
                 onChange={(e) => setRadius(parseInt(e.target.value))}
-                className="bg-zinc-800 border-none rounded-xl px-3 py-2 text-xs font-semibold text-zinc-300 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                className="bg-zinc-800 border-none rounded-xl px-3 py-2.5 md:py-2 text-xs font-semibold text-zinc-300 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer flex-1 md:flex-none"
             >
-                <option value={500}>500m</option>
-                <option value={1000}>1km</option>
-                <option value={2000}>2km</option>
-                <option value={5000}>5km</option>
+                <option value={500}>R: 500m</option>
+                <option value={1000}>R: 1km</option>
+                <option value={2000}>R: 2km</option>
+                <option value={5000}>R: 5km</option>
             </select>
 
             <button
                 type="submit"
                 disabled={loading}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 relative overflow-hidden group"
+                className="bg-blue-600 hover:bg-blue-500 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 relative overflow-hidden group flex-[2] md:flex-none"
             >
                 {loading && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]"></div>}
                 
                 {loading ? (
                     <>
                         <Zap className="animate-pulse text-yellow-300 w-4 h-4 relative z-10" />
-                        <span className="relative z-10 text-sm">Escaneando en Vivo...</span>
+                        <span className="relative z-10 text-xs md:text-sm">Escaneando...</span>
                     </>
                 ) : (
                     <>
                         <Search className="w-4 h-4" />
-                        <span>Escaneo en Vivo</span>
+                        <span className="text-xs md:text-sm">Escaneo H0</span>
                     </>
                 )}
             </button>
@@ -248,7 +250,7 @@ export default function HousingIntelligenceDashboard() {
                 
                 <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    Mapbox Static Engine
+                    H0 Satellite
                 </div>
               </div>
 
@@ -292,7 +294,7 @@ export default function HousingIntelligenceDashboard() {
                               <div className="flex items-center gap-3 text-zinc-500 text-[11px]">
                                   <span className="bg-zinc-800 px-2 py-0.5 rounded-md">{p.m2_total || 0} m²</span>
                                   <span>{p.bedrooms || 0}D {p.bathrooms || 0}B</span>
-                                  <span className="text-zinc-600">toctoc</span>
+                                  <span className="text-zinc-600">H0 Intel</span>
                               </div>
                           </div>
                           ))
@@ -314,7 +316,7 @@ export default function HousingIntelligenceDashboard() {
                     
                     <div className="flex flex-col md:flex-row gap-8">
                         <div className="w-full md:w-1/2">
-                            {/* MAPA / VISTA SATELITAL (SOLUCIÓN FALLO GOOGLE) */}
+                            {/* VISTA SATELITAL H0 */}
                             <div className="aspect-video bg-zinc-800 rounded-2xl overflow-hidden border border-zinc-700 shadow-2xl group relative">
                                 {selectedProperty.static_map_url ? (
                                     <img 
@@ -323,18 +325,14 @@ export default function HousingIntelligenceDashboard() {
                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                     />
                                 ) : (
-                                    <iframe
-                                        width="100%"
-                                        height="100%"
-                                        style={{ border: 0 }}
-                                        loading="lazy"
-                                        allowFullScreen
-                                        src={`https://www.google.com/maps/embed/v1/streetview?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&location=${selectedProperty.lat},${selectedProperty.lng}&heading=210&pitch=10&fov=80`}
-                                    ></iframe>
+                                    <div className="w-full h-full flex flex-col items-center justify-center">
+                                        <MapPin className="text-blue-400 w-10 h-10 mb-3 opacity-50" />
+                                        <p className="text-zinc-500 text-xs">Cargando vista satelital...</p>
+                                    </div>
                                 )}
                                 <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                                    <div className={`w-2 h-2 ${selectedProperty.static_map_url ? 'bg-blue-500' : 'bg-red-500 animate-pulse'} rounded-full`}></div>
-                                    {selectedProperty.static_map_url ? 'Vista Satelital H0' : 'Live Street View'}
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    Vista Satelital H0
                                 </div>
                             </div>
                         </div>
@@ -398,13 +396,43 @@ export default function HousingIntelligenceDashboard() {
                                         )}
                                     </div>
 
-                                    <a 
-                                        href={selectedProperty.url} 
-                                        target="_blank"
-                                        className="block w-full bg-blue-600 hover:bg-blue-500 text-white text-center py-4 rounded-2xl font-bold transition-all mt-8"
-                                    >
-                                        Ver Publicación Original
-                                    </a>
+                                    {/* Contacto del Anunciante */}
+                                    {(selectedProperty.contact_phone || selectedProperty.contact_email || selectedProperty.contact_company) && (
+                                        <div className="mt-6 p-4 bg-zinc-800/50 border border-zinc-700/50 rounded-2xl space-y-2">
+                                            <h4 className="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">Contacto Anunciante</h4>
+                                            {selectedProperty.contact_company && (
+                                                <p className="text-zinc-200 text-sm font-semibold">{selectedProperty.contact_company}</p>
+                                            )}
+                                            {selectedProperty.contact_name && (
+                                                <p className="text-zinc-400 text-xs">{selectedProperty.contact_name}</p>
+                                            )}
+                                            {selectedProperty.contact_phone && (
+                                                <p className="text-blue-400 text-sm">📞 {selectedProperty.contact_phone}</p>
+                                            )}
+                                            {selectedProperty.contact_email && (
+                                                <p className="text-zinc-400 text-xs">✉️ {selectedProperty.contact_email}</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-3 mt-6">
+                                        {selectedProperty.contact_whatsapp ? (
+                                            <a 
+                                                href={selectedProperty.contact_whatsapp} 
+                                                target="_blank"
+                                                className="flex-1 bg-green-600 hover:bg-green-500 text-white text-center py-3 rounded-2xl font-bold transition-all text-sm"
+                                            >
+                                                WhatsApp Directo
+                                            </a>
+                                        ) : null}
+                                        <a 
+                                            href={selectedProperty.url} 
+                                            target="_blank"
+                                            className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white text-center py-3 rounded-2xl font-bold transition-all text-sm"
+                                        >
+                                            Ver Detalle Completo
+                                        </a>
+                                    </div>
                                 </>
                             )}
                         </div>

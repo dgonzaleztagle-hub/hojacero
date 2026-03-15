@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       COMUNA: ${geo.comuna}
       GSE: ${gse.gse} (${gse.descripcion})
       
-      DATOS DE MERCADO (TOCTOC):
+      DATOS DE MERCADO INMOBILIARIO:
       ${JSON.stringify(residentialData.slice(0, 10), null, 2)}
       
       DATOS DE ENTORNO COMERCIAL (H0 RADAR):
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
       OBJETIVO:
       1. Caracteriza el "vibe" del barrio (¿Es residencial consolidado? ¿En renovación? ¿Comercial ruidoso?).
       2. Calcula un "Housing Score" (1-100) basado en calidad de vida (proximidad a servicios vs ruido/tráfico).
-      3. Analiza si los precios de TOCTOC están justificados por el entorno comercial.
+      3. Analiza si los precios del mercado están justificados por el entorno comercial.
       
       Responde ÚNICAMENTE en JSON con esta estructura:
       {

@@ -76,7 +76,7 @@ export async function extractPropertyDetails(url: string): Promise<Partial<Housi
             bathrooms: data.bathrooms,
             m2_total: data.m2_total,
             url: url,
-            source: 'toctoc',
+            source: 'market_intel',
             type: 'casa' // Default por ahora
         };
 
